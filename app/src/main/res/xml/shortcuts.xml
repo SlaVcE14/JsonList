@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <shortcut
+        android:shortcutId="open_cart"
+        android:enabled="true"
+        android:icon="@mipmap/ic_open_file"
+
+        android:shortcutShortLabel="@string/open_file"
+        >
+        <intent
+            android:action="android.intent.action.OPEN_FILE"
+            android:targetPackage="com.sjapps.jsonlist"
+            android:targetClass="com.sjapps.jsonlist.MainActivity" />
+    </shortcut>
+    <!-- Specify more shortcuts here. -->
+</shortcuts>

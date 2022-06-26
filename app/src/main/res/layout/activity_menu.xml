@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    >
+
+    <LinearLayout
+        android:layout_width="180dp"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:orientation="vertical"
+        android:background="@drawable/background"
+        android:layout_marginHorizontal="10dp"
+        android:showDividers="middle"
+        android:divider="?android:listDivider"
+        android:dividerPadding="15dp"
+        >
+        <TextView
+            android:id="@+id/openFileBtn2"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:textSize="15dp"
+            android:gravity="center|left"
+            android:paddingVertical="10dp"
+
+            android:paddingHorizontal="20dp"
+            android:background="@drawable/ripple_list2"
+            android:text="Open file"/>
+        <TextView
+            android:id="@+id/aboutBtn"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:textSize="15dp"
+            android:gravity="center|left"
+            android:paddingVertical="10dp"
+
+            android:paddingHorizontal="20dp"
+            android:background="@drawable/ripple_list2"
+            android:text="About"/>
+
+    </LinearLayout>
+
+</RelativeLayout>

@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">Json List</string>
+    <string name="open_file">Open file</string>
+</resources>

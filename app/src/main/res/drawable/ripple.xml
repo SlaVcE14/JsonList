@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ripple xmlns:android="http://schemas.android.com/apk/res/android"
+    android:color="@color/BtnClick">
+    <item android:id="@+id/mask">
+
+        <shape xmlns:android="http://schemas.android.com/apk/res/android">
+            <solid android:color="?android:colorBackground"/>
+            <corners android:radius="20dp"/>
+
+        </shape>
+    </item>
+
+
+</ripple>
