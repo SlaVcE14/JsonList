@@ -1,11 +1,14 @@
 package com.sjapps.adapters;
 
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.sjapps.jsonlist.ListItem;
 import com.sjapps.jsonlist.MainActivity;
@@ -19,6 +22,7 @@ public class ListAdapter extends BaseAdapter {
     Context context;
     MainActivity activity;
     String path;
+    public int selectedItem = -1;
 
     public ListAdapter(ArrayList<ListItem> list, Context context,String path){
         this.list = list;
@@ -67,11 +71,22 @@ public class ListAdapter extends BaseAdapter {
             TextView titleTxt = view.findViewById(R.id.itemName);
             titleTxt.setText(item.getName());
 
-            view.findViewById(R.id.btn).setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    activity.open(item.getName(),path + (path.equals("") ? "":"///") + item.getName());
-                }
+            if (selectedItem == position){
+                view.findViewById(R.id.copyBtn).setVisibility(View.VISIBLE);
+            }
+            view.findViewById(R.id.btn).setOnClickListener(view1 -> activity.open(item.getName(),path + (path.equals("") ? "":"///") + item.getName()));
+            view.findViewById(R.id.copyBtn).setOnClickListener(v -> {
+                ClipboardManager clipboard = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
+                    ClipData clipData = ClipData.newPlainText("Text",item.getName());
+                    clipboard.setPrimaryClip(clipData);
+                    Toast.makeText(v.getContext(),"Copied to clipboard",Toast.LENGTH_SHORT).show();
+                    selectedItem = -1;
+                    notifyDataSetChanged();
+            });
+            view.findViewById(R.id.btn).setOnLongClickListener(v -> {
+                selectedItem = position;
+                notifyDataSetChanged();
+                return true;
             });
             return view;
 

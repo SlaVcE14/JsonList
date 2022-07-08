@@ -23,6 +23,8 @@
             android:layout_marginEnd="10dp"
             android:layout_marginBottom="10dp"
             android:textStyle="bold"
+            android:textIsSelectable="true"
+            android:longClickable="true"
             android:text="Item"
             android:textSize="25dp" />
 
@@ -31,11 +33,12 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_below="@+id/itemName"
-            android:text="Item"
-            android:textSize="20dp"
             android:layout_marginHorizontal="10dp"
             android:layout_marginBottom="10dp"
-            />
+            android:textIsSelectable="true"
+            android:longClickable="true"
+            android:text="Item"
+            android:textSize="20dp" />
 
     </RelativeLayout>
 

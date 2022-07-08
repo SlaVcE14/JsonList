@@ -5,6 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".MainActivity"
+    android:animateLayoutChanges="true"
     android:id="@+id/content"
     >
 
@@ -30,6 +31,7 @@
             android:layout_height="wrap_content"
             android:layout_centerVertical="true"
             android:layout_marginVertical="15dp"
+            android:layout_marginStart="15dp"
             android:layout_toStartOf="@+id/menuBtn"
             android:layout_toEndOf="@+id/backBtn"
             android:autoSizeMaxTextSize="30sp"
@@ -39,10 +41,9 @@
             android:gravity="center_vertical"
             android:maxLines="1"
             android:text=""
+            android:textIsSelectable="true"
             android:textSize="20dp"
-            android:textStyle="bold"
-            android:layout_marginStart="15dp"
-            />
+            android:textStyle="bold" />
 
         <ImageButton
             android:id="@+id/menuBtn"

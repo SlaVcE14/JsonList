@@ -142,6 +142,13 @@ public class MainActivity extends AppCompatActivity {
             open_closeMenu();
             return;
         }
+
+        if (adapter.selectedItem != -1){
+            adapter.selectedItem = -1;
+            adapter.notifyDataSetChanged();
+            return;
+        }
+
         if(path.equals("")){
             SetupDialog dialog = new SetupDialog();
             String Title = "Exit?";
@@ -152,12 +159,12 @@ public class MainActivity extends AppCompatActivity {
                         public void onButtonClick() {
                             finish();
                         }
-                    });
+                    }).show();
             return;
         }
 
 
-        transitionManager.beginDelayedTransition(viewGroup,autoTransition);
+        TransitionManager.beginDelayedTransition(viewGroup,autoTransition);
 
 
 
@@ -177,9 +184,6 @@ public class MainActivity extends AppCompatActivity {
         if(path.equals("")) {
             backBtn.setVisibility(View.GONE);
         }
-
-
-
     }
 
     private void initialize(){
@@ -452,6 +456,7 @@ public class MainActivity extends AppCompatActivity {
         intent.setType("application/json");
         ActivityResultData.launch(intent);
     }
+
 
     ActivityResultLauncher<Intent> ActivityResultData = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
