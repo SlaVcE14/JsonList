@@ -26,6 +26,7 @@
             android:maxLines="1"
             android:gravity="center|left"
             android:layout_marginHorizontal="20dp"
+            android:textColor="?colorOnSurfaceVariant"
             android:text="Name"
 
             />
@@ -43,6 +44,7 @@
             android:layout_weight="1"
             android:maxLines="1"
             android:layout_marginRight="20dp"
+            android:textColor="?colorOnSurfaceVariant"
             android:text="value"
 
             />

@@ -25,6 +25,7 @@
             android:textStyle="bold"
             android:textIsSelectable="true"
             android:longClickable="true"
+            android:textColor="?colorOnSurfaceVariant"
             android:text="Item"
             android:textSize="25dp" />
 
@@ -37,6 +38,7 @@
             android:layout_marginBottom="10dp"
             android:textIsSelectable="true"
             android:longClickable="true"
+            android:textColor="?colorOnSurfaceVariant"
             android:text="Item"
             android:textSize="20dp" />
 
