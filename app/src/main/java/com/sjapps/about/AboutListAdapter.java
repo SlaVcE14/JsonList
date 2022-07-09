@@ -3,10 +3,18 @@ package com.sjapps.about;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.widget.CheckBox;
+import android.widget.LinearLayout;
 import android.widget.TextView;
+
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+
+
 import com.sjapps.jsonlist.R;
+
 import java.util.ArrayList;
 
 public class AboutListAdapter extends RecyclerView.Adapter<AboutListAdapter.ViewHolder> {
@@ -15,11 +23,12 @@ public class AboutListAdapter extends RecyclerView.Adapter<AboutListAdapter.View
 
     public static class ViewHolder extends RecyclerView.ViewHolder{
         private final TextView NameTxt, ValueTxt;
-
+        LinearLayout layout;
         public ViewHolder(View itemView) {
             super(itemView);
             NameTxt = itemView.findViewById(R.id.NameTxt);
             ValueTxt = itemView.findViewById(R.id.ValueTxt);
+            layout = itemView.findViewById(R.id.layoutItem);
         }
 
         public TextView getNameTxt(){
@@ -28,6 +37,13 @@ public class AboutListAdapter extends RecyclerView.Adapter<AboutListAdapter.View
         public TextView getValueTxt(){
             return ValueTxt;
         }
+        public LinearLayout getLayout(){
+            return layout;
+        }
+        public View getView(){
+            return itemView;
+        }
+
     }
 
     public AboutListAdapter(ArrayList<AboutListItem> items) {
@@ -45,6 +61,10 @@ public class AboutListAdapter extends RecyclerView.Adapter<AboutListAdapter.View
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         holder.getNameTxt().setText(Items.get(position).getItemName());
         holder.getValueTxt().setText(Items.get(position).getItemValue());
+        View.OnClickListener onClickListener = Items.get(position).getOnClickListener();
+        if (onClickListener != null){
+            holder.getLayout().setOnClickListener(onClickListener);
+        }
 
     }
 

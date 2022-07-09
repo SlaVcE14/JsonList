@@ -6,6 +6,7 @@
     android:orientation="horizontal">
 
     <LinearLayout
+        android:id="@+id/layoutItem"
         android:background="@drawable/ripple_list2"
         android:clipChildren="true"
         android:layout_width="match_parent"

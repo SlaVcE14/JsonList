@@ -12,11 +12,11 @@
         android:layout_height="40dp"
         android:layout_marginStart="20dp"
         android:layout_marginTop="20dp"
+        android:contentDescription="@string/back"
         android:background="@drawable/ripple"
-        android:src="@drawable/ic_back"
-        android:text="Back"
         android:onClick="Back"
-        />
+        android:src="@drawable/ic_back"
+        android:text="Back" />
 
     <TextView
         android:id="@+id/TitleText"
@@ -27,43 +27,75 @@
         android:layout_marginTop="20dp"
         android:layout_toEndOf="@+id/BackBtn"
         android:text="About"
+        android:textColor="?colorOnBackground"
         android:textSize="30sp" />
     <androidx.core.widget.NestedScrollView
+        android:id="@+id/nestedList"
         android:layout_width="600dp"
         android:layout_height="wrap_content"
         android:layout_below="@+id/BackBtn"
+        android:layout_marginTop="10dp"
         android:layout_centerHorizontal="true"
+
         >
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
             >
-
             <ImageView
                 android:id="@+id/logo"
                 android:layout_width="80dp"
                 android:layout_height="80dp"
                 android:layout_centerHorizontal="true" />
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/aboutList"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_centerHorizontal="true"
-                android:layout_below="@+id/logo"
-                android:layout_marginTop="10dp"
-                />
-            <Button
-                android:id="@+id/updateBtn"
-                android:layout_below="@+id/aboutList"
+            <RelativeLayout
+                android:id="@+id/list"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_below="@+id/logo"
+                >
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/aboutList"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_centerHorizontal="true"
+
+                    android:layout_marginTop="10dp" />
+
+                <TextView
+                    android:id="@+id/LibrariesTxt"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@id/aboutList"
+                    android:layout_marginHorizontal="20dp"
+                    android:layout_marginTop="20dp"
+
+                    android:layout_marginBottom="5dp"
+                    android:text="Libraries"
+                    android:textSize="25sp" />
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/LibrariesList"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@+id/LibrariesTxt"
+                    android:layout_centerHorizontal="true"
+
+                    />
+
+            </RelativeLayout>
+
+
+            <Button
+                android:id="@+id/updateBtn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/list"
                 android:layout_centerHorizontal="true"
                 android:layout_marginVertical="20dp"
-                android:text="Check for update"
                 android:onClick="CheckForUpdate"
-                android:visibility="gone"
-                />
+                android:text="Check for update"
+                android:visibility="gone" />
         </RelativeLayout>
 
 
