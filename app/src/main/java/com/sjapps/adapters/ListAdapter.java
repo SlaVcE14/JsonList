@@ -64,8 +64,7 @@ public class ListAdapter extends BaseAdapter {
 
         ListItem item = list.get(position);
         if(item.isSpace()) {
-            View view = LayoutInflater.from(context).inflate(R.layout.space_layout, parent, false);
-            return view;
+            return LayoutInflater.from(context).inflate(R.layout.space_layout, parent, false);
         }
         if (item.isArrayOfObjects() || item.isObject()) {
 
