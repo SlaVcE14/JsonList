@@ -31,7 +31,6 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.sjapps.about.AboutActivity;
 import com.sjapps.adapters.ListAdapter;
-import com.sjapps.library.customdialog.DialogButtonEvent;
 import com.sjapps.library.customdialog.SetupDialog;
 
 import java.util.ArrayList;
@@ -54,7 +53,6 @@ public class MainActivity extends AppCompatActivity {
     View menu, dim_bg;
     ViewGroup viewGroup;
     AutoTransition autoTransition = new AutoTransition();
-    TransitionManager transitionManager = new TransitionManager();
     Handler handler = new Handler();
 
     @Override
@@ -71,46 +69,20 @@ public class MainActivity extends AppCompatActivity {
         initialize();
         autoTransition.setDuration(150);
 
-        menuBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                open_closeMenu();
-            }
-        });
+        menuBtn.setOnClickListener(view -> open_closeMenu());
 
-        backBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                onBackPressed();
-            }
-        });
-        openFileBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                ImportFromFile();
-            }
-        });
+        backBtn.setOnClickListener(view -> onBackPressed());
+        openFileBtn.setOnClickListener(view -> ImportFromFile());
 
-        menu.findViewById(R.id.openFileBtn2).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                ImportFromFile();
-                open_closeMenu();
-            }
+        menu.findViewById(R.id.openFileBtn2).setOnClickListener(view -> {
+            ImportFromFile();
+            open_closeMenu();
         });
-        menu.findViewById(R.id.aboutBtn).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                OpenAbout();
-                open_closeMenu();
-            }
+        menu.findViewById(R.id.aboutBtn).setOnClickListener(view -> {
+            OpenAbout();
+            open_closeMenu();
         });
-        dim_bg.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                open_closeMenu();
-            }
-        });
+        dim_bg.setOnClickListener(view -> open_closeMenu());
 
 
         Intent intent  = getIntent();
@@ -154,12 +126,7 @@ public class MainActivity extends AppCompatActivity {
             String Title = "Exit?";
             String btn2Txt = "Yes";
             dialog.Short(this,Title,btn2Txt)
-                    .onButtonClick(new DialogButtonEvent() {
-                        @Override
-                        public void onButtonClick() {
-                            finish();
-                        }
-                    }).show();
+                    .onButtonClick(() -> finish()).show();
             return;
         }
 
@@ -226,77 +193,56 @@ public class MainActivity extends AppCompatActivity {
 
         progressBar.setVisibility(View.VISIBLE);
 
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                ArrayList<ListItem> temp = rootList;
-                JsonElement element = null;
-                try {
-                    element = JsonParser.parseString(Data);
+        new Thread(() -> {
+            ArrayList<ListItem> temp = rootList;
+            JsonElement element = null;
+            try {
+                element = JsonParser.parseString(Data);
 
-                }catch (OutOfMemoryError | Exception e){
-                    e.printStackTrace();
-                    handler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            Toast.makeText(MainActivity.this, "File is to big", Toast.LENGTH_SHORT).show();
-                            progressBar.setVisibility(View.GONE);
-                        }
+            }catch (OutOfMemoryError | Exception e){
+                e.printStackTrace();
+                handler.post(() -> {
+                    Toast.makeText(MainActivity.this, "File is to big", Toast.LENGTH_SHORT).show();
+                    progressBar.setVisibility(View.GONE);
+                });
+                return;
+            }
+            if (element == null){
+                handler.post(() -> {
+                    Toast.makeText(MainActivity.this, "Filed to load file!", Toast.LENGTH_SHORT).show();
+                    progressBar.setVisibility(View.GONE);
+                });
+                return;
+            }
 
-                    });
-                    return;
-                }
-                if (element == null){
-                    handler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            Toast.makeText(MainActivity.this, "Filed to load file!", Toast.LENGTH_SHORT).show();
-                            progressBar.setVisibility(View.GONE);
-                        }
-                    });
-                    return;
-                }
+            if (element instanceof JsonObject){
+                Log.d(TAG, "run: Json object");
+                JsonObject object = FileSystem.loadDataToJsonObj(element);
+                Log.d(TAG, "LoadData: " + object);
+                rootList = getJsonObject(object);
+            }
+            if (element instanceof JsonArray){
+                Log.d(TAG, "run: Json array");
+                JsonArray array = FileSystem.loadDataToJsonArray(element);
+                Log.d(TAG, "LoadData: " + array);
+                rootList = getJsonArrayRoot(array);
+            }
 
-                if (element instanceof JsonObject){
-                    Log.d(TAG, "run: Json object");
-                    JsonObject object = FileSystem.loadDataToJsonObj(element);
-                    Log.d(TAG, "LoadData: " + object);
-                    rootList = getJsonObject(object);
-                }
-                if (element instanceof JsonArray){
-                    Log.d(TAG, "run: Json array");
-                    JsonArray array = FileSystem.loadDataToJsonArray(element);
-                    Log.d(TAG, "LoadData: " + array);
-                    rootList = getJsonArrayRoot(array);
-                }
-
-
-
-//                Log.d(TAG, "LoadData: " + rootList);
-                if (rootList != null) {
-                    handler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            transitionManager.beginDelayedTransition(viewGroup,autoTransition);
-                            adapter = new ListAdapter(rootList, MainActivity.this, "");
-                            list.setAdapter(adapter);
-                            openFileBtn.setVisibility(View.GONE);
-                            backBtn.setVisibility(View.GONE);
-                            titleTxt.setText("");
-                            path = "";
-                        }
-                    });
-
-                }else rootList = temp;
-
-                handler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        progressBar.setVisibility(View.GONE);
-                    }
+            if (rootList != null) {
+                handler.post(() -> {
+                    TransitionManager.beginDelayedTransition(viewGroup,autoTransition);
+                    adapter = new ListAdapter(rootList, MainActivity.this, "");
+                    list.setAdapter(adapter);
+                    openFileBtn.setVisibility(View.GONE);
+                    backBtn.setVisibility(View.GONE);
+                    titleTxt.setText("");
+                    path = "";
                 });
 
-            }
+            }else rootList = temp;
+
+            handler.post(() -> progressBar.setVisibility(View.GONE));
+
         }).start();
 
 
@@ -347,7 +293,6 @@ public class MainActivity extends AppCompatActivity {
 
 
             for (Object o : keysArray) {
-                //System.out.println(o.toString() + " " + obj.get(o));
                 ListItem item = new ListItem();
                 item.setName(o.toString());
 
@@ -377,12 +322,7 @@ public class MainActivity extends AppCompatActivity {
             }
         }catch (Exception e){
             Log.e(TAG, "getJsonObject: Failed to load data");
-            handler.post(new Runnable() {
-                @Override
-                public void run() {
-                    Toast.makeText(MainActivity.this, "Failed to load data!", Toast.LENGTH_SHORT).show();
-                }
-            });
+            handler.post(() -> Toast.makeText(MainActivity.this, "Failed to load data!", Toast.LENGTH_SHORT).show());
             return null;
         }
         return Mainlist;
@@ -392,15 +332,11 @@ public class MainActivity extends AppCompatActivity {
     ArrayList<ListItem> getArrayList(ArrayList<ArrayList<ListItem>> list){
         ArrayList<ListItem> newList = new ArrayList<>();
         for(ArrayList<ListItem> lists : list) {
-            for(ListItem item : lists) {
-                newList.add(item);
-
-            }
+            newList.addAll(lists);
             newList.add(new ListItem().Space());
         }
         return newList;
     }
-
     ArrayList<ListItem> getListFromPath(){
 
 
@@ -408,15 +344,15 @@ public class MainActivity extends AppCompatActivity {
 
         ArrayList<ListItem> list = rootList;
 
-        for (int i = 0 ; i< pathStrings.length; i++) {
+        for (String pathString : pathStrings) {
 
-            for(ListItem item : list) {
+            for (ListItem item : list) {
 
-                if (item.getName() != null && item.getName().equals(pathStrings[i])) {
+                if (item.getName() != null && item.getName().equals(pathString)) {
 
-                    if(item.isArrayOfObjects()) {
+                    if (item.isArrayOfObjects()) {
                         list = getArrayList(item.getListObjects());
-                    }else
+                    } else
                         list = list.get(list.indexOf(item)).getObjects();
                     break;
                 }
@@ -427,7 +363,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void open(String Title,String path) {
-        transitionManager.beginDelayedTransition(viewGroup,autoTransition);
+        TransitionManager.beginDelayedTransition(viewGroup,autoTransition);
 
         if (isMenuOpen)
             open_closeMenu();
@@ -470,25 +406,19 @@ public class MainActivity extends AppCompatActivity {
                             Uri uri = result.getData().getData();
                             progressBar.setVisibility(View.VISIBLE);
                             loadingFileTxt.setVisibility(View.VISIBLE);
-                            new Thread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    String Data = FileSystem.LoadDataFromFile(MainActivity.this, uri);
+                            new Thread(() -> {
+                                String Data = FileSystem.LoadDataFromFile(MainActivity.this, uri);
 
-                                    if (Data == null) {
-                                        Log.d(TAG, "onActivityResult: null data");
-                                        return;
-                                    }
-                                    handler.post(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            progressBar.setVisibility(View.GONE);
-                                            loadingFileTxt.setVisibility(View.GONE);
-                                            LoadData(Data);
-                                        }
-                                    });
-
+                                if (Data == null) {
+                                    Log.d(TAG, "onActivityResult: null data");
+                                    return;
                                 }
+                                handler.post(() -> {
+                                    progressBar.setVisibility(View.GONE);
+                                    loadingFileTxt.setVisibility(View.GONE);
+                                    LoadData(Data);
+                                });
+
                             }).start();
 
                         }
