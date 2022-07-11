@@ -126,7 +126,7 @@ public class MainActivity extends AppCompatActivity {
             String Title = "Exit?";
             String btn2Txt = "Yes";
             dialog.Short(this,Title,btn2Txt)
-                    .onButtonClick(() -> finish()).show();
+                    .onButtonClick(this::finish).show();
             return;
         }
 
