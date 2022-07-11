@@ -33,6 +33,8 @@ public class ListAdapter extends BaseAdapter {
 
     @Override
     public int getCount() {
+        if (list == null)
+            return 0;
 
         if (list.size() == 0)
             return 0;
