@@ -416,8 +416,11 @@ public class MainActivity extends AppCompatActivity {
 
                     if(item.isArrayOfObjects()) {
                         list = getArrayList(item.getListObjects());
-                    }else
-                        list = list.get(list.indexOf(item)).getObjects();
+                        break;
+                    }
+                    list = list.get(list.indexOf(item)).getObjects();
+                    if (list == null)
+                        list = new ArrayList<>();
                     break;
                 }
             }
