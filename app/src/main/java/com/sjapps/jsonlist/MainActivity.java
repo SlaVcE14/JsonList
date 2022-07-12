@@ -69,7 +69,6 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         initialize();
         autoTransition.setDuration(150);
-
         menuBtn.setOnClickListener(view -> open_closeMenu());
 
         backBtn.setOnClickListener(view -> onBackPressed());
@@ -152,11 +151,6 @@ public class MainActivity extends AppCompatActivity {
         if(path.equals("")) {
             backBtn.setVisibility(View.GONE);
         }
-    }
-
-    @Override
-    public void onConfigurationChanged(@NonNull Configuration newConfig) {
-        super.onConfigurationChanged(newConfig);
     }
 
     private void initialize(){
