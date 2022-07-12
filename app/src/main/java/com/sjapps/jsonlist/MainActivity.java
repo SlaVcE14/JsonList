@@ -4,11 +4,13 @@ import androidx.activity.result.ActivityResult;
 import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.app.Activity;
 
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -59,7 +61,6 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         Log.d(TAG, "onResume: resume");
-        
     }
 
     @Override
@@ -153,6 +154,11 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    @Override
+    public void onConfigurationChanged(@NonNull Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+    }
+
     private void initialize(){
         backBtn = findViewById(R.id.backBtn);
         menuBtn = findViewById(R.id.menuBtn);
@@ -172,7 +178,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void open_closeMenu() {
-//        transitionManager.beginDelayedTransition(viewGroup, autoTransition);
         if (!isMenuOpen) {
             dim_bg.setVisibility(View.VISIBLE);
             menu.setVisibility(View.VISIBLE);
