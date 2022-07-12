@@ -140,7 +140,7 @@ public class MainActivity extends AppCompatActivity {
 
         String Title = "";
         for(int i = 0; i < pathStrings.length-1; i++) {
-            path += (path.equals("")?"":"///") + pathStrings[i];
+            path = path.concat((path.equals("")?"":"///") + pathStrings[i]);
 
         }
         if (pathStrings.length > 1) {
@@ -195,7 +195,7 @@ public class MainActivity extends AppCompatActivity {
 
         new Thread(() -> {
             ArrayList<ListItem> temp = rootList;
-            JsonElement element = null;
+            JsonElement element;
             try {
                 element = JsonParser.parseString(Data);
 
@@ -285,7 +285,7 @@ public class MainActivity extends AppCompatActivity {
     ArrayList<ListItem> getJsonObject(JsonObject obj) {
 
         ArrayList<ListItem> Mainlist = new ArrayList<>();
-        Set keys = obj.keySet();
+        Set<String> keys = obj.keySet();
 
         Object[] keysArray = keys.toArray();
 
@@ -348,17 +348,18 @@ public class MainActivity extends AppCompatActivity {
 
             for (ListItem item : list) {
 
-                if (item.getName() != null && item.getName().equals(pathString)) {
+                if (item.getName() == null || !item.getName().equals(pathString)) {
+                    continue;
+                }
 
-                    if (item.isArrayOfObjects()) {
-                        list = getArrayList(item.getListObjects());
-                        break;
-                    }
-                    list = list.get(list.indexOf(item)).getObjects();
-                    if (list == null)
-                        list = new ArrayList<>();
+                if (item.isArrayOfObjects()) {
+                    list = getArrayList(item.getListObjects());
                     break;
                 }
+                list = list.get(list.indexOf(item)).getObjects();
+                if (list == null)
+                    list = new ArrayList<>();
+                break;
             }
         }
         return list;
@@ -402,32 +403,35 @@ public class MainActivity extends AppCompatActivity {
             new ActivityResultCallback<ActivityResult>() {
                 @Override
                 public void onActivityResult(ActivityResult result) {
-                    if (result.getResultCode() == Activity.RESULT_OK){
-                        Log.d(TAG, "onActivityResult: " + result.getData());
-                        if (result.getData().getData() instanceof Uri){
-                            //File
-                            Uri uri = result.getData().getData();
-                            progressBar.setVisibility(View.VISIBLE);
-                            loadingFileTxt.setVisibility(View.VISIBLE);
-                            new Thread(() -> {
-                                String Data = FileSystem.LoadDataFromFile(MainActivity.this, uri);
-
-                                if (Data == null) {
-                                    Log.d(TAG, "onActivityResult: null data");
-                                    return;
-                                }
-                                handler.post(() -> {
-                                    progressBar.setVisibility(View.GONE);
-                                    loadingFileTxt.setVisibility(View.GONE);
-                                    LoadData(Data);
-                                });
-
-                            }).start();
-
+                    if (result.getResultCode() != Activity.RESULT_OK) {
+                        if(result.getResultCode() == Activity.RESULT_CANCELED){
+                            Toast.makeText(MainActivity.this,"Import data canceled",Toast.LENGTH_SHORT).show();
                         }
-                    }else if(result.getResultCode() == Activity.RESULT_CANCELED){
-                        Toast.makeText(MainActivity.this,"Import data canceled",Toast.LENGTH_SHORT).show();
+                        return;
                     }
+                    if (result.getData() == null || result.getData().getData() == null){
+                        Toast.makeText(MainActivity.this, "Fail to load data", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    //File
+                    Uri uri = result.getData().getData();
+                    progressBar.setVisibility(View.VISIBLE);
+                    loadingFileTxt.setVisibility(View.VISIBLE);
+                    new Thread(() -> {
+                        String Data = FileSystem.LoadDataFromFile(MainActivity.this, uri);
+
+                        if (Data == null) {
+                            Log.d(TAG, "onActivityResult: null data");
+                            return;
+                        }
+                        handler.post(() -> {
+                            progressBar.setVisibility(View.GONE);
+                            loadingFileTxt.setVisibility(View.GONE);
+                            LoadData(Data);
+                        });
+
+                    }).start();
+
                 }
             });
 }
