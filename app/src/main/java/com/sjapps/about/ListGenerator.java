@@ -3,9 +3,7 @@ package com.sjapps.about;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
-import android.util.Log;
 import android.view.View;
-
 import java.util.ArrayList;
 
 public abstract class ListGenerator implements ListInit{

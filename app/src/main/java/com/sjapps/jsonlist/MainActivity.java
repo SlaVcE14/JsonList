@@ -4,13 +4,10 @@ import androidx.activity.result.ActivityResult;
 import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.app.Activity;
-
 import android.content.Intent;
-import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -168,7 +165,6 @@ public class MainActivity extends AppCompatActivity {
         dim_bg.bringToFront();
         menu.bringToFront();
         menuBtn.bringToFront();
-//        openFileBtn.bringToFront();
     }
 
     private void open_closeMenu() {
@@ -201,7 +197,7 @@ public class MainActivity extends AppCompatActivity {
             }catch (OutOfMemoryError | Exception e){
                 e.printStackTrace();
                 handler.post(() -> {
-                    Toast.makeText(MainActivity.this, "File is to big", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(MainActivity.this, "File is too large", Toast.LENGTH_SHORT).show();
                     progressBar.setVisibility(View.GONE);
                 });
                 return;
@@ -254,7 +250,6 @@ public class MainActivity extends AppCompatActivity {
         item.setListObjects(getJsonArray(array));
         Mainlist.add(item);
 
-//        Log.d(TAG, "getJsonArrayRoot: " + Mainlist.toString());
         return Mainlist;
     }
 
