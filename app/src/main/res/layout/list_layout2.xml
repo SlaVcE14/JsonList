@@ -26,6 +26,7 @@
             android:textIsSelectable="true"
             android:longClickable="true"
             android:textColor="?colorOnSurfaceVariant"
+            android:autoLink="all"
             android:text="Item"
             android:textSize="25dp" />
 
@@ -39,6 +40,7 @@
             android:textIsSelectable="true"
             android:longClickable="true"
             android:textColor="?colorOnSurfaceVariant"
+            android:autoLink="all"
             android:text="Item"
             android:textSize="20dp" />
 
