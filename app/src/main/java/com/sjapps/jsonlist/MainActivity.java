@@ -112,7 +112,7 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        if (adapter.selectedItem != -1){
+        if (adapter!= null && adapter.selectedItem != -1){
             adapter.selectedItem = -1;
             adapter.notifyDataSetChanged();
             return;
