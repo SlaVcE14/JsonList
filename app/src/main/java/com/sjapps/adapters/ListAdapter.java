@@ -75,7 +75,7 @@ public class ListAdapter extends BaseAdapter {
             if (selectedItem == position){
                 view.findViewById(R.id.copyBtn).setVisibility(View.VISIBLE);
             }
-            view.findViewById(R.id.btn).setOnClickListener(view1 -> activity.open(item.getName(),path + (path.equals("") ? "":"///") + item.getName()));
+            view.findViewById(R.id.btn).setOnClickListener(view1 -> activity.open(item.getName(),path + (path.equals("") ? "": "///" + (item.getId()!=-1?"{" + item.getId() + "}":"")) + item.getName()));
             view.findViewById(R.id.copyBtn).setOnClickListener(v -> {
                 ClipboardManager clipboard = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
                     ClipData clipData = ClipData.newPlainText("Text",item.getName());

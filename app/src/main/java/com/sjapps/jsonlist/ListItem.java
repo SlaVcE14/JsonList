@@ -12,6 +12,7 @@ public class ListItem {
     private boolean isSpace;
     private ArrayList<ListItem> Objects;
     private ArrayList<ArrayList<ListItem>> ListObjects;
+    private int id = -1;
 
     public ListItem(){
     }
@@ -81,17 +82,26 @@ public class ListItem {
         ListObjects = listObjects;
     }
 
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public int getId() {
+        return id;
+    }
+
     @Override
     public String toString() {
-        return "ListItem{" +
-                "Name='" + Name + '\'' +
-                ", Value='" + Value + '\'' +
-                ", isArrayOfObjects=" + isArrayOfObjects +
-                ", isArray=" + isArray +
-                ", isObject=" + isObject +
-                ", isSpace=" + isSpace +
-                ", Objects=" + Objects +
-                ", ListObjects=" + ListObjects +
+        return "{" +
+                "\"ID\":" + id +
+                ",\"Name\":" +(Name!=null && !Name.startsWith("\"")?"\"":"") +  Name + (Name!=null && !Name.startsWith("\"")?"\"":"") +
+                ", \"Value\":" + (Value!=null && !Value.startsWith("\"")?"\"":"") + Value + (Value!=null && !Value.startsWith("\"")?"\"":"") +
+                ", \"isArrayOfObjects\":" + isArrayOfObjects +
+                ", \"isArray\":" + isArray +
+                ", \"isObject\":" + isObject +
+                ", \"isSpace\":" + isSpace +
+                ", \"Objects\":" + Objects +
+                ", \"ListObjects\":" + ListObjects +
                 '}';
     }
 
@@ -99,4 +109,6 @@ public class ListItem {
         setIsSpace(true);
         return this;
     }
+
+
 }
