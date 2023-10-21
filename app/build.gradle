@@ -42,5 +42,5 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
 
     implementation 'com.google.code.gson:gson:2.8.9'
-    implementation 'com.github.slavce14:SJ-Library:1.4'
+    implementation 'com.github.slavce14:sj-dialog:1.6.1'
 }

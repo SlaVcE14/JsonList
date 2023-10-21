@@ -30,7 +30,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.sjapps.about.AboutActivity;
 import com.sjapps.adapters.ListAdapter;
-import com.sjapps.library.customdialog.SetupDialog;
+import com.sjapps.library.customdialog.BasicDialog;
 
 import java.util.ArrayList;
 import java.util.Set;
@@ -119,11 +119,12 @@ public class MainActivity extends AppCompatActivity {
         }
 
         if (path.equals("")){
-            SetupDialog dialog = new SetupDialog();
-            String Title = "Exit?";
-            String btn2Txt = "Yes";
-            dialog.Short(this, Title, btn2Txt)
-                    .onButtonClick(this::finish).show();
+            BasicDialog dialog = new BasicDialog();
+            dialog.Builder(this, true)
+                    .setTitle("Exit?")
+                    .setRightButtonText("Yes")
+                    .onButtonClick(this::finish)
+                    .show();
             return;
         }
 
