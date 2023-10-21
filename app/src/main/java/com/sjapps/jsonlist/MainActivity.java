@@ -118,39 +118,43 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        if(path.equals("")){
+        if (path.equals("")){
             SetupDialog dialog = new SetupDialog();
             String Title = "Exit?";
             String btn2Txt = "Yes";
-            dialog.Short(this,Title,btn2Txt)
+            dialog.Short(this, Title, btn2Txt)
                     .onButtonClick(this::finish).show();
             return;
         }
 
 
-        TransitionManager.beginDelayedTransition(viewGroup,autoTransition);
-
+        TransitionManager.beginDelayedTransition(viewGroup, autoTransition);
 
 
         String[] pathStrings = path.split("///");
         path = "";
 
         String Title = "";
-        for(int i = 0; i < pathStrings.length-1; i++) {
-            path = path.concat((path.equals("")?"":"///") + pathStrings[i]);
+        for (int i = 0; i < pathStrings.length-1; i++) {
+            path = path.concat((path.equals("") ? "" : "///") + pathStrings[i]);
 
         }
         if (pathStrings.length > 1) {
-            Title = pathStrings[pathStrings.length-2];
+            Title = getName(pathStrings[pathStrings.length-2]);
         }
 
         open(Title, path);
-        if(path.equals("")) {
+        if (path.equals("")) {
             backBtn.setVisibility(View.GONE);
         }
     }
+    String getName(String str){
+        if (str.startsWith("{") && str.contains("}") && str.substring(1, str.indexOf("}")).matches("^[0-9]+"))
+            return str.substring(str.indexOf("}")+1);
+        return str;
+    }
 
-    private void initialize(){
+    private void initialize() {
         backBtn = findViewById(R.id.backBtn);
         menuBtn = findViewById(R.id.menuBtn);
         titleTxt = findViewById(R.id.titleTxt);
@@ -184,7 +188,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    private void LoadData(String Data){
+    private void LoadData(String Data) {
 
         progressBar.setVisibility(View.VISIBLE);
 
@@ -194,7 +198,7 @@ public class MainActivity extends AppCompatActivity {
             try {
                 element = JsonParser.parseString(Data);
 
-            }catch (OutOfMemoryError | Exception e){
+            } catch (OutOfMemoryError | Exception e) {
                 e.printStackTrace();
                 handler.post(() -> {
                     Toast.makeText(MainActivity.this, "File is too large", Toast.LENGTH_SHORT).show();
@@ -202,7 +206,7 @@ public class MainActivity extends AppCompatActivity {
                 });
                 return;
             }
-            if (element == null){
+            if (element == null) {
                 handler.post(() -> {
                     Toast.makeText(MainActivity.this, "Filed to load file!", Toast.LENGTH_SHORT).show();
                     progressBar.setVisibility(View.GONE);
@@ -210,13 +214,13 @@ public class MainActivity extends AppCompatActivity {
                 return;
             }
 
-            if (element instanceof JsonObject){
+            if (element instanceof JsonObject) {
                 Log.d(TAG, "run: Json object");
                 JsonObject object = FileSystem.loadDataToJsonObj(element);
                 Log.d(TAG, "LoadData: " + object);
                 rootList = getJsonObject(object);
             }
-            if (element instanceof JsonArray){
+            if (element instanceof JsonArray) {
                 Log.d(TAG, "run: Json array");
                 JsonArray array = FileSystem.loadDataToJsonArray(element);
                 Log.d(TAG, "LoadData: " + array);
@@ -225,7 +229,7 @@ public class MainActivity extends AppCompatActivity {
 
             if (rootList != null) {
                 handler.post(() -> {
-                    TransitionManager.beginDelayedTransition(viewGroup,autoTransition);
+                    TransitionManager.beginDelayedTransition(viewGroup, autoTransition);
                     adapter = new ListAdapter(rootList, MainActivity.this, "");
                     list.setAdapter(adapter);
                     openFileBtn.setVisibility(View.GONE);
@@ -234,7 +238,7 @@ public class MainActivity extends AppCompatActivity {
                     path = "";
                 });
 
-            }else rootList = temp;
+            } else rootList = temp;
 
             handler.post(() -> progressBar.setVisibility(View.GONE));
 
@@ -242,6 +246,7 @@ public class MainActivity extends AppCompatActivity {
 
 
     }
+
     ArrayList<ListItem> getJsonArrayRoot(JsonArray array) {
         ArrayList<ListItem> Mainlist = new ArrayList<>();
         ListItem item = new ListItem();
@@ -266,7 +271,7 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    boolean isArrayHasObjects(JsonArray array){
+    boolean isArrayHasObjects(JsonArray array) {
         for (int i = 0; i < array.size(); i++) {
             if (!(array.get(i) instanceof JsonObject)) {
                 return false;
@@ -298,11 +303,11 @@ public class MainActivity extends AppCompatActivity {
                 } else if (obj.get(o.toString()) instanceof JsonArray) {
                     JsonArray array = (JsonArray) obj.get(o.toString());
                     Log.d(TAG, "isArrayHasObjects: " + isArrayHasObjects(array));
-                    if (isArrayHasObjects(array)){
+                    if (isArrayHasObjects(array)) {
                         item.setIsArrayOfObjects(true);
                         ArrayList<ArrayList<ListItem>> ArrList = getJsonArray(array);
                         item.setListObjects(ArrList);
-                    }else{
+                    } else {
                         item.setIsArray(true);
                         item.setValue(array.toString());
                     }
@@ -314,7 +319,7 @@ public class MainActivity extends AppCompatActivity {
                 }
                 Mainlist.add(item);
             }
-        }catch (Exception e){
+        } catch (Exception e) {
             Log.e(TAG, "getJsonObject: Failed to load data");
             handler.post(() -> Toast.makeText(MainActivity.this, "Failed to load data!", Toast.LENGTH_SHORT).show());
             return null;
@@ -323,15 +328,24 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    ArrayList<ListItem> getArrayList(ArrayList<ArrayList<ListItem>> list){
+    ArrayList<ListItem> getArrayList(ArrayList<ArrayList<ListItem>> list) {
         ArrayList<ListItem> newList = new ArrayList<>();
-        for(ArrayList<ListItem> lists : list) {
+        for (ArrayList<ListItem> lists : list) {
+            setId(lists, list.indexOf(lists));
             newList.addAll(lists);
             newList.add(new ListItem().Space());
         }
         return newList;
     }
-    ArrayList<ListItem> getListFromPath(){
+
+    private void setId(ArrayList<ListItem> lists, int id) {
+
+        for (ListItem listItem : lists) {
+            listItem.setId(id);
+        }
+    }
+
+    ArrayList<ListItem> getListFromPath() {
 
 
         String[] pathStrings = path.split("///");
@@ -340,11 +354,18 @@ public class MainActivity extends AppCompatActivity {
 
         for (String pathString : pathStrings) {
 
-            for (ListItem item : list) {
+            int id = -1;
 
-                if (item.getName() == null || !item.getName().equals(pathString)) {
+            if (pathString.startsWith("{") && pathString.contains("}") && pathString.substring(1, pathString.indexOf("}")).matches("^[0-9]+")) {
+                id = Integer.parseInt(pathString.substring(1, pathString.indexOf("}")));
+            }
+
+            for (ListItem item : list) {
+                if (item.getName() == null || !item.getName().equals(id != -1 ? pathString.substring(pathString.indexOf("}") + 1) : pathString))
                     continue;
-                }
+
+                if (id != -1 && item.getId() != id)
+                    continue;
 
                 if (item.isArrayOfObjects()) {
                     list = getArrayList(item.getListObjects());
@@ -360,8 +381,8 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    public void open(String Title,String path) {
-        TransitionManager.beginDelayedTransition(viewGroup,autoTransition);
+    public void open(String Title, String path) {
+        TransitionManager.beginDelayedTransition(viewGroup, autoTransition);
 
         if (isMenuOpen)
             open_closeMenu();
@@ -374,11 +395,11 @@ public class MainActivity extends AppCompatActivity {
         ArrayList<ListItem> arrayList = getListFromPath();
         adapter = new ListAdapter(arrayList, this, path);
         list.setAdapter(adapter);
-        if (arrayList.size() == 0){
+        if (arrayList.size() == 0) {
             emptyListTxt.setVisibility(View.VISIBLE);
         }
         System.out.println("path = " + path);
-        if(!path.equals("")) {
+        if (!path.equals("")) {
             backBtn.setVisibility(View.VISIBLE);
         }
 
