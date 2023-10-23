@@ -22,6 +22,8 @@ public class FileSystem {
 
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
             String path = uri.getPath();
+            if (path.contains("../"))
+                throw new SecurityException();
             Path normalized = java.nio.file.FileSystems.getDefault().getPath(path).normalize();
             if (normalized.startsWith("/data"))
                 throw new SecurityException();
