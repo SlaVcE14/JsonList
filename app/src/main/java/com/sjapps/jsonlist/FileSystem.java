@@ -6,6 +6,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.Scanner;
 public class FileSystem {
 
@@ -18,6 +19,15 @@ public class FileSystem {
     }
 
     public static String LoadDataFromFile(MainActivity mainActivity, Uri uri) {
+
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            String path = uri.getPath();
+            if (path.contains("../"))
+                throw new SecurityException();
+            Path normalized = java.nio.file.FileSystems.getDefault().getPath(path).normalize();
+            if (normalized.startsWith("/data"))
+                throw new SecurityException();
+        }
 
         StringBuilder sb = new StringBuilder();
         FileInputStream inputStream = null;
