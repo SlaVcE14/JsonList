@@ -1,4 +1,4 @@
-package com.sjapps.jsonlist;
+package com.sjapps.jsonlist.java;
 
 import java.util.ArrayList;
 

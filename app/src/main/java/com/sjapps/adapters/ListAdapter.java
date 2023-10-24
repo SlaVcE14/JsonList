@@ -10,7 +10,7 @@ import android.widget.BaseAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.sjapps.jsonlist.ListItem;
+import com.sjapps.jsonlist.java.ListItem;
 import com.sjapps.jsonlist.MainActivity;
 import com.sjapps.jsonlist.R;
 
