@@ -30,7 +30,7 @@ public class JsonFunctions {
         return ArrList;
     }
 
-    static boolean isArrayHasObjects(JsonArray array) {
+    static boolean isArrayOfObjects(JsonArray array) {
         for (int i = 0; i < array.size(); i++) {
             if (!(array.get(i) instanceof JsonObject)) {
                 return false;
@@ -67,7 +67,7 @@ public class JsonFunctions {
         }
         if (obj.get(o.toString()) instanceof JsonArray) {
             JsonArray array = (JsonArray) obj.get(o.toString());
-            if (isArrayHasObjects(array)) {
+            if (isArrayOfObjects(array)) {
                 item.setIsArrayOfObjects(true);
                 ArrayList<ArrayList<ListItem>> ArrList = getJsonArray(array,callback);
                 item.setListObjects(ArrList);
