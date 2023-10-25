@@ -2,6 +2,7 @@ package com.sjapps.jsonlist;
 
 import static com.sjapps.jsonlist.java.JsonFunctions.*;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.activity.result.ActivityResult;
 import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
@@ -70,7 +71,7 @@ public class MainActivity extends AppCompatActivity {
         autoTransition.setDuration(150);
         menuBtn.setOnClickListener(view -> open_closeMenu());
 
-        backBtn.setOnClickListener(view -> onBackPressed());
+        backBtn.setOnClickListener(view -> getOnBackPressedDispatcher().onBackPressed());
         openFileBtn.setOnClickListener(view -> ImportFromFile());
 
         menu.findViewById(R.id.openFileBtn2).setOnClickListener(view -> {
@@ -106,52 +107,54 @@ public class MainActivity extends AppCompatActivity {
         startActivity(new Intent(MainActivity.this, AboutActivity.class));
     }
 
-    @Override
-    public void onBackPressed() {
+    OnBackPressedCallback backPressedCallback = new OnBackPressedCallback(true) {
+        @Override
+        public void handleOnBackPressed() {
+            if (isMenuOpen) {
+                open_closeMenu();
+                return;
+            }
 
-        if (isMenuOpen) {
-            open_closeMenu();
-            return;
+            if (adapter!= null && adapter.selectedItem != -1){
+                adapter.selectedItem = -1;
+                adapter.notifyDataSetChanged();
+                return;
+            }
+
+            if (data.isEmptyPath()){
+                BasicDialog dialog = new BasicDialog();
+                dialog.Builder(MainActivity.this, true)
+                        .setTitle("Exit?")
+                        .setRightButtonText("Yes")
+                        .onButtonClick(MainActivity.this::finish)
+                        .show();
+                return;
+            }
+
+
+            TransitionManager.beginDelayedTransition(viewGroup, autoTransition);
+
+
+            String[] pathStrings = data.splitPath();
+            data.clearPath();
+
+            String Title = "";
+            for (int i = 0; i < pathStrings.length-1; i++) {
+                data.setPath(data.getPath().concat((data.isEmptyPath()?"":"///") + pathStrings[i]));
+            }
+            if (pathStrings.length > 1) {
+                Title = JsonData.getName(pathStrings[pathStrings.length-2]);
+            }
+
+            open(Title, data.getPath());
+            if (data.isEmptyPath()) {
+                backBtn.setVisibility(View.GONE);
+            }
         }
-
-        if (adapter!= null && adapter.selectedItem != -1){
-            adapter.selectedItem = -1;
-            adapter.notifyDataSetChanged();
-            return;
-        }
-
-        if (data.isEmptyPath()){
-            BasicDialog dialog = new BasicDialog();
-            dialog.Builder(this, true)
-                    .setTitle("Exit?")
-                    .setRightButtonText("Yes")
-                    .onButtonClick(this::finish)
-                    .show();
-            return;
-        }
-
-
-        TransitionManager.beginDelayedTransition(viewGroup, autoTransition);
-
-
-        String[] pathStrings = data.splitPath();
-        data.clearPath();
-
-        String Title = "";
-        for (int i = 0; i < pathStrings.length-1; i++) {
-            data.setPath(data.getPath().concat((data.isEmptyPath()?"":"///") + pathStrings[i]));
-        }
-        if (pathStrings.length > 1) {
-            Title = JsonData.getName(pathStrings[pathStrings.length-2]);
-        }
-
-        open(Title, data.getPath());
-        if (data.isEmptyPath()) {
-            backBtn.setVisibility(View.GONE);
-        }
-    }
+    };
 
     private void initialize() {
+        getOnBackPressedDispatcher().addCallback(this, backPressedCallback);
         backBtn = findViewById(R.id.backBtn);
         menuBtn = findViewById(R.id.menuBtn);
         titleTxt = findViewById(R.id.titleTxt);
