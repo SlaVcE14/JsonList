@@ -126,7 +126,10 @@ public class MainActivity extends AppCompatActivity {
                 dialog.Builder(MainActivity.this, true)
                         .setTitle("Exit?")
                         .setRightButtonText("Yes")
-                        .onButtonClick(MainActivity.this::finish)
+                        .onButtonClick(() ->{
+                                dialog.dismiss();
+                                MainActivity.this.finish();
+                        })
                         .show();
                 return;
             }
