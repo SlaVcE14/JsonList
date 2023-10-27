@@ -1,6 +1,7 @@
 package com.sjapps.jsonlist.java;
 
 import java.util.ArrayList;
+import java.util.Objects;
 
 public class ListItem {
 
@@ -110,5 +111,16 @@ public class ListItem {
         return this;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof ListItem)) return false;
+        ListItem item = (ListItem) o;
+        return isArrayOfObjects() == item.isArrayOfObjects() && isArray() == item.isArray() && isObject() == item.isObject() && isSpace() == item.isSpace() && java.util.Objects.equals(getName(), item.getName()) && java.util.Objects.equals(getValue(), item.getValue()) && java.util.Objects.equals(getObjects(), item.getObjects()) && java.util.Objects.equals(getListObjects(), item.getListObjects());
+    }
 
+    @Override
+    public int hashCode() {
+        return java.util.Objects.hash(getName(), getValue(), isArrayOfObjects(), isArray(), isObject(), isSpace(), getObjects(), getListObjects());
+    }
 }
