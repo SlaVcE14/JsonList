@@ -77,7 +77,8 @@ public class JsonFunctions {
             item.setValue(array.toString());
             return;
         }
-        item.setValue(obj.get(o.toString()).toString());
+        String value = obj.get(o.toString()).toString();
+        item.setValue(value.startsWith("\"") && value.endsWith("\"") ? value.substring(1,value.length()-1) : value);
     }
 
     static ArrayList<ListItem> getArrayList(ArrayList<ArrayList<ListItem>> list) {

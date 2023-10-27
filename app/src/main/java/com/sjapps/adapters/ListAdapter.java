@@ -97,7 +97,7 @@ public class ListAdapter extends BaseAdapter {
         TextView valueTxt = view.findViewById(R.id.itemValue);
         view.setClickable(false);
         titleTxt.setText(item.getName());
-        valueTxt.setText(item.getValue());
+        valueTxt.setText(item.getValue().isEmpty() ? "\"\"" : item.getValue());
 
         return view;
     }
