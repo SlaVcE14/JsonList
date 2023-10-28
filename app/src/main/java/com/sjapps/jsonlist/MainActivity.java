@@ -187,6 +187,7 @@ public class MainActivity extends AppCompatActivity {
     private void LoadData(String Data) {
 
         progressBar.setVisibility(View.VISIBLE);
+        emptyListTxt.setVisibility(View.GONE);
 
         new Thread(() -> {
             ArrayList<ListItem> temp = data.getRootList();
