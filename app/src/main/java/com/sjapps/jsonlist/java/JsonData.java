@@ -31,11 +31,35 @@ public class JsonData {
     public String[] splitPath(){
         return path.split("///");
     }
+    public static String[] splitPath(String path){
+        return path.split("///");
+    }
 
     public boolean isRootListNull(){
         return rootList == null;
     }
 
+    public void goBack(){
+
+        String[] pathStrings = splitPath();
+        clearPath();
+        for (int i = 0; i < pathStrings.length-1; i++) {
+            setPath(path.concat((isEmptyPath()?"":"///") + pathStrings[i]));
+        }
+
+    }
+
+    public static String getPathFormat(String path){
+        String[] pathStrings = splitPath(path);
+        StringBuilder builder = new StringBuilder();
+        builder.append(pathStrings.length > 3 ? "..." : pathStrings[0]);
+
+        for (int i = pathStrings.length > 3? pathStrings.length-3 : 1; i < pathStrings.length; i++) {
+            builder.append("/").append(getName(pathStrings[i]));
+        }
+
+        return builder.toString();
+    }
 
     public static String getName(String str){
         if (str.startsWith("{") && str.contains("}") && str.substring(1, str.indexOf("}")).matches("^[0-9]+"))
