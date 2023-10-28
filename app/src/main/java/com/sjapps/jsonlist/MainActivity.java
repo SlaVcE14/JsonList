@@ -1,5 +1,8 @@
 package com.sjapps.jsonlist;
 
+import static com.sjapps.jsonlist.java.JsonFunctions.*;
+
+import androidx.activity.OnBackPressedCallback;
 import androidx.activity.result.ActivityResult;
 import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
@@ -23,17 +26,18 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.sjapps.about.AboutActivity;
 import com.sjapps.adapters.ListAdapter;
+import com.sjapps.jsonlist.java.ExceptionCallback;
+import com.sjapps.jsonlist.java.JsonData;
+import com.sjapps.jsonlist.java.ListItem;
 import com.sjapps.library.customdialog.BasicDialog;
 
 import java.util.ArrayList;
-import java.util.Set;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -43,12 +47,11 @@ public class MainActivity extends AppCompatActivity {
     Button openFileBtn;
     TextView titleTxt, emptyListTxt;
     ListView list;
-    String path = "";
+    JsonData data = new JsonData();
     ProgressBar progressBar;
     TextView loadingFileTxt;
     boolean isMenuOpen;
     ListAdapter adapter;
-    ArrayList<ListItem> rootList = new ArrayList<>();
     View menu, dim_bg;
     ViewGroup viewGroup;
     AutoTransition autoTransition = new AutoTransition();
@@ -68,7 +71,7 @@ public class MainActivity extends AppCompatActivity {
         autoTransition.setDuration(150);
         menuBtn.setOnClickListener(view -> open_closeMenu());
 
-        backBtn.setOnClickListener(view -> onBackPressed());
+        backBtn.setOnClickListener(view -> getOnBackPressedDispatcher().onBackPressed());
         openFileBtn.setOnClickListener(view -> ImportFromFile());
 
         menu.findViewById(R.id.openFileBtn2).setOnClickListener(view -> {
@@ -104,58 +107,50 @@ public class MainActivity extends AppCompatActivity {
         startActivity(new Intent(MainActivity.this, AboutActivity.class));
     }
 
-    @Override
-    public void onBackPressed() {
+    OnBackPressedCallback backPressedCallback = new OnBackPressedCallback(true) {
+        @Override
+        public void handleOnBackPressed() {
+            if (isMenuOpen) {
+                open_closeMenu();
+                return;
+            }
 
-        if (isMenuOpen) {
-            open_closeMenu();
-            return;
+            if (adapter!= null && adapter.selectedItem != -1){
+                adapter.selectedItem = -1;
+                adapter.notifyDataSetChanged();
+                return;
+            }
+
+            if (data.isEmptyPath()){
+                BasicDialog dialog = new BasicDialog();
+                dialog.Builder(MainActivity.this, true)
+                        .setTitle("Exit?")
+                        .setRightButtonText("Yes")
+                        .onButtonClick(() ->{
+                                dialog.dismiss();
+                                MainActivity.this.finish();
+                        })
+                        .show();
+                return;
+            }
+
+
+            TransitionManager.beginDelayedTransition(viewGroup, autoTransition);
+
+
+
+            data.goBack();
+
+            String[] pathString = data.splitPath();
+            open(JsonData.getName(pathString[pathString.length-1]), data.getPath());
+            if (data.isEmptyPath()) {
+                backBtn.setVisibility(View.GONE);
+            }
         }
-
-        if (adapter!= null && adapter.selectedItem != -1){
-            adapter.selectedItem = -1;
-            adapter.notifyDataSetChanged();
-            return;
-        }
-
-        if (path.equals("")){
-            BasicDialog dialog = new BasicDialog();
-            dialog.Builder(this, true)
-                    .setTitle("Exit?")
-                    .setRightButtonText("Yes")
-                    .onButtonClick(this::finish)
-                    .show();
-            return;
-        }
-
-
-        TransitionManager.beginDelayedTransition(viewGroup, autoTransition);
-
-
-        String[] pathStrings = path.split("///");
-        path = "";
-
-        String Title = "";
-        for (int i = 0; i < pathStrings.length-1; i++) {
-            path = path.concat((path.equals("") ? "" : "///") + pathStrings[i]);
-
-        }
-        if (pathStrings.length > 1) {
-            Title = getName(pathStrings[pathStrings.length-2]);
-        }
-
-        open(Title, path);
-        if (path.equals("")) {
-            backBtn.setVisibility(View.GONE);
-        }
-    }
-    String getName(String str){
-        if (str.startsWith("{") && str.contains("}") && str.substring(1, str.indexOf("}")).matches("^[0-9]+"))
-            return str.substring(str.indexOf("}")+1);
-        return str;
-    }
+    };
 
     private void initialize() {
+        getOnBackPressedDispatcher().addCallback(this, backPressedCallback);
         backBtn = findViewById(R.id.backBtn);
         menuBtn = findViewById(R.id.menuBtn);
         titleTxt = findViewById(R.id.titleTxt);
@@ -192,9 +187,10 @@ public class MainActivity extends AppCompatActivity {
     private void LoadData(String Data) {
 
         progressBar.setVisibility(View.VISIBLE);
+        emptyListTxt.setVisibility(View.GONE);
 
         new Thread(() -> {
-            ArrayList<ListItem> temp = rootList;
+            ArrayList<ListItem> temp = data.getRootList();
             JsonElement element;
             try {
                 element = JsonParser.parseString(Data);
@@ -219,166 +215,32 @@ public class MainActivity extends AppCompatActivity {
                 Log.d(TAG, "run: Json object");
                 JsonObject object = FileSystem.loadDataToJsonObj(element);
                 Log.d(TAG, "LoadData: " + object);
-                rootList = getJsonObject(object);
+                data.setRootList(getJsonObject(object,onReadJsonException));
             }
             if (element instanceof JsonArray) {
                 Log.d(TAG, "run: Json array");
                 JsonArray array = FileSystem.loadDataToJsonArray(element);
                 Log.d(TAG, "LoadData: " + array);
-                rootList = getJsonArrayRoot(array);
+                data.setRootList(getJsonArrayRoot(array,onReadJsonException));
             }
 
-            if (rootList != null) {
+            if (!data.isRootListNull()) {
                 handler.post(() -> {
                     TransitionManager.beginDelayedTransition(viewGroup, autoTransition);
-                    adapter = new ListAdapter(rootList, MainActivity.this, "");
+                    adapter = new ListAdapter(data.getRootList(), MainActivity.this, "");
                     list.setAdapter(adapter);
                     openFileBtn.setVisibility(View.GONE);
                     backBtn.setVisibility(View.GONE);
                     titleTxt.setText("");
-                    path = "";
+                    data.clearPath();
                 });
 
-            } else rootList = temp;
+            } else data.setRootList(temp);
 
             handler.post(() -> progressBar.setVisibility(View.GONE));
 
         }).start();
 
-
-    }
-
-    ArrayList<ListItem> getJsonArrayRoot(JsonArray array) {
-        ArrayList<ListItem> Mainlist = new ArrayList<>();
-        ListItem item = new ListItem();
-        item.setName("Json Array");
-        item.setIsArrayOfObjects(true);
-        item.setListObjects(getJsonArray(array));
-        Mainlist.add(item);
-
-        return Mainlist;
-    }
-
-    ArrayList<ArrayList<ListItem>> getJsonArray(JsonArray array) {
-        ArrayList<ArrayList<ListItem>> ArrList = new ArrayList<>();
-        for (int i = 0; i < array.size(); i++) {
-            if (array.get(i) instanceof JsonObject) {
-                ArrayList<ListItem> ListOfItems = getJsonObject((JsonObject) array.get(i));
-                ArrList.add(ListOfItems);
-            }
-        }
-
-        return ArrList;
-
-    }
-
-    boolean isArrayHasObjects(JsonArray array) {
-        for (int i = 0; i < array.size(); i++) {
-            if (!(array.get(i) instanceof JsonObject)) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    ArrayList<ListItem> getJsonObject(JsonObject obj) {
-
-        ArrayList<ListItem> Mainlist = new ArrayList<>();
-        Set<String> keys = obj.keySet();
-
-        Object[] keysArray = keys.toArray();
-
-        try {
-
-
-            for (Object o : keysArray) {
-                ListItem item = new ListItem();
-                item.setName(o.toString());
-
-                if (obj.get(o.toString()) instanceof JsonObject) {
-                    item.setIsObject(true);
-                    ArrayList<ListItem> objList = getJsonObject((JsonObject) obj.get(o.toString()));
-                    item.setObjects(objList);
-
-                } else if (obj.get(o.toString()) instanceof JsonArray) {
-                    JsonArray array = (JsonArray) obj.get(o.toString());
-                    Log.d(TAG, "isArrayHasObjects: " + isArrayHasObjects(array));
-                    if (isArrayHasObjects(array)) {
-                        item.setIsArrayOfObjects(true);
-                        ArrayList<ArrayList<ListItem>> ArrList = getJsonArray(array);
-                        item.setListObjects(ArrList);
-                    } else {
-                        item.setIsArray(true);
-                        item.setValue(array.toString());
-                    }
-
-                } else {
-
-                    item.setValue(obj.get(o.toString()).toString());
-
-                }
-                Mainlist.add(item);
-            }
-        } catch (Exception e) {
-            Log.e(TAG, "getJsonObject: Failed to load data");
-            handler.post(() -> Toast.makeText(MainActivity.this, "Failed to load data!", Toast.LENGTH_SHORT).show());
-            return null;
-        }
-        return Mainlist;
-
-    }
-
-    ArrayList<ListItem> getArrayList(ArrayList<ArrayList<ListItem>> list) {
-        ArrayList<ListItem> newList = new ArrayList<>();
-        for (ArrayList<ListItem> lists : list) {
-            setId(lists, list.indexOf(lists));
-            newList.addAll(lists);
-            newList.add(new ListItem().Space());
-        }
-        return newList;
-    }
-
-    private void setId(ArrayList<ListItem> lists, int id) {
-
-        for (ListItem listItem : lists) {
-            listItem.setId(id);
-        }
-    }
-
-    ArrayList<ListItem> getListFromPath() {
-
-
-        String[] pathStrings = path.split("///");
-
-        ArrayList<ListItem> list = rootList;
-
-        for (String pathString : pathStrings) {
-
-            int id = -1;
-
-            if (pathString.startsWith("{") && pathString.contains("}") && pathString.substring(1, pathString.indexOf("}")).matches("^[0-9]+")) {
-                id = Integer.parseInt(pathString.substring(1, pathString.indexOf("}")));
-            }
-
-            for (ListItem item : list) {
-                if (item.getName() == null || !item.getName().equals(id != -1 ? pathString.substring(pathString.indexOf("}") + 1) : pathString))
-                    continue;
-
-                if (id != -1 && item.getId() != id)
-                    continue;
-
-                if (item.isArrayOfObjects()) {
-                    list = getArrayList(item.getListObjects());
-                    break;
-                }
-                list = list.get(list.indexOf(item)).getObjects();
-                if (list == null)
-                    list = new ArrayList<>();
-                break;
-            }
-        }
-        return list;
 
     }
 
@@ -391,9 +253,9 @@ public class MainActivity extends AppCompatActivity {
         if (emptyListTxt.getVisibility() == View.VISIBLE)
             emptyListTxt.setVisibility(View.GONE);
 
-        this.path = path;
+        data.setPath(path);
         titleTxt.setText(Title);
-        ArrayList<ListItem> arrayList = getListFromPath();
+        ArrayList<ListItem> arrayList = getListFromPath(path,data.getRootList());
         adapter = new ListAdapter(arrayList, this, path);
         list.setAdapter(adapter);
         if (arrayList.size() == 0) {
@@ -450,4 +312,9 @@ public class MainActivity extends AppCompatActivity {
 
                 }
             });
+
+    ExceptionCallback onReadJsonException = e -> {
+        Log.e(TAG, "getJsonObject: Failed to load data");
+        handler.post(() -> Toast.makeText(MainActivity.this, "Failed to load data!", Toast.LENGTH_SHORT).show());
+    };
 }
