@@ -138,18 +138,11 @@ public class MainActivity extends AppCompatActivity {
             TransitionManager.beginDelayedTransition(viewGroup, autoTransition);
 
 
-            String[] pathStrings = data.splitPath();
-            data.clearPath();
 
-            String Title = "";
-            for (int i = 0; i < pathStrings.length-1; i++) {
-                data.setPath(data.getPath().concat((data.isEmptyPath()?"":"///") + pathStrings[i]));
-            }
-            if (pathStrings.length > 1) {
-                Title = JsonData.getName(pathStrings[pathStrings.length-2]);
-            }
+            data.goBack();
 
-            open(Title, data.getPath());
+            String[] pathString = data.splitPath();
+            open(JsonData.getName(pathString[pathString.length-1]), data.getPath());
             if (data.isEmptyPath()) {
                 backBtn.setVisibility(View.GONE);
             }
