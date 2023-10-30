@@ -30,6 +30,9 @@
         <item name="colorPrimaryInverse">@color/md_theme_light_primaryInverse</item>
 
         <item name="android:statusBarColor">?android:windowBackgroundFallback</item>
+        <item name="android:windowSplashScreenBackground" tools:targetApi="s">#ffffff</item>
+        <item name="android:windowSplashScreenIconBackgroundColor" tools:targetApi="s">#ffffff</item>
+
         <item name="android:windowLightStatusBar">true</item>
 
         <item name="materialButtonStyle">@style/ButtonColor</item>

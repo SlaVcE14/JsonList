@@ -31,7 +31,8 @@
         <item name="materialButtonStyle">@style/ButtonColor</item>
 
         <item name="android:statusBarColor">?android:windowBackgroundFallback</item>
-
+        <item name="android:windowSplashScreenBackground" tools:targetApi="s">#000000</item>
+        <item name="android:windowSplashScreenIconBackgroundColor" tools:targetApi="s">#000000</item>
     </style>
     <style name="ButtonColor" parent="@android:style/Widget.Button">
         <item name="android:background">@drawable/ripple_button</item>
