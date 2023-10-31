@@ -44,6 +44,27 @@ public class GetJsonArrayRootTest {
         assertEquals(expectedArr,itemsArr);
 
     }
+    @Test
+    public void getJsonArrayRootTest2(){
+        String data = "[{\"data2\":123},1242,true,null]";
+        JsonElement element = JsonParser.parseString(data);
+
+        JsonArray array = FileSystem.loadDataToJsonArray(element);
+
+        ArrayList<ListItem> itemsArr = JsonFunctions.getJsonArrayRoot(array,e -> {});
+
+
+        ArrayList<ListItem> expectedArr = new ArrayList<>();
+
+        ListItem root = new ListItem();
+        root.setName("Array items");
+        root.setIsArray(true);
+        root.setValue("[{\"data2\":123},1242,true,null]");
+
+        expectedArr.add(root);
+        assertEquals(expectedArr,itemsArr);
+
+    }
 
     @Test
     public void testGetJsonArrayRootWithEmptyArray() {
