@@ -42,8 +42,7 @@ public class JsonFunctions {
                 continue;
             }
             ListItem item = new ListItem();
-            String value = array.get(i).toString();
-            item.setValue(value.startsWith("\"") && value.endsWith("\"") ? value.substring(1,value.length()-1) : value);
+            item.setValue(getStringFromJson(array.get(i).toString()));
             ArrayList<ListItem> items = new ArrayList<>();
             items.add(item);
             ArrList.add(items);
@@ -99,6 +98,9 @@ public class JsonFunctions {
         }
         item.setName("Array items");
     }
+    private static String getStringFromJson(String value){
+        return value.startsWith("\"") && value.endsWith("\"") ? value.substring(1,value.length()-1) : value;
+    }
 
     private static void setItem(JsonObject obj, Object o, ListItem item, ExceptionCallback callback){
         if (obj.get(o.toString()) instanceof JsonObject) {
@@ -114,8 +116,7 @@ public class JsonFunctions {
             item.setListObjects(getJsonArray(array,callback));
             return;
         }
-        String value = obj.get(o.toString()).toString();
-        item.setValue(value.startsWith("\"") && value.endsWith("\"") ? value.substring(1,value.length()-1) : value);
+        item.setValue(getStringFromJson(obj.get(o.toString()).toString()));
     }
 
     static ArrayList<ListItem> getArrayList(ArrayList<ArrayList<ListItem>> list) {
