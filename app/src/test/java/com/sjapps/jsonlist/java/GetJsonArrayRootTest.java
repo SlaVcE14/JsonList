@@ -27,7 +27,7 @@ public class GetJsonArrayRootTest {
 
         ListItem root = new ListItem();
         root.setName("Json Array");
-        root.setIsArrayOfObjects(true);
+        root.setIsArray(true);
 
         ArrayList<ListItem> listItems = new ArrayList<>();
 
@@ -73,7 +73,7 @@ public class GetJsonArrayRootTest {
         assertNotNull(result);
         assertEquals(1, result.size());
         assertEquals("Json Array", result.get(0).getName());
-        assertTrue(result.get(0).isArrayOfObjects());
+        assertTrue(result.get(0).isArray());
         assertEquals(0, result.get(0).getListObjects().size());
     }
 

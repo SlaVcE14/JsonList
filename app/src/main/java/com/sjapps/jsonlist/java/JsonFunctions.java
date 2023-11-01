@@ -30,7 +30,7 @@ public class JsonFunctions {
                 ArrayList<ListItem> itemsInList = new ArrayList<>();
                 ListItem arrItem = new ListItem();
                 arrItem.setName("Array");
-                arrItem.setIsArrayOfObjects(true);
+                arrItem.setIsArray(true);
                 arrItem.setListObjects(ListOfItems);
 
                 itemsInList.add(arrItem);
@@ -80,13 +80,11 @@ public class JsonFunctions {
     private static void setItemOnArray(JsonArray array,ListItem item, ExceptionCallback callback){
         if(isArrayOfObjects(array)) {
             item.setName("Json Array");
-            item.setIsArrayOfObjects(true);
             item.setListObjects(getJsonArray(array, callback));
             return;
         }
         if (isArrayOfArray(array)){
             item.setName("Array");
-            item.setIsArrayOfObjects(true);
             item.setListObjects(getJsonArray(array,callback));
             return;
         }
@@ -106,7 +104,6 @@ public class JsonFunctions {
         if (obj.get(o.toString()) instanceof JsonArray) {
             JsonArray array = (JsonArray) obj.get(o.toString());
             if (isArrayOfObjects(array)) {
-                item.setIsArrayOfObjects(true);
                 ArrayList<ArrayList<ListItem>> ArrList = getJsonArray(array,callback);
                 item.setListObjects(ArrList);
                 return;
@@ -158,7 +155,7 @@ public class JsonFunctions {
                 if (id != -1 && item.getId() != id)
                     continue;
 
-                if (item.isArrayOfObjects()) {
+                if (item.isArray()) {
                     list = getArrayList(item.getListObjects());
                     break;
                 }

@@ -44,9 +44,8 @@ public class GetJsonObjectTest {
         assertNotNull(result);
         assertEquals(1, result.size());
         assertEquals("key1", result.get(0).getName());
-//        assertTrue(result.get(0).isArray());
-        assertFalse(result.get(0).isArrayOfObjects());
         assertEquals("[\"value1\",\"value2\"]", result.get(0).getValue());
+        assertTrue(result.get(0).isArray());
     }
 
 
@@ -179,7 +178,7 @@ public class GetJsonObjectTest {
         item1.setValue("test");
 
         item2.setName("item2");
-        item2.setIsArrayOfObjects(true);
+        item2.setIsArray(true);
 
         ArrayList<ArrayList<ListItem>> objs = new ArrayList<>();
         ArrayList<ListItem> items1 = new ArrayList<>();
@@ -205,7 +204,7 @@ public class GetJsonObjectTest {
         assertNotNull(items);
         assertEquals(item1,items.get(0));
         assertEquals(item2,items.get(1));
-        assertTrue(items.get(1).isArrayOfObjects());
+        assertTrue(items.get(1).isArray());
         assertEquals(items1,items.get(1).getListObjects().get(0));
         assertEquals(items2,items.get(1).getListObjects().get(1));
         assertEquals(expected, items);

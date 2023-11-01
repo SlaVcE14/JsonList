@@ -66,7 +66,7 @@ public class ListAdapter extends BaseAdapter {
         if(item.isSpace()) {
             return LayoutInflater.from(context).inflate(R.layout.space_layout, parent, false);
         }
-        if (item.isArrayOfObjects() || item.isObject()) {
+        if (item.isArray() || item.isObject()) {
 
             View view = LayoutInflater.from(context).inflate(R.layout.list_layout,parent,false);
             TextView titleTxt = view.findViewById(R.id.itemName);

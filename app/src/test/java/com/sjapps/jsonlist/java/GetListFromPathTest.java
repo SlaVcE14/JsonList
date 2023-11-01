@@ -64,7 +64,7 @@ public class GetListFromPathTest {
         ListItem item1 = new ListItem();
         item1.setName("Item1");
         rootList.add(item1);
-        item1.setIsArrayOfObjects(true);
+        item1.setIsArray(true);
 
         ArrayList<ArrayList<ListItem>> nestedListList = new ArrayList<>();
         ArrayList<ListItem> nestedList1 = new ArrayList<>();
@@ -123,7 +123,7 @@ public class GetListFromPathTest {
         ListItem item1 = new ListItem();
         item1.setName("Item1");
         rootList.add(item1);
-        item1.setIsArrayOfObjects(true);
+        item1.setIsArray(true);
 
         ArrayList<ArrayList<ListItem>> nestedListList = new ArrayList<>();
 
