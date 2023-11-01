@@ -11,7 +11,9 @@ public class JsonFunctions {
     public static ArrayList<ListItem> getJsonArrayRoot(JsonArray array, ExceptionCallback callback) {
         ArrayList<ListItem> mainList = new ArrayList<>();
         ListItem item = new ListItem();
-        setItemOnArray(array,item,callback);
+        setArrayName(array,item);
+        item.setIsArray(true);
+        item.setListObjects(getJsonArray(array, callback));
         mainList.add(item);
         return mainList;
     }
@@ -22,6 +24,7 @@ public class JsonFunctions {
             if (array.get(i) instanceof JsonObject) {
                 ArrayList<ListItem> ListOfItems = getJsonObject((JsonObject) array.get(i),callback);
                 ArrList.add(ListOfItems);
+                continue;
             }
             if (array.get(i) instanceof JsonArray){
 
@@ -29,13 +32,21 @@ public class JsonFunctions {
 
                 ArrayList<ListItem> itemsInList = new ArrayList<>();
                 ListItem arrItem = new ListItem();
-                arrItem.setName("Array");
+
+                setArrayName((JsonArray) array.get(i),arrItem);
                 arrItem.setIsArray(true);
                 arrItem.setListObjects(ListOfItems);
 
                 itemsInList.add(arrItem);
                 ArrList.add(itemsInList);
+                continue;
             }
+            ListItem item = new ListItem();
+            String value = array.get(i).toString();
+            item.setValue(value.startsWith("\"") && value.endsWith("\"") ? value.substring(1,value.length()-1) : value);
+            ArrayList<ListItem> items = new ArrayList<>();
+            items.add(item);
+            ArrList.add(items);
         }
         return ArrList;
     }
@@ -77,21 +88,16 @@ public class JsonFunctions {
         return mainList;
     }
 
-    private static void setItemOnArray(JsonArray array,ListItem item, ExceptionCallback callback){
+    private static void setArrayName(JsonArray array, ListItem item){
         if(isArrayOfObjects(array)) {
-            item.setName("Json Array");
-            item.setListObjects(getJsonArray(array, callback));
+            item.setName("Objects Array");
             return;
         }
         if (isArrayOfArray(array)){
             item.setName("Array");
-            item.setListObjects(getJsonArray(array,callback));
             return;
         }
-
         item.setName("Array items");
-        item.setIsArray(true);
-        item.setValue(array.toString());
     }
 
     private static void setItem(JsonObject obj, Object o, ListItem item, ExceptionCallback callback){
@@ -103,13 +109,9 @@ public class JsonFunctions {
         }
         if (obj.get(o.toString()) instanceof JsonArray) {
             JsonArray array = (JsonArray) obj.get(o.toString());
-            if (isArrayOfObjects(array)) {
-                ArrayList<ArrayList<ListItem>> ArrList = getJsonArray(array,callback);
-                item.setListObjects(ArrList);
-                return;
-            }
+
             item.setIsArray(true);
-            item.setValue(array.toString());
+            item.setListObjects(getJsonArray(array,callback));
             return;
         }
         String value = obj.get(o.toString()).toString();

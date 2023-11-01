@@ -95,8 +95,14 @@ public class ListAdapter extends BaseAdapter {
         View view = LayoutInflater.from(context).inflate(R.layout.list_layout2,parent,false);
         TextView titleTxt = view.findViewById(R.id.itemName);
         TextView valueTxt = view.findViewById(R.id.itemValue);
+        if (item.getName() == null)
+            titleTxt.setVisibility(View.GONE);
+        else {
+            titleTxt.setVisibility(View.VISIBLE);
+            titleTxt.setText(item.getName());
+        }
         view.setClickable(false);
-        titleTxt.setText(item.getName());
+
         valueTxt.setText(item.getValue().isEmpty() ? "\"\"" : item.getValue());
 
         return view;
