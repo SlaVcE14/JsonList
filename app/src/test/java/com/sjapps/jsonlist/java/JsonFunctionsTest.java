@@ -22,8 +22,8 @@ public class JsonFunctionsTest {
         ArrayList<ListItem> result = JsonFunctions.getJsonArrayRoot(jsonArray, e -> {});
         assertNotNull(result);
         assertEquals(1, result.size());
-        assertEquals("Json Array", result.get(0).getName());
-        assertTrue(result.get(0).isArrayOfObjects());
+        assertEquals("Objects Array", result.get(0).getName());
+        assertTrue(result.get(0).isArray());
         assertEquals(1, result.get(0).getListObjects().size());
     }
 

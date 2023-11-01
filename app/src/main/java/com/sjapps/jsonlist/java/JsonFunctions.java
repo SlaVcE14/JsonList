@@ -11,11 +11,10 @@ public class JsonFunctions {
     public static ArrayList<ListItem> getJsonArrayRoot(JsonArray array, ExceptionCallback callback) {
         ArrayList<ListItem> mainList = new ArrayList<>();
         ListItem item = new ListItem();
-        item.setName("Json Array");
-        item.setIsArrayOfObjects(true);
-        item.setListObjects(getJsonArray(array,callback));
+        setArrayName(array,item);
+        item.setIsArray(true);
+        item.setListObjects(getJsonArray(array, callback));
         mainList.add(item);
-
         return mainList;
     }
 
@@ -25,7 +24,28 @@ public class JsonFunctions {
             if (array.get(i) instanceof JsonObject) {
                 ArrayList<ListItem> ListOfItems = getJsonObject((JsonObject) array.get(i),callback);
                 ArrList.add(ListOfItems);
+                continue;
             }
+            if (array.get(i) instanceof JsonArray){
+
+                ArrayList<ArrayList<ListItem>> ListOfItems = getJsonArray((JsonArray) array.get(i),callback);
+
+                ArrayList<ListItem> itemsInList = new ArrayList<>();
+                ListItem arrItem = new ListItem();
+
+                setArrayName((JsonArray) array.get(i),arrItem);
+                arrItem.setIsArray(true);
+                arrItem.setListObjects(ListOfItems);
+
+                itemsInList.add(arrItem);
+                ArrList.add(itemsInList);
+                continue;
+            }
+            ListItem item = new ListItem();
+            item.setValue(getStringFromJson(array.get(i).toString()));
+            ArrayList<ListItem> items = new ArrayList<>();
+            items.add(item);
+            ArrList.add(items);
         }
         return ArrList;
     }
@@ -33,6 +53,15 @@ public class JsonFunctions {
     static boolean isArrayOfObjects(JsonArray array) {
         for (int i = 0; i < array.size(); i++) {
             if (!(array.get(i) instanceof JsonObject)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    static boolean isArrayOfArray(JsonArray array) {
+        for (int i = 0; i < array.size(); i++) {
+            if (!(array.get(i) instanceof JsonArray)) {
                 return false;
             }
         }
@@ -58,6 +87,21 @@ public class JsonFunctions {
         return mainList;
     }
 
+    private static void setArrayName(JsonArray array, ListItem item){
+        if(isArrayOfObjects(array)) {
+            item.setName("Objects Array");
+            return;
+        }
+        if (isArrayOfArray(array)){
+            item.setName("Array");
+            return;
+        }
+        item.setName("Array items");
+    }
+    private static String getStringFromJson(String value){
+        return value.startsWith("\"") && value.endsWith("\"") ? value.substring(1,value.length()-1) : value;
+    }
+
     private static void setItem(JsonObject obj, Object o, ListItem item, ExceptionCallback callback){
         if (obj.get(o.toString()) instanceof JsonObject) {
             item.setIsObject(true);
@@ -67,18 +111,12 @@ public class JsonFunctions {
         }
         if (obj.get(o.toString()) instanceof JsonArray) {
             JsonArray array = (JsonArray) obj.get(o.toString());
-            if (isArrayOfObjects(array)) {
-                item.setIsArrayOfObjects(true);
-                ArrayList<ArrayList<ListItem>> ArrList = getJsonArray(array,callback);
-                item.setListObjects(ArrList);
-                return;
-            }
+
             item.setIsArray(true);
-            item.setValue(array.toString());
+            item.setListObjects(getJsonArray(array,callback));
             return;
         }
-        String value = obj.get(o.toString()).toString();
-        item.setValue(value.startsWith("\"") && value.endsWith("\"") ? value.substring(1,value.length()-1) : value);
+        item.setValue(getStringFromJson(obj.get(o.toString()).toString()));
     }
 
     static ArrayList<ListItem> getArrayList(ArrayList<ArrayList<ListItem>> list) {
@@ -120,7 +158,7 @@ public class JsonFunctions {
                 if (id != -1 && item.getId() != id)
                     continue;
 
-                if (item.isArrayOfObjects()) {
+                if (item.isArray()) {
                     list = getArrayList(item.getListObjects());
                     break;
                 }

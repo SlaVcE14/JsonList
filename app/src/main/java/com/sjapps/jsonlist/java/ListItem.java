@@ -1,13 +1,11 @@
 package com.sjapps.jsonlist.java;
 
 import java.util.ArrayList;
-import java.util.Objects;
 
 public class ListItem {
 
     private String Name;
     private String Value;
-    private boolean isArrayOfObjects;
     private boolean isArray;
     private boolean isObject;
     private boolean isSpace;
@@ -33,14 +31,6 @@ public class ListItem {
 
     public void setValue(String value) {
         Value = value;
-    }
-
-    public boolean isArrayOfObjects() {
-        return isArrayOfObjects;
-    }
-
-    public void setIsArrayOfObjects(boolean array) {
-        isArrayOfObjects = array;
     }
 
     public boolean isArray() {
@@ -97,7 +87,6 @@ public class ListItem {
                 "\"ID\":" + id +
                 ",\"Name\":" +(Name!=null && !Name.startsWith("\"")?"\"":"") +  Name + (Name!=null && !Name.startsWith("\"")?"\"":"") +
                 ", \"Value\":" + (Value!=null && !Value.startsWith("\"")?"\"":"") + Value + (Value!=null && !Value.startsWith("\"")?"\"":"") +
-                ", \"isArrayOfObjects\":" + isArrayOfObjects +
                 ", \"isArray\":" + isArray +
                 ", \"isObject\":" + isObject +
                 ", \"isSpace\":" + isSpace +
@@ -116,11 +105,11 @@ public class ListItem {
         if (this == o) return true;
         if (!(o instanceof ListItem)) return false;
         ListItem item = (ListItem) o;
-        return isArrayOfObjects() == item.isArrayOfObjects() && isArray() == item.isArray() && isObject() == item.isObject() && isSpace() == item.isSpace() && java.util.Objects.equals(getName(), item.getName()) && java.util.Objects.equals(getValue(), item.getValue()) && java.util.Objects.equals(getObjects(), item.getObjects()) && java.util.Objects.equals(getListObjects(), item.getListObjects());
+        return isArray() == item.isArray() && isObject() == item.isObject() && isSpace() == item.isSpace() && java.util.Objects.equals(getName(), item.getName()) && java.util.Objects.equals(getValue(), item.getValue()) && java.util.Objects.equals(getObjects(), item.getObjects()) && java.util.Objects.equals(getListObjects(), item.getListObjects());
     }
 
     @Override
     public int hashCode() {
-        return java.util.Objects.hash(getName(), getValue(), isArrayOfObjects(), isArray(), isObject(), isSpace(), getObjects(), getListObjects());
+        return java.util.Objects.hash(getName(), getValue(), isArray(), isObject(), isSpace(), getObjects(), getListObjects());
     }
 }
