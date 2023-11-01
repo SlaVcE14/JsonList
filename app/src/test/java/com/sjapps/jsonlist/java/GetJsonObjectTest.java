@@ -44,8 +44,10 @@ public class GetJsonObjectTest {
         assertNotNull(result);
         assertEquals(1, result.size());
         assertEquals("key1", result.get(0).getName());
-        assertEquals("[\"value1\",\"value2\"]", result.get(0).getValue());
         assertTrue(result.get(0).isArray());
+        assertEquals("value1",result.get(0).getListObjects().get(0).get(0).getValue());
+        assertEquals("value2",result.get(0).getListObjects().get(1).get(0).getValue());
+
     }
 
 
