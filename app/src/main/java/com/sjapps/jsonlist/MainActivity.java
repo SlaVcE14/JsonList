@@ -141,8 +141,7 @@ public class MainActivity extends AppCompatActivity {
 
             data.goBack();
 
-            String[] pathString = data.splitPath();
-            open(JsonData.getName(pathString[pathString.length-1]), data.getPath());
+            open(JsonData.getPathFormat(data.getPath()), data.getPath());
             if (data.isEmptyPath()) {
                 backBtn.setVisibility(View.GONE);
             }

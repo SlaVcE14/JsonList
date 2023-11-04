@@ -10,6 +10,7 @@ import android.widget.BaseAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.sjapps.jsonlist.java.JsonData;
 import com.sjapps.jsonlist.java.ListItem;
 import com.sjapps.jsonlist.MainActivity;
 import com.sjapps.jsonlist.R;
@@ -75,7 +76,8 @@ public class ListAdapter extends BaseAdapter {
             if (selectedItem == position){
                 view.findViewById(R.id.copyBtn).setVisibility(View.VISIBLE);
             }
-            view.findViewById(R.id.btn).setOnClickListener(view1 -> activity.open(item.getName(),path + (path.equals("") ? "": "///" + (item.getId()!=-1?"{" + item.getId() + "}":"")) + item.getName()));
+            String newPath = path + (path.equals("") ? "": "///" + (item.getId()!=-1?"{" + item.getId() + "}":"")) + item.getName();
+            view.findViewById(R.id.btn).setOnClickListener(view1 -> activity.open(JsonData.getPathFormat(newPath),newPath));
             view.findViewById(R.id.copyBtn).setOnClickListener(v -> {
                 ClipboardManager clipboard = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
                     ClipData clipData = ClipData.newPlainText("Text",item.getName());
