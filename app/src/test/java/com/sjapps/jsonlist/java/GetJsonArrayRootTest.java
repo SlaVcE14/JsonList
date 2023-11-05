@@ -22,7 +22,7 @@ public class GetJsonArrayRootTest {
 
         JsonArray array = FileSystem.loadDataToJsonArray(element);
 
-        ArrayList<ListItem> itemsArr = JsonFunctions.getJsonArrayRoot(array,e -> {});
+        ArrayList<ListItem> itemsArr = JsonFunctions.getJsonArrayRoot(array);
         ArrayList<ListItem> expectedArr = new ArrayList<>();
 
         ListItem root = new ListItem();
@@ -51,7 +51,7 @@ public class GetJsonArrayRootTest {
 
         JsonArray array = FileSystem.loadDataToJsonArray(element);
 
-        ArrayList<ListItem> itemsArr = JsonFunctions.getJsonArrayRoot(array,e -> {});
+        ArrayList<ListItem> itemsArr = JsonFunctions.getJsonArrayRoot(array);
 
 
         ArrayList<ListItem> expectedArr = new ArrayList<>();
@@ -98,7 +98,7 @@ public class GetJsonArrayRootTest {
     @Test
     public void testGetJsonArrayRootWithEmptyArray() {
         JsonArray jsonArray = new JsonArray();
-        ArrayList<ListItem> result = JsonFunctions.getJsonArrayRoot(jsonArray, e -> {});
+        ArrayList<ListItem> result = JsonFunctions.getJsonArrayRoot(jsonArray);
         assertNotNull(result);
         assertEquals(1, result.size());
         assertEquals("Objects Array", result.get(0).getName());
