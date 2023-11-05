@@ -29,13 +29,17 @@ import android.widget.Toast;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
+import com.google.gson.JsonSyntaxException;
 import com.sjapps.about.AboutActivity;
 import com.sjapps.adapters.ListAdapter;
 import com.sjapps.jsonlist.java.ExceptionCallback;
 import com.sjapps.jsonlist.java.JsonData;
 import com.sjapps.jsonlist.java.ListItem;
 import com.sjapps.library.customdialog.BasicDialog;
+
+import org.json.JSONException;
 
 import java.util.ArrayList;
 
@@ -192,35 +196,42 @@ public class MainActivity extends AppCompatActivity {
             ArrayList<ListItem> temp = data.getRootList();
             JsonElement element;
             try {
+
+
+
                 element = JsonParser.parseString(Data);
 
-            } catch (OutOfMemoryError | Exception e) {
+            } catch (OutOfMemoryError e) {
                 e.printStackTrace();
-                handler.post(() -> {
-                    Toast.makeText(MainActivity.this, "File is too large", Toast.LENGTH_SHORT).show();
-                    progressBar.setVisibility(View.GONE);
-                });
+                fileTooLargeException();
+                return;
+            } catch (Exception e){
+                e.printStackTrace();
+                fileNotLoadedException();
                 return;
             }
             if (element == null) {
-                handler.post(() -> {
-                    Toast.makeText(MainActivity.this, "Filed to load file!", Toast.LENGTH_SHORT).show();
-                    progressBar.setVisibility(View.GONE);
-                });
+                fileNotLoadedException();
                 return;
             }
 
-            if (element instanceof JsonObject) {
-                Log.d(TAG, "run: Json object");
-                JsonObject object = FileSystem.loadDataToJsonObj(element);
-                Log.d(TAG, "LoadData: " + object);
-                data.setRootList(getJsonObject(object,onReadJsonException));
-            }
-            if (element instanceof JsonArray) {
-                Log.d(TAG, "run: Json array");
-                JsonArray array = FileSystem.loadDataToJsonArray(element);
-                Log.d(TAG, "LoadData: " + array);
-                data.setRootList(getJsonArrayRoot(array,onReadJsonException));
+            try {
+                if (element instanceof JsonObject) {
+                    Log.d(TAG, "run: Json object");
+                    JsonObject object = FileSystem.loadDataToJsonObj(element);
+                    Log.d(TAG, "LoadData: " + object);
+                    data.setRootList(getJsonObject(object));
+                }
+                if (element instanceof JsonArray) {
+                    Log.d(TAG, "run: Json array");
+                    JsonArray array = FileSystem.loadDataToJsonArray(element);
+                    Log.d(TAG, "LoadData: " + array);
+                    data.setRootList(getJsonArrayRoot(array));
+                }
+            } catch (Exception e){
+                e.printStackTrace();
+                creatingListException();
+                data.setRootList(null);
             }
 
             if (!data.isRootListNull()) {
@@ -312,8 +323,19 @@ public class MainActivity extends AppCompatActivity {
                 }
             });
 
-    ExceptionCallback onReadJsonException = e -> {
-        Log.e(TAG, "getJsonObject: Failed to load data");
-        handler.post(() -> Toast.makeText(MainActivity.this, "Failed to load data!", Toast.LENGTH_SHORT).show());
-    };
+    void fileTooLargeException(){
+        postMessageException("File is too large");
+    }
+    void fileNotLoadedException(){
+        postMessageException("Fail to load file!");
+    }
+    void creatingListException(){
+        postMessageException("Fail to create list!");
+    }
+    void postMessageException(String msg){
+        handler.post(() -> {
+            Toast.makeText(MainActivity.this,msg, Toast.LENGTH_SHORT).show();
+            progressBar.setVisibility(View.GONE);
+        });
+    }
 }

@@ -19,7 +19,7 @@ public class JsonFunctionsTest {
         JsonArray jsonArray = new JsonArray();
         jsonArray.add(new JsonObject());
 
-        ArrayList<ListItem> result = JsonFunctions.getJsonArrayRoot(jsonArray, e -> {});
+        ArrayList<ListItem> result = JsonFunctions.getJsonArrayRoot(jsonArray);
         assertNotNull(result);
         assertEquals(1, result.size());
         assertEquals("Objects Array", result.get(0).getName());
@@ -34,7 +34,7 @@ public class JsonFunctionsTest {
         jsonArray.add(new JsonObject());
         jsonArray.add(new JsonObject());
 
-        ArrayList<ArrayList<ListItem>> result = JsonFunctions.getJsonArray(jsonArray, e -> {});
+        ArrayList<ArrayList<ListItem>> result = JsonFunctions.getJsonArray(jsonArray);
         assertNotNull(result);
         assertEquals(2, result.size());
     }
@@ -57,7 +57,7 @@ public class JsonFunctionsTest {
         jsonObject.addProperty("key1", "value1");
         jsonObject.addProperty("key2", "value2");
 
-        ArrayList<ListItem> result = JsonFunctions.getJsonObject(jsonObject, e -> {});
+        ArrayList<ListItem> result = JsonFunctions.getJsonObject(jsonObject);
         assertNotNull(result);
         assertEquals(2, result.size());
     }

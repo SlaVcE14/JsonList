@@ -20,7 +20,7 @@ public class GetJsonObjectTest {
         nestedObject.addProperty("nestedKey", "nestedValue");
         jsonObject.add("key1", nestedObject);
 
-        ArrayList<ListItem> result = JsonFunctions.getJsonObject(jsonObject, e -> {});
+        ArrayList<ListItem> result = JsonFunctions.getJsonObject(jsonObject);
 
         assertNotNull(result);
         assertEquals(1, result.size());
@@ -39,7 +39,7 @@ public class GetJsonObjectTest {
         jsonArray.add("value2");
         jsonObject.add("key1", jsonArray);
 
-        ArrayList<ListItem> result = JsonFunctions.getJsonObject(jsonObject, e -> {});
+        ArrayList<ListItem> result = JsonFunctions.getJsonObject(jsonObject);
 
         assertNotNull(result);
         assertEquals(1, result.size());
@@ -57,7 +57,7 @@ public class GetJsonObjectTest {
 
         JsonObject jsonObject = new Gson().fromJson(jsonString, JsonObject.class);
 
-        ArrayList<ListItem> result = JsonFunctions.getJsonObject(jsonObject, e -> {});
+        ArrayList<ListItem> result = JsonFunctions.getJsonObject(jsonObject);
 
         assertNotNull(result);
         assertEquals(2, result.size());
@@ -74,7 +74,7 @@ public class GetJsonObjectTest {
 
         JsonObject object =  new Gson().fromJson(data, JsonObject.class);
 
-        ArrayList<ListItem> items = JsonFunctions.getJsonObject(object,e -> {});
+        ArrayList<ListItem> items = JsonFunctions.getJsonObject(object);
 
         ArrayList<ListItem> expected = new ArrayList<>();
 
@@ -123,7 +123,7 @@ public class GetJsonObjectTest {
 
         JsonObject object =  new Gson().fromJson(data, JsonObject.class);
 
-        ArrayList<ListItem> items = JsonFunctions.getJsonObject(object,e -> {});
+        ArrayList<ListItem> items = JsonFunctions.getJsonObject(object);
 
         ArrayList<ListItem> expected = new ArrayList<>();
 
@@ -169,7 +169,7 @@ public class GetJsonObjectTest {
 
         JsonObject object =  new Gson().fromJson(data, JsonObject.class);
 
-        ArrayList<ListItem> items = JsonFunctions.getJsonObject(object,e -> {});
+        ArrayList<ListItem> items = JsonFunctions.getJsonObject(object);
 
         ArrayList<ListItem> expected = new ArrayList<>();
 
