@@ -29,17 +29,13 @@ import android.widget.Toast;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
-import com.google.gson.JsonSyntaxException;
 import com.sjapps.about.AboutActivity;
 import com.sjapps.adapters.ListAdapter;
-import com.sjapps.jsonlist.java.ExceptionCallback;
 import com.sjapps.jsonlist.java.JsonData;
 import com.sjapps.jsonlist.java.ListItem;
 import com.sjapps.library.customdialog.BasicDialog;
 
-import org.json.JSONException;
 
 import java.util.ArrayList;
 
