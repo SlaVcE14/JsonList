@@ -3,8 +3,6 @@ package com.sjapps.jsonlist;
 import static com.sjapps.jsonlist.java.JsonFunctions.*;
 
 import androidx.activity.OnBackPressedCallback;
-import androidx.activity.result.ActivityResult;
-import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
@@ -129,13 +127,8 @@ public class MainActivity extends AppCompatActivity {
                 return;
             }
 
-
             TransitionManager.beginDelayedTransition(viewGroup, autoTransition);
-
-
-
             data.goBack();
-
             open(JsonData.getPathFormat(data.getPath()), data.getPath());
             if (data.isEmptyPath()) {
                 backBtn.setVisibility(View.GONE);
@@ -280,25 +273,21 @@ public class MainActivity extends AppCompatActivity {
 
     ActivityResultLauncher<Intent> ActivityResultData = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
-            new ActivityResultCallback<ActivityResult>() {
-                @Override
-                public void onActivityResult(ActivityResult result) {
-                    if (result.getResultCode() != Activity.RESULT_OK) {
-                        if(result.getResultCode() == Activity.RESULT_CANCELED){
-                            Toast.makeText(MainActivity.this,"Import data canceled",Toast.LENGTH_SHORT).show();
-                        }
-                        return;
+            result -> {
+                if (result.getResultCode() != Activity.RESULT_OK) {
+                    if(result.getResultCode() == Activity.RESULT_CANCELED){
+                        Toast.makeText(MainActivity.this,"Import data canceled",Toast.LENGTH_SHORT).show();
                     }
-                    if (result.getData() == null || result.getData().getData() == null){
-                        Toast.makeText(MainActivity.this, "Fail to load data", Toast.LENGTH_SHORT).show();
-                        return;
-                    }
-                    //File
-                    ReadFile(result.getData().getData());
-
-
+                    return;
                 }
+                if (result.getData() == null || result.getData().getData() == null){
+                    Toast.makeText(MainActivity.this, "Fail to load data", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                //File
+                ReadFile(result.getData().getData());
             });
+
     void ReadFile(Uri uri){
         if (readFileThread != null && readFileThread.isAlive()){
             return;
