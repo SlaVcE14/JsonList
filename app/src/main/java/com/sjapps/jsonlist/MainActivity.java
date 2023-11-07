@@ -3,8 +3,6 @@ package com.sjapps.jsonlist;
 import static com.sjapps.jsonlist.java.JsonFunctions.*;
 
 import androidx.activity.OnBackPressedCallback;
-import androidx.activity.result.ActivityResult;
-import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
@@ -26,6 +24,8 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.material.snackbar.BaseTransientBottomBar;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -56,6 +56,7 @@ public class MainActivity extends AppCompatActivity {
     ViewGroup viewGroup;
     AutoTransition autoTransition = new AutoTransition();
     Handler handler = new Handler();
+    Thread readFileThread;
 
     @Override
     protected void onResume() {
@@ -87,16 +88,8 @@ public class MainActivity extends AppCompatActivity {
 
         Intent intent  = getIntent();
         Log.d(TAG, "onCreate: " + intent);
-        if (Intent.ACTION_VIEW.equals(intent.getAction())){
-
-            Log.d(TAG, "onCreate: " + intent.getData());
-
-            String FileData = FileSystem.LoadDataFromFile(this,intent.getData());
-//            Log.d(TAG, "onCreate: " + FileData);
-            if (FileData != null)
-                LoadData(FileData);
-            else
-                Log.d(TAG, "onCreate: null data");
+        if (Intent.ACTION_VIEW.equals(intent.getAction())) {
+            ReadFile(intent.getData());
         }
         if (intent.getAction().equals("android.intent.action.OPEN_FILE")){
             ImportFromFile();
@@ -134,13 +127,8 @@ public class MainActivity extends AppCompatActivity {
                 return;
             }
 
-
             TransitionManager.beginDelayedTransition(viewGroup, autoTransition);
-
-
-
             data.goBack();
-
             open(JsonData.getPathFormat(data.getPath()), data.getPath());
             if (data.isEmptyPath()) {
                 backBtn.setVisibility(View.GONE);
@@ -188,13 +176,10 @@ public class MainActivity extends AppCompatActivity {
         progressBar.setVisibility(View.VISIBLE);
         emptyListTxt.setVisibility(View.GONE);
 
-        new Thread(() -> {
+        readFileThread = new Thread(() -> {
             ArrayList<ListItem> temp = data.getRootList();
             JsonElement element;
             try {
-
-
-
                 element = JsonParser.parseString(Data);
 
             } catch (OutOfMemoryError e) {
@@ -245,9 +230,8 @@ public class MainActivity extends AppCompatActivity {
 
             handler.post(() -> progressBar.setVisibility(View.GONE));
 
-        }).start();
-
-
+        });
+        readFileThread.start();
     }
 
     public void open(String Title, String path) {
@@ -275,6 +259,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void ImportFromFile() {
+        if (readFileThread != null && readFileThread.isAlive()) {
+            Snackbar.make(getWindow().getDecorView(),"Loading file in progress, try again later", BaseTransientBottomBar.LENGTH_SHORT).show();
+            return;
+        }
+
         Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
         intent.addCategory(Intent.CATEGORY_OPENABLE);
         intent.setType("application/json");
@@ -284,40 +273,46 @@ public class MainActivity extends AppCompatActivity {
 
     ActivityResultLauncher<Intent> ActivityResultData = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
-            new ActivityResultCallback<ActivityResult>() {
-                @Override
-                public void onActivityResult(ActivityResult result) {
-                    if (result.getResultCode() != Activity.RESULT_OK) {
-                        if(result.getResultCode() == Activity.RESULT_CANCELED){
-                            Toast.makeText(MainActivity.this,"Import data canceled",Toast.LENGTH_SHORT).show();
-                        }
-                        return;
+            result -> {
+                if (result.getResultCode() != Activity.RESULT_OK) {
+                    if(result.getResultCode() == Activity.RESULT_CANCELED){
+                        Toast.makeText(MainActivity.this,"Import data canceled",Toast.LENGTH_SHORT).show();
                     }
-                    if (result.getData() == null || result.getData().getData() == null){
-                        Toast.makeText(MainActivity.this, "Fail to load data", Toast.LENGTH_SHORT).show();
-                        return;
-                    }
-                    //File
-                    Uri uri = result.getData().getData();
-                    progressBar.setVisibility(View.VISIBLE);
-                    loadingFileTxt.setVisibility(View.VISIBLE);
-                    new Thread(() -> {
-                        String Data = FileSystem.LoadDataFromFile(MainActivity.this, uri);
-
-                        if (Data == null) {
-                            Log.d(TAG, "onActivityResult: null data");
-                            return;
-                        }
-                        handler.post(() -> {
-                            progressBar.setVisibility(View.GONE);
-                            loadingFileTxt.setVisibility(View.GONE);
-                            LoadData(Data);
-                        });
-
-                    }).start();
-
+                    return;
                 }
+                if (result.getData() == null || result.getData().getData() == null){
+                    Toast.makeText(MainActivity.this, "Fail to load data", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                //File
+                ReadFile(result.getData().getData());
             });
+
+    void ReadFile(Uri uri){
+        if (readFileThread != null && readFileThread.isAlive()){
+            return;
+        }
+        progressBar.setVisibility(View.VISIBLE);
+        loadingFileTxt.setVisibility(View.VISIBLE);
+
+
+        readFileThread = new Thread(() -> {
+          String Data = FileSystem.LoadDataFromFile(MainActivity.this, uri);
+
+            if (Data == null) {
+                Log.d(TAG, "ReadFile: null data");
+                return;
+            }
+            handler.post(() -> {
+                progressBar.setVisibility(View.GONE);
+                loadingFileTxt.setVisibility(View.GONE);
+                LoadData(Data);
+            });
+
+        });
+        readFileThread.start();
+
+    }
 
     void fileTooLargeException(){
         postMessageException("File is too large");
