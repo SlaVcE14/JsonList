@@ -33,6 +33,8 @@
         <item name="android:statusBarColor">?android:windowBackgroundFallback</item>
         <item name="android:windowSplashScreenBackground" tools:targetApi="s">#000000</item>
         <item name="android:windowSplashScreenIconBackgroundColor" tools:targetApi="s">#000000</item>
+        <item name="snackbarTextViewStyle">@style/SnackbarStyle</item>
+        <item name="snackbarStyle">@style/SnackbarStyle</item>
     </style>
     <style name="ButtonColor" parent="@android:style/Widget.Button">
         <item name="android:background">@drawable/ripple_button</item>
@@ -47,6 +49,11 @@
         <item name="android:textColor">?colorOnPrimary</item>
         <item name="android:gravity">center_vertical|center_horizontal</item>
     </style>
-
+    <style name="SnackbarStyle" parent="@style/Widget.MaterialComponents.Snackbar">
+        <item name="backgroundTint">?colorOnPrimaryContainer</item>
+        <item name="android:textColor">?colorPrimaryContainer</item>
+        <item name="android:background">@drawable/background</item>
+        <item name="animationMode">slide</item>
+    </style>
 
 </resources>
