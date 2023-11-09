@@ -179,7 +179,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void LoadData(String Data) {
 
-        progressBar.setVisibility(View.VISIBLE);
+        loadingStarted("loading json");
         emptyListTxt.setVisibility(View.GONE);
 
         readFileThread = new Thread(() -> {
