@@ -5,9 +5,12 @@ import static com.sjapps.jsonlist.java.JsonFunctions.*;
 import androidx.activity.OnBackPressedCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.AnimRes;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -17,8 +20,11 @@ import android.transition.TransitionManager;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -48,8 +54,8 @@ public class MainActivity extends AppCompatActivity {
     TextView titleTxt, emptyListTxt;
     ListView list;
     JsonData data = new JsonData();
+    LinearLayout progressView;
     ProgressBar progressBar;
-    TextView loadingFileTxt;
     boolean isMenuOpen;
     ListAdapter adapter;
     View menu, dim_bg;
@@ -147,8 +153,8 @@ public class MainActivity extends AppCompatActivity {
         viewGroup = findViewById(R.id.content);
         menu = findViewById(R.id.menu);
         dim_bg = findViewById(R.id.dim_layout);
+        progressView = findViewById(R.id.loadingView);
         progressBar = findViewById(R.id.progressBar);
-        loadingFileTxt = findViewById(R.id.LoadFileTxt);
         dim_bg.bringToFront();
         menu.bringToFront();
         menuBtn.bringToFront();
@@ -196,17 +202,16 @@ public class MainActivity extends AppCompatActivity {
                 return;
             }
 
+            loadingStarted("creating list");
             try {
                 if (element instanceof JsonObject) {
                     Log.d(TAG, "run: Json object");
                     JsonObject object = FileSystem.loadDataToJsonObj(element);
-                    Log.d(TAG, "LoadData: " + object);
                     data.setRootList(getJsonObject(object));
                 }
                 if (element instanceof JsonArray) {
                     Log.d(TAG, "run: Json array");
                     JsonArray array = FileSystem.loadDataToJsonArray(element);
-                    Log.d(TAG, "LoadData: " + array);
                     data.setRootList(getJsonArrayRoot(array));
                 }
             } catch (Exception e){
@@ -228,7 +233,7 @@ public class MainActivity extends AppCompatActivity {
 
             } else data.setRootList(temp);
 
-            handler.post(() -> progressBar.setVisibility(View.GONE));
+            handler.post(() -> loadingFinished(true));
 
         });
         readFileThread.start();
@@ -292,8 +297,7 @@ public class MainActivity extends AppCompatActivity {
         if (readFileThread != null && readFileThread.isAlive()){
             return;
         }
-        progressBar.setVisibility(View.VISIBLE);
-        loadingFileTxt.setVisibility(View.VISIBLE);
+        loadingStarted("Reading file");
 
 
         readFileThread = new Thread(() -> {
@@ -304,8 +308,7 @@ public class MainActivity extends AppCompatActivity {
                 return;
             }
             handler.post(() -> {
-                progressBar.setVisibility(View.GONE);
-                loadingFileTxt.setVisibility(View.GONE);
+                loadingFinished(false);
                 LoadData(Data);
             });
 
@@ -314,6 +317,10 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    public void updateProgress(int val){
+        progressBar.setIndeterminate(false);
+        progressBar.setProgress(val);
+    }
     void fileTooLargeException(){
         postMessageException("File is too large");
     }
@@ -326,7 +333,7 @@ public class MainActivity extends AppCompatActivity {
     void postMessageException(String msg){
         handler.post(() -> {
             Toast.makeText(MainActivity.this,msg, Toast.LENGTH_SHORT).show();
-            progressBar.setVisibility(View.GONE);
+            loadingFinished(false);
         });
     }
 }

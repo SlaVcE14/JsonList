@@ -109,26 +109,44 @@
         android:layout_marginBottom="20dp"
         >
 
-        <ProgressBar
-            android:id="@+id/progressBar"
+        <LinearLayout
+            android:id="@+id/loadingView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_above="@+id/LoadFileTxt"
-            android:layout_centerHorizontal="true"
+            android:minWidth="150dp"
+            android:animateLayoutChanges="true"
+            android:background="@drawable/background_transparent"
 
-            android:visibility="gone" />
-        <TextView
-            android:id="@+id/LoadFileTxt"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Loading File..."
-            android:layout_centerHorizontal="true"
-            android:layout_alignParentBottom="true"
-            android:layout_marginTop="10dp"
-            android:visibility="gone"
-            />
+            android:padding="10dp"
+            android:layout_marginBottom="20dp"
+            android:visibility="invisible"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:elevation="5dp"
+            android:orientation="vertical">
 
+            <TextView
+                android:id="@+id/loadingTxt"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="loading data from file"
+                android:textAlignment="center"
+                android:textColor="#ffffff"
 
+                />
+            <ProgressBar
+                android:id="@+id/progressBar"
+                style="?android:attr/progressBarStyleHorizontal"
+                android:layout_width="match_parent"
+                android:layout_height="5dp"
+                android:indeterminate="true"
+                android:layout_marginTop="5dp"
+                android:max="100"
+                android:progressTint="#ffffff"
+                android:indeterminateTint="#ffffff"
+                />
+        </LinearLayout>
     </RelativeLayout>
 
 
