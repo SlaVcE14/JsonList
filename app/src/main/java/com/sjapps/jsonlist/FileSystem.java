@@ -48,6 +48,7 @@ public class FileSystem {
                 mainActivity.updateProgress((int)((currentBytes/(float)fileSize)*100));
             }
 
+            fileDescriptor.close();
             inputStream.close();
             reader.close();
 
