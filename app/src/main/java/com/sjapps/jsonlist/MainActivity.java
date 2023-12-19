@@ -317,10 +317,54 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    void loadingStarted(){
+        loadingStarted("loading...");
+
+    }
+
+    void loadingStarted(String txt){
+        TextView text =  progressView.findViewById(R.id.loadingTxt);
+        progressBar.setIndeterminate(true);
+        text.setText(txt);
+        handler.postDelayed(() -> {
+            setAnimation(this,progressView,R.anim.scale_in);
+            text.setVisibility(View.VISIBLE);
+            progressView.setVisibility(View.VISIBLE);
+        },300);
+
+    }
     public void updateProgress(int val){
         progressBar.setIndeterminate(false);
         progressBar.setProgress(val);
     }
+
+    void loadingFinished(boolean isFinished){
+
+        if (!isFinished){
+            setAnimation(this, progressView,R.anim.scale_out);
+            progressView.setVisibility(View.INVISIBLE);
+            return;
+        }
+
+        progressBar.setIndeterminate(false);
+        progressBar.setProgress(100);
+
+        TextView text =  progressView.findViewById(R.id.loadingTxt);
+        handler.postDelayed(() -> text.setText( "finished"),500);
+        handler.postDelayed(() -> {
+        },700);
+        handler.postDelayed(() -> text.setVisibility(View.INVISIBLE),900);
+        handler.postDelayed(() -> {
+            setAnimation(this, progressView,R.anim.scale_out);
+            progressView.setVisibility(View.INVISIBLE);
+        },1000);
+    }
+
+    public static void setAnimation(Context context, @NonNull View view, @AnimRes int animationRes) {
+        Animation animation = AnimationUtils.loadAnimation(context, animationRes);
+        view.startAnimation(animation);
+    }
+
     void fileTooLargeException(){
         postMessageException("File is too large");
     }

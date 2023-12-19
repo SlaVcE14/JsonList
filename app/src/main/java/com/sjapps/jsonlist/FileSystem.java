@@ -1,9 +1,11 @@
 package com.sjapps.jsonlist;
 
+import android.content.res.AssetFileDescriptor;
 import android.net.Uri;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -35,9 +37,15 @@ public class FileSystem {
             FileInputStream   inputStream = (FileInputStream) mainActivity.getContentResolver().openInputStream(uri);
             BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
 
+            AssetFileDescriptor fileDescriptor = mainActivity.getContentResolver().openAssetFileDescriptor(uri , "r");
+
+            long currentBytes = 0;
+            long fileSize = fileDescriptor.getLength();
             String line;
             while ((line = reader.readLine()) != null) {
                 sb.append(line);
+                currentBytes += line.length();
+                mainActivity.updateProgress((int)((currentBytes/(float)fileSize)*100));
             }
 
             inputStream.close();
