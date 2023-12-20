@@ -308,7 +308,6 @@ public class MainActivity extends AppCompatActivity {
                 return;
             }
             handler.post(() -> {
-                loadingFinished(false);
                 LoadData(Data);
             });
 
@@ -327,9 +326,11 @@ public class MainActivity extends AppCompatActivity {
         progressBar.setIndeterminate(true);
         text.setText(txt);
         handler.postDelayed(() -> {
-            setAnimation(this,progressView,R.anim.scale_in);
-            text.setVisibility(View.VISIBLE);
-            progressView.setVisibility(View.VISIBLE);
+            if (progressView.getVisibility() != View.VISIBLE) {
+                setAnimation(this, progressView, R.anim.scale_in);
+                text.setVisibility(View.VISIBLE);
+                progressView.setVisibility(View.VISIBLE);
+            }
         },300);
 
     }
@@ -341,8 +342,10 @@ public class MainActivity extends AppCompatActivity {
     void loadingFinished(boolean isFinished){
 
         if (!isFinished){
-            setAnimation(this, progressView,R.anim.scale_out);
-            progressView.setVisibility(View.INVISIBLE);
+            handler.postDelayed(()-> {
+                setAnimation(this, progressView,R.anim.scale_out);
+                progressView.setVisibility(View.INVISIBLE);
+            },300);
             return;
         }
 
