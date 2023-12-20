@@ -22,8 +22,12 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
+import android.view.animation.DecelerateInterpolator;
+import android.view.animation.Interpolator;
+import android.view.animation.OvershootInterpolator;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.ProgressBar;
@@ -50,6 +54,7 @@ public class MainActivity extends AppCompatActivity {
 
     final String TAG = "MainActivity";
     ImageButton backBtn, menuBtn;
+    ImageView fileImg;
     Button openFileBtn;
     TextView titleTxt, emptyListTxt;
     ListView list;
@@ -75,6 +80,10 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         initialize();
+
+        setAnimation(this,fileImg,R.anim.scale_in_file_img, new DecelerateInterpolator());
+        setAnimation(this,openFileBtn,R.anim.button_pop, new OvershootInterpolator());
+
         autoTransition.setDuration(150);
         menuBtn.setOnClickListener(view -> open_closeMenu());
 
@@ -155,6 +164,7 @@ public class MainActivity extends AppCompatActivity {
         dim_bg = findViewById(R.id.dim_layout);
         progressView = findViewById(R.id.loadingView);
         progressBar = findViewById(R.id.progressBar);
+        fileImg = findViewById(R.id.fileImg);
         dim_bg.bringToFront();
         menu.bringToFront();
         menuBtn.bringToFront();
@@ -225,7 +235,12 @@ public class MainActivity extends AppCompatActivity {
                     TransitionManager.beginDelayedTransition(viewGroup, autoTransition);
                     adapter = new ListAdapter(data.getRootList(), MainActivity.this, "");
                     list.setAdapter(adapter);
+                    fileImg.clearAnimation();
+                    openFileBtn.clearAnimation();
+                    fileImg.setVisibility(View.GONE);
                     openFileBtn.setVisibility(View.GONE);
+                    setAnimation(MainActivity.this,list,R.anim.scale_in2,new DecelerateInterpolator());
+                    list.setVisibility(View.VISIBLE);
                     backBtn.setVisibility(View.GONE);
                     titleTxt.setText("");
                     data.clearPath();
@@ -363,8 +378,15 @@ public class MainActivity extends AppCompatActivity {
         },1000);
     }
 
+
     public static void setAnimation(Context context, @NonNull View view, @AnimRes int animationRes) {
+        setAnimation(context,view,animationRes,null);
+    }
+
+    public static void setAnimation(Context context, @NonNull View view, @AnimRes int animationRes, Interpolator interpolator) {
         Animation animation = AnimationUtils.loadAnimation(context, animationRes);
+        if (interpolator != null)
+            animation.setInterpolator(interpolator);
         view.startAnimation(animation);
     }
 

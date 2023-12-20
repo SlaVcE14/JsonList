@@ -83,7 +83,21 @@
         android:divider="@null"
         android:layout_below="@+id/titlePanel"
         android:listSelector="@drawable/transparent_drawable"
+        android:visibility="gone"
         />
+
+    <ImageView
+        android:id="@+id/fileImg"
+        android:layout_width="140dp"
+        android:layout_height="140dp"
+        android:layout_centerHorizontal="true"
+        android:layout_above="@id/openFileBtn"
+        android:background="@drawable/ic_open_file_foreground"
+        android:backgroundTint="?colorPrimary"
+        android:scaleX="2"
+        android:scaleY="2"
+        android:rotation="-15"
+    />
 
     <Button
         android:id="@+id/openFileBtn"
