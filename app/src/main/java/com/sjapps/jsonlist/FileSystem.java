@@ -1,13 +1,16 @@
 package com.sjapps.jsonlist;
 
+import android.content.res.AssetFileDescriptor;
 import android.net.Uri;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+
+import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.nio.file.Path;
-import java.util.Scanner;
 public class FileSystem {
 
 
@@ -30,39 +33,29 @@ public class FileSystem {
         }
 
         StringBuilder sb = new StringBuilder();
-        FileInputStream inputStream = null;
-        Scanner sc = null;
         try {
-            inputStream = (FileInputStream) mainActivity.getContentResolver().openInputStream(uri);
-            sc = new Scanner(inputStream, "UTF-8");
+            FileInputStream   inputStream = (FileInputStream) mainActivity.getContentResolver().openInputStream(uri);
+            BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
 
-            while (sc.hasNextLine()) {
-                String line = sc.nextLine();
+            AssetFileDescriptor fileDescriptor = mainActivity.getContentResolver().openAssetFileDescriptor(uri , "r");
+
+            long currentBytes = 0;
+            long fileSize = fileDescriptor.getLength();
+            String line;
+            while ((line = reader.readLine()) != null) {
                 sb.append(line);
+                currentBytes += line.length();
+                mainActivity.updateProgress((int)((currentBytes/(float)fileSize)*100));
             }
 
-            if (sc.ioException() != null) {
-                throw sc.ioException();
-            }
+            fileDescriptor.close();
+            inputStream.close();
+            reader.close();
 
-
+            return sb.toString();
         } catch (IOException e) {
             e.printStackTrace();
             return null;
-        } finally {
-            if (inputStream != null) {
-                try {
-                    inputStream.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-            if (sc != null) {
-                sc.close();
-            }
-            return sb.toString();
-            //todo fix this
-
         }
     }
 }

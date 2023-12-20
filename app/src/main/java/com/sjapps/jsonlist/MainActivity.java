@@ -5,9 +5,12 @@ import static com.sjapps.jsonlist.java.JsonFunctions.*;
 import androidx.activity.OnBackPressedCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.AnimRes;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -17,8 +20,15 @@ import android.transition.TransitionManager;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.view.animation.DecelerateInterpolator;
+import android.view.animation.Interpolator;
+import android.view.animation.OvershootInterpolator;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -44,12 +54,13 @@ public class MainActivity extends AppCompatActivity {
 
     final String TAG = "MainActivity";
     ImageButton backBtn, menuBtn;
+    ImageView fileImg;
     Button openFileBtn;
     TextView titleTxt, emptyListTxt;
     ListView list;
     JsonData data = new JsonData();
+    LinearLayout progressView;
     ProgressBar progressBar;
-    TextView loadingFileTxt;
     boolean isMenuOpen;
     ListAdapter adapter;
     View menu, dim_bg;
@@ -69,6 +80,10 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         initialize();
+
+        setAnimation(this,fileImg,R.anim.scale_in_file_img, new DecelerateInterpolator());
+        setAnimation(this,openFileBtn,R.anim.button_pop, new OvershootInterpolator());
+
         autoTransition.setDuration(150);
         menuBtn.setOnClickListener(view -> open_closeMenu());
 
@@ -147,8 +162,9 @@ public class MainActivity extends AppCompatActivity {
         viewGroup = findViewById(R.id.content);
         menu = findViewById(R.id.menu);
         dim_bg = findViewById(R.id.dim_layout);
+        progressView = findViewById(R.id.loadingView);
         progressBar = findViewById(R.id.progressBar);
-        loadingFileTxt = findViewById(R.id.LoadFileTxt);
+        fileImg = findViewById(R.id.fileImg);
         dim_bg.bringToFront();
         menu.bringToFront();
         menuBtn.bringToFront();
@@ -173,7 +189,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void LoadData(String Data) {
 
-        progressBar.setVisibility(View.VISIBLE);
+        loadingStarted("loading json");
         emptyListTxt.setVisibility(View.GONE);
 
         readFileThread = new Thread(() -> {
@@ -196,17 +212,16 @@ public class MainActivity extends AppCompatActivity {
                 return;
             }
 
+            loadingStarted("creating list");
             try {
                 if (element instanceof JsonObject) {
                     Log.d(TAG, "run: Json object");
                     JsonObject object = FileSystem.loadDataToJsonObj(element);
-                    Log.d(TAG, "LoadData: " + object);
                     data.setRootList(getJsonObject(object));
                 }
                 if (element instanceof JsonArray) {
                     Log.d(TAG, "run: Json array");
                     JsonArray array = FileSystem.loadDataToJsonArray(element);
-                    Log.d(TAG, "LoadData: " + array);
                     data.setRootList(getJsonArrayRoot(array));
                 }
             } catch (Exception e){
@@ -220,7 +235,12 @@ public class MainActivity extends AppCompatActivity {
                     TransitionManager.beginDelayedTransition(viewGroup, autoTransition);
                     adapter = new ListAdapter(data.getRootList(), MainActivity.this, "");
                     list.setAdapter(adapter);
+                    fileImg.clearAnimation();
+                    openFileBtn.clearAnimation();
+                    fileImg.setVisibility(View.GONE);
                     openFileBtn.setVisibility(View.GONE);
+                    setAnimation(MainActivity.this,list,R.anim.scale_in2,new DecelerateInterpolator());
+                    list.setVisibility(View.VISIBLE);
                     backBtn.setVisibility(View.GONE);
                     titleTxt.setText("");
                     data.clearPath();
@@ -228,7 +248,7 @@ public class MainActivity extends AppCompatActivity {
 
             } else data.setRootList(temp);
 
-            handler.post(() -> progressBar.setVisibility(View.GONE));
+            handler.post(() -> loadingFinished(true));
 
         });
         readFileThread.start();
@@ -292,8 +312,7 @@ public class MainActivity extends AppCompatActivity {
         if (readFileThread != null && readFileThread.isAlive()){
             return;
         }
-        progressBar.setVisibility(View.VISIBLE);
-        loadingFileTxt.setVisibility(View.VISIBLE);
+        loadingStarted("Reading file");
 
 
         readFileThread = new Thread(() -> {
@@ -304,14 +323,71 @@ public class MainActivity extends AppCompatActivity {
                 return;
             }
             handler.post(() -> {
-                progressBar.setVisibility(View.GONE);
-                loadingFileTxt.setVisibility(View.GONE);
                 LoadData(Data);
             });
 
         });
         readFileThread.start();
 
+    }
+
+    void loadingStarted(){
+        loadingStarted("loading...");
+
+    }
+
+    void loadingStarted(String txt){
+        TextView text =  progressView.findViewById(R.id.loadingTxt);
+        progressBar.setIndeterminate(true);
+        text.setText(txt);
+        handler.postDelayed(() -> {
+            if (progressView.getVisibility() != View.VISIBLE) {
+                setAnimation(this, progressView, R.anim.scale_in);
+                text.setVisibility(View.VISIBLE);
+                progressView.setVisibility(View.VISIBLE);
+            }
+        },300);
+
+    }
+    public void updateProgress(int val){
+        progressBar.setIndeterminate(false);
+        progressBar.setProgress(val);
+    }
+
+    void loadingFinished(boolean isFinished){
+
+        if (!isFinished){
+            handler.postDelayed(()-> {
+                setAnimation(this, progressView,R.anim.scale_out);
+                progressView.setVisibility(View.INVISIBLE);
+            },300);
+            return;
+        }
+
+        progressBar.setIndeterminate(false);
+        progressBar.setProgress(100);
+
+        TextView text =  progressView.findViewById(R.id.loadingTxt);
+        handler.postDelayed(() -> text.setText( "finished"),500);
+        handler.postDelayed(() -> {
+        },700);
+        handler.postDelayed(() -> text.setVisibility(View.INVISIBLE),900);
+        handler.postDelayed(() -> {
+            setAnimation(this, progressView,R.anim.scale_out);
+            progressView.setVisibility(View.INVISIBLE);
+        },1000);
+    }
+
+
+    public static void setAnimation(Context context, @NonNull View view, @AnimRes int animationRes) {
+        setAnimation(context,view,animationRes,null);
+    }
+
+    public static void setAnimation(Context context, @NonNull View view, @AnimRes int animationRes, Interpolator interpolator) {
+        Animation animation = AnimationUtils.loadAnimation(context, animationRes);
+        if (interpolator != null)
+            animation.setInterpolator(interpolator);
+        view.startAnimation(animation);
     }
 
     void fileTooLargeException(){
@@ -326,7 +402,7 @@ public class MainActivity extends AppCompatActivity {
     void postMessageException(String msg){
         handler.post(() -> {
             Toast.makeText(MainActivity.this,msg, Toast.LENGTH_SHORT).show();
-            progressBar.setVisibility(View.GONE);
+            loadingFinished(false);
         });
     }
 }
