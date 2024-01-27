@@ -8,6 +8,8 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.AnimRes;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import android.app.Activity;
 import android.content.Context;
@@ -34,7 +36,6 @@ import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -65,7 +66,7 @@ public class MainActivity extends AppCompatActivity {
     ImageView fileImg;
     Button openFileBtn;
     TextView titleTxt, emptyListTxt;
-    ListView list;
+    RecyclerView list;
     JsonData data = new JsonData();
     LinearLayout progressView;
     ProgressBar progressBar;
@@ -190,7 +191,7 @@ public class MainActivity extends AppCompatActivity {
 
             if (adapter!= null && adapter.selectedItem != -1){
                 adapter.selectedItem = -1;
-                adapter.notifyDataSetChanged();
+                adapter.notifyItemRangeChanged(0,adapter.getItemCount());
                 return;
             }
 
@@ -234,6 +235,7 @@ public class MainActivity extends AppCompatActivity {
         menu.bringToFront();
         menuBtn.bringToFront();
         dropTarget = findViewById(R.id.dropTarget);
+        list.setLayoutManager(new LinearLayoutManager(this));
     }
 
     private void open_closeMenu() {

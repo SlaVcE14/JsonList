@@ -76,7 +76,7 @@
         android:layout_height="match_parent"
         android:background="#70000000"
         android:visibility="invisible" />
-    <ListView
+    <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/list"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
