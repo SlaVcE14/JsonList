@@ -339,7 +339,7 @@ public class MainActivity extends AppCompatActivity {
 
         if (previousPosition == -1) {
             handler.postDelayed(() -> {
-                list.smoothScrollToPosition(data.getPreviousPos()+4);
+                list.smoothScrollToPosition(data.getPreviousPos()+2);
                 adapter.setHighlightItem(data.getPreviousPos());
             }, 500);
             handler.postDelayed(() -> {
