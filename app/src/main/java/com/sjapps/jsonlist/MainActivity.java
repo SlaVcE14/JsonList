@@ -131,13 +131,21 @@ public class MainActivity extends AppCompatActivity {
                     return true;
 
                 case DragEvent.ACTION_DRAG_ENTERED:
-                    if (event.getClipDescription().hasMimeType("application/json")) {
-                        dropTargetBackground.setBackgroundColor(setColor(R.attr.colorPrimary));
+                    if(event.getClipDescription().getMimeTypeCount() > 1){
+                        dropTargetTxt.setText(R.string.only_one_file_is_allowed);
+                        dropTargetBackground.setBackgroundColor(setColor(R.attr.colorError));
                         dropTargetBackground.setAlpha(.8f);
-                    }else {
+                        return false;
+                    }
+                    if (!event.getClipDescription().hasMimeType("application/json")) {
                         dropTargetTxt.setText(R.string.this_is_not_json_file);
                         dropTargetBackground.setBackgroundColor(setColor(R.attr.colorError));
+                        dropTargetBackground.setAlpha(.8f);
+                        return false;
                     }
+
+                    dropTargetBackground.setBackgroundColor(setColor(R.attr.colorPrimary));
+                    dropTargetBackground.setAlpha(.8f);
                     return true;
 
                 case DragEvent.ACTION_DRAG_EXITED:
@@ -153,6 +161,9 @@ public class MainActivity extends AppCompatActivity {
                     return true;
 
                 case DragEvent.ACTION_DROP:
+                    if (event.getClipData().getItemCount() > 1){
+                        return false;
+                    }
                     if (!event.getClipDescription().hasMimeType("application/json"))
                         return false;
                     if (readFileThread != null && readFileThread.isAlive()) {
