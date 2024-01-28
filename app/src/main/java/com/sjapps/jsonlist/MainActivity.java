@@ -210,7 +210,7 @@ public class MainActivity extends AppCompatActivity {
 
             TransitionManager.beginDelayedTransition(viewGroup, autoTransition);
             data.goBack();
-            open(JsonData.getPathFormat(data.getPath()), data.getPath());
+            open(JsonData.getPathFormat(data.getPath()), data.getPath(),-1);
             if (data.isEmptyPath()) {
                 backBtn.setVisibility(View.GONE);
             }
@@ -322,7 +322,7 @@ public class MainActivity extends AppCompatActivity {
         readFileThread.start();
     }
 
-    public void open(String Title, String path) {
+    public void open(String Title, String path, int previousPosition) {
         TransitionManager.beginDelayedTransition(viewGroup, autoTransition);
 
         if (isMenuOpen)
@@ -336,6 +336,18 @@ public class MainActivity extends AppCompatActivity {
         ArrayList<ListItem> arrayList = getListFromPath(path,data.getRootList());
         adapter = new ListAdapter(arrayList, this, path);
         list.setAdapter(adapter);
+
+        if (previousPosition == -1) {
+            handler.postDelayed(() -> {
+                list.smoothScrollToPosition(data.getPreviousPos()+4);
+                adapter.setHighlightItem(data.getPreviousPos());
+            }, 500);
+            handler.postDelayed(() -> {
+                adapter.notifyItemChanged(data.getPreviousPos());
+            }, 600);
+        }
+        else data.addPreviousPos(previousPosition);
+
         if (arrayList.size() == 0) {
             emptyListTxt.setVisibility(View.VISIBLE);
         }

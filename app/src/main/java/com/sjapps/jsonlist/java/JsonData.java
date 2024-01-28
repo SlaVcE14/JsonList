@@ -1,10 +1,14 @@
 package com.sjapps.jsonlist.java;
 
 import java.util.ArrayList;
+import java.util.Stack;
 
 public class JsonData {
     String path = "";
     ArrayList<ListItem> rootList = new ArrayList<>();
+    Stack<Integer> previousPosStack = new Stack<>();
+
+    int previousPos = -1;
 
     public String getPath() {
         return path;
@@ -41,12 +45,23 @@ public class JsonData {
 
     public void goBack(){
 
+        if (!previousPosStack.isEmpty())
+            previousPos = previousPosStack.pop();
+
         String[] pathStrings = splitPath();
         clearPath();
         for (int i = 0; i < pathStrings.length-1; i++) {
             setPath(path.concat((isEmptyPath()?"":"///") + pathStrings[i]));
         }
 
+    }
+
+    public void addPreviousPos(int pos){
+        previousPosStack.push(pos);
+    }
+
+    public int getPreviousPos(){
+        return previousPos;
     }
 
     public static String getPathFormat(String path){
