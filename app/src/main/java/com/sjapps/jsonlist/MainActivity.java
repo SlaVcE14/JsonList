@@ -53,6 +53,8 @@ import com.sjapps.adapters.ListAdapter;
 import com.sjapps.jsonlist.java.JsonData;
 import com.sjapps.jsonlist.java.ListItem;
 import com.sjapps.library.customdialog.BasicDialog;
+import com.sjapps.logs.CustomExceptionHandler;
+import com.sjapps.logs.LogActivity;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -82,12 +84,18 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        checkCrashLogs();
         Log.d(TAG, "onResume: resume");
     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        if (!(Thread.getDefaultUncaughtExceptionHandler() instanceof CustomExceptionHandler)) {
+            Thread.setDefaultUncaughtExceptionHandler(new CustomExceptionHandler(this));
+        }
+
         setContentView(R.layout.activity_main);
         initialize();
 
@@ -106,6 +114,10 @@ public class MainActivity extends AppCompatActivity {
         });
         menu.findViewById(R.id.aboutBtn).setOnClickListener(view -> {
             OpenAbout();
+            open_closeMenu();
+        });
+        menu.findViewById(R.id.logBtn).setOnClickListener(view -> {
+            OpenLogPage();
             open_closeMenu();
         });
         dim_bg.setOnClickListener(view -> open_closeMenu());
@@ -188,8 +200,37 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    void checkCrashLogs() {
+
+        AppState state = FileSystem.loadStateData(this);
+        TextView logBtn = menu.findViewById(R.id.logBtn);
+        if (!state.hasCrashLogs()) {
+            logBtn.setVisibility(View.GONE);
+            return;
+        }
+        logBtn.setVisibility(View.VISIBLE);
+
+        TypedValue typedValue = new TypedValue();
+
+        if (state.hasNewCrash()) {
+            getTheme().resolveAttribute(R.attr.colorOnError, typedValue, true);
+            logBtn.setTextColor(typedValue.data);
+            logBtn.setBackgroundResource(R.drawable.ripple_red);
+            menuBtn.setImageResource(R.drawable.menu_with_dot);
+            return;
+        }
+        getTheme().resolveAttribute(R.attr.colorOnSurfaceVariant, typedValue, true);
+        logBtn.setTextColor(typedValue.data);
+        logBtn.setBackgroundResource(R.drawable.ripple_list2);
+        menuBtn.setImageResource(R.drawable.ic_menu);
+    }
+
     private void OpenAbout() {
         startActivity(new Intent(MainActivity.this, AboutActivity.class));
+    }
+
+    private void OpenLogPage() {
+        startActivity(new Intent(MainActivity.this, LogActivity.class));
     }
 
     OnBackPressedCallback backPressedCallback = new OnBackPressedCallback(true) {

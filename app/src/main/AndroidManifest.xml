@@ -17,6 +17,9 @@
         android:theme="@style/Theme.JsonList">
         <activity android:name="com.sjapps.about.AboutActivity"/>
         <activity
+            android:name="com.sjapps.logs.LogActivity"
+            android:exported="false" />
+        <activity
             android:name=".MainActivity"
             android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout"
             android:exported="true">
@@ -43,6 +46,16 @@
                 <data android:scheme="content" />
             </intent-filter>
         </activity>
+
+        <provider
+            android:authorities="${applicationId}.logs.provider"
+            android:name="androidx.core.content.FileProvider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_path"/>
+        </provider>
     </application>
 
 </manifest>
