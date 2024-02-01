@@ -19,6 +19,7 @@ import com.sjapps.jsonlist.R;
 import com.sjapps.jsonlist.functions;
 import com.sjapps.library.customdialog.BasicDialog;
 import com.sjapps.library.customdialog.ListDialog;
+import com.sjapps.library.customdialog.MessageDialog;
 
 
 import java.util.Calendar;
@@ -104,7 +105,7 @@ public class LogActivity extends AppCompatActivity {
         }
 
         String[] options = {"Copy logs to clipboard","Share logs"};
-        
+
         ListDialog dialog = new ListDialog();
         dialog.Builder(this,true)
                 .setTitle("Chose action")
@@ -112,13 +113,21 @@ public class LogActivity extends AppCompatActivity {
                     dialog.dismiss();
                     switch (position){
                         case 0: copyToClipboard();
-                        break;
+                            break;
                         case 1: share();
-                        break;
+                            break;
                     }
-                })
+                });
+
+        MessageDialog warningDialog = new MessageDialog();
+        warningDialog.ErrorDialogBuilder(this,true)
+                .setTitle("Warning!")
+                .setMessage("This reports may include personal information. Check before sharing to anyone")
                 .show();
-        
+        warningDialog.dialog.setOnDismissListener(dialogInterface -> {
+            warningDialog.dismiss();
+            dialog.show();
+        });
     }
 
     private void share() {
