@@ -37,11 +37,11 @@ import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.material.progressindicator.LinearProgressIndicator;
 import com.google.android.material.snackbar.BaseTransientBottomBar;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.gson.JsonArray;
@@ -72,7 +72,7 @@ public class MainActivity extends AppCompatActivity {
     RecyclerView list;
     JsonData data = new JsonData();
     LinearLayout progressView;
-    ProgressBar progressBar;
+    LinearProgressIndicator progressBar;
     boolean isMenuOpen;
     ListAdapter adapter;
     View menu, dim_bg;
@@ -106,7 +106,9 @@ public class MainActivity extends AppCompatActivity {
         autoTransition.setDuration(150);
         menuBtn.setOnClickListener(view -> open_closeMenu());
 
-        backBtn.setOnClickListener(view -> getOnBackPressedDispatcher().onBackPressed());
+        backBtn.setOnClickListener(view -> {
+            if(!data.isEmptyPath()) getOnBackPressedDispatcher().onBackPressed();
+        });
         openFileBtn.setOnClickListener(view -> ImportFromFile());
 
         menu.findViewById(R.id.openFileBtn2).setOnClickListener(view -> {
@@ -262,7 +264,7 @@ public class MainActivity extends AppCompatActivity {
                         .show();
                 return;
             }
-
+            TransitionManager.endTransitions(viewGroup);
             TransitionManager.beginDelayedTransition(viewGroup, autoTransition);
             data.goBack();
             open(JsonData.getPathFormat(data.getPath()), data.getPath(),-1);
@@ -335,7 +337,7 @@ public class MainActivity extends AppCompatActivity {
                 return;
             }
 
-            loadingStarted("creating list");
+            handler.post(()-> loadingStarted("creating list"));
             try {
                 if (element instanceof JsonObject) {
                     Log.d(TAG, "run: Json object");
@@ -378,6 +380,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void open(String Title, String path, int previousPosition) {
+        TransitionManager.endTransitions(viewGroup);
         TransitionManager.beginDelayedTransition(viewGroup, autoTransition);
 
         if (isMenuOpen)
@@ -491,8 +494,10 @@ public class MainActivity extends AppCompatActivity {
 
     }
     public void updateProgress(int val){
-        progressBar.setIndeterminate(false);
-        progressBar.setProgress(val);
+        handler.post(()->{
+            progressBar.setProgressCompat(val,true);
+        });
+
     }
 
     void loadingFinished(boolean isFinished){
@@ -506,7 +511,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         progressBar.setIndeterminate(false);
-        progressBar.setProgress(100);
+        progressBar.setProgressCompat(100,true);
 
         TextView text =  progressView.findViewById(R.id.loadingTxt);
         handler.postDelayed(() -> text.setText( "finished"),500);

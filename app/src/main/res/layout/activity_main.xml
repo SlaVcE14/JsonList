@@ -134,6 +134,7 @@
             android:padding="10dp"
             android:layout_marginBottom="20dp"
             android:visibility="invisible"
+            android:gravity="center"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
@@ -149,16 +150,14 @@
                 android:textColor="#ffffff"
 
                 />
-            <ProgressBar
+            <com.google.android.material.progressindicator.LinearProgressIndicator
                 android:id="@+id/progressBar"
-                style="?android:attr/progressBarStyleHorizontal"
-                android:layout_width="match_parent"
-                android:layout_height="5dp"
+                android:layout_width="150dp"
+                android:layout_height="wrap_content"
                 android:indeterminate="true"
                 android:layout_marginTop="5dp"
                 android:max="100"
-                android:progressTint="#ffffff"
-                android:indeterminateTint="#ffffff"
+                app:indicatorColor="#ffffff"
                 />
         </LinearLayout>
     </RelativeLayout>
