@@ -39,7 +39,17 @@
             android:paddingHorizontal="20dp"
             android:background="@drawable/ripple_list2"
             android:text="About"/>
-
+        <TextView
+            android:id="@+id/logBtn"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:textSize="15dp"
+            android:gravity="center|left"
+            android:paddingVertical="10dp"
+            android:textColor="?colorOnSurfaceVariant"
+            android:paddingHorizontal="20dp"
+            android:background="@drawable/ripple_list2"
+            android:text="Crash Logs"/>
     </LinearLayout>
 
 </RelativeLayout>

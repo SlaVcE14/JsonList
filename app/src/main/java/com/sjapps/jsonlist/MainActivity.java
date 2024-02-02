@@ -8,16 +8,24 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.AnimRes;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.ClipData;
 import android.content.Intent;
+import android.content.res.AssetFileDescriptor;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.transition.AutoTransition;
 import android.transition.TransitionManager;
 import android.util.Log;
+import android.util.TypedValue;
+import android.view.DragAndDropPermissions;
+import android.view.DragEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
@@ -29,8 +37,8 @@ import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.ListView;
 import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -40,13 +48,17 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+
 import com.sjapps.about.AboutActivity;
 import com.sjapps.adapters.ListAdapter;
 import com.sjapps.jsonlist.java.JsonData;
 import com.sjapps.jsonlist.java.ListItem;
 import com.sjapps.library.customdialog.BasicDialog;
+import com.sjapps.logs.CustomExceptionHandler;
+import com.sjapps.logs.LogActivity;
 
-
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 
 
@@ -57,7 +69,7 @@ public class MainActivity extends AppCompatActivity {
     ImageView fileImg;
     Button openFileBtn;
     TextView titleTxt, emptyListTxt;
-    ListView list;
+    RecyclerView list;
     JsonData data = new JsonData();
     LinearLayout progressView;
     ProgressBar progressBar;
@@ -68,16 +80,23 @@ public class MainActivity extends AppCompatActivity {
     AutoTransition autoTransition = new AutoTransition();
     Handler handler = new Handler();
     Thread readFileThread;
+    RelativeLayout dropTarget;
 
     @Override
     protected void onResume() {
         super.onResume();
+        checkCrashLogs();
         Log.d(TAG, "onResume: resume");
     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        if (!(Thread.getDefaultUncaughtExceptionHandler() instanceof CustomExceptionHandler)) {
+            Thread.setDefaultUncaughtExceptionHandler(new CustomExceptionHandler(this));
+        }
+
         setContentView(R.layout.activity_main);
         initialize();
 
@@ -98,10 +117,14 @@ public class MainActivity extends AppCompatActivity {
             OpenAbout();
             open_closeMenu();
         });
+        menu.findViewById(R.id.logBtn).setOnClickListener(view -> {
+            OpenLogPage();
+            open_closeMenu();
+        });
         dim_bg.setOnClickListener(view -> open_closeMenu());
 
 
-        Intent intent  = getIntent();
+        Intent intent = getIntent();
         Log.d(TAG, "onCreate: " + intent);
         if (Intent.ACTION_VIEW.equals(intent.getAction())) {
             ReadFile(intent.getData());
@@ -109,10 +132,108 @@ public class MainActivity extends AppCompatActivity {
         if (intent.getAction().equals("android.intent.action.OPEN_FILE")){
             ImportFromFile();
         }
+
+        dropTarget.setOnDragListener((v, event) -> {
+
+            TextView dropTargetTxt = v.findViewById(R.id.dropTargetText);
+            View dropTargetBackground = v.findViewById(R.id.dropTargetBackground);
+
+            String MIMEType = Build.VERSION.SDK_INT > Build.VERSION_CODES.P?"application/json":"application/*";
+
+            switch (event.getAction()) {
+                case DragEvent.ACTION_DRAG_STARTED:
+                    dropTarget.setAlpha(1);
+                    return true;
+
+                case DragEvent.ACTION_DRAG_ENTERED:
+                    if(event.getClipDescription().getMimeTypeCount() > 1){
+                        dropTargetTxt.setText(R.string.only_one_file_is_allowed);
+                        dropTargetBackground.setBackgroundColor(setColor(R.attr.colorError));
+                        dropTargetBackground.setAlpha(.8f);
+                        return false;
+                    }
+                    if (!event.getClipDescription().hasMimeType(MIMEType)) {
+                        dropTargetTxt.setText(R.string.this_is_not_json_file);
+                        dropTargetBackground.setBackgroundColor(setColor(R.attr.colorError));
+                        dropTargetBackground.setAlpha(.8f);
+                        return false;
+                    }
+
+                    dropTargetBackground.setBackgroundColor(setColor(R.attr.colorPrimary));
+                    dropTargetBackground.setAlpha(.8f);
+                    return true;
+
+                case DragEvent.ACTION_DRAG_EXITED:
+                    dropTargetTxt.setText(R.string.drop_json_file_here);
+                    dropTargetBackground.setBackgroundColor(setColor(R.attr.colorOnBackground));
+                    dropTargetBackground.setAlpha(.5f);
+                    return true;
+
+                case DragEvent.ACTION_DRAG_ENDED:
+                    dropTargetTxt.setText(R.string.drop_json_file_here);
+                    dropTargetBackground.setBackgroundColor(setColor(R.attr.colorOnBackground));
+                    dropTarget.setAlpha(0);
+                    return true;
+
+                case DragEvent.ACTION_DROP:
+                    if (event.getClipData().getItemCount() > 1){
+                        return false;
+                    }
+                    if (!event.getClipDescription().hasMimeType(MIMEType))
+                        return false;
+                    if (readFileThread != null && readFileThread.isAlive()) {
+                        Snackbar.make(getWindow().getDecorView(),"Loading file in progress, try again later", BaseTransientBottomBar.LENGTH_SHORT).show();
+                        return false;
+                    }
+
+                    ClipData.Item item = event.getClipData().getItemAt(0);
+
+                    DragAndDropPermissions dropPermissions = null;
+                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N)
+                        dropPermissions = requestDragAndDropPermissions(event);
+
+                    ReadFile(item.getUri());
+
+                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N && dropPermissions != null)
+                        dropPermissions.release();
+
+                    return true;
+            }
+            return false;
+        });
+    }
+
+    void checkCrashLogs() {
+
+        AppState state = FileSystem.loadStateData(this);
+        TextView logBtn = menu.findViewById(R.id.logBtn);
+        if (!state.hasCrashLogs()) {
+            logBtn.setVisibility(View.GONE);
+            return;
+        }
+        logBtn.setVisibility(View.VISIBLE);
+
+        TypedValue typedValue = new TypedValue();
+
+        if (state.hasNewCrash()) {
+            getTheme().resolveAttribute(R.attr.colorOnError, typedValue, true);
+            logBtn.setTextColor(typedValue.data);
+            logBtn.setBackgroundResource(R.drawable.ripple_red);
+            menuBtn.setImageResource(R.drawable.menu_with_dot);
+            return;
+        }
+        getTheme().resolveAttribute(R.attr.colorOnSurfaceVariant, typedValue, true);
+        logBtn.setTextColor(typedValue.data);
+        logBtn.setBackgroundResource(R.drawable.ripple_list2);
+        menuBtn.setImageResource(R.drawable.ic_menu);
     }
 
     private void OpenAbout() {
         startActivity(new Intent(MainActivity.this, AboutActivity.class));
+    }
+
+    private void OpenLogPage() {
+        startActivity(new Intent(MainActivity.this, LogActivity.class));
     }
 
     OnBackPressedCallback backPressedCallback = new OnBackPressedCallback(true) {
@@ -125,7 +246,7 @@ public class MainActivity extends AppCompatActivity {
 
             if (adapter!= null && adapter.selectedItem != -1){
                 adapter.selectedItem = -1;
-                adapter.notifyDataSetChanged();
+                adapter.notifyItemRangeChanged(0,adapter.getItemCount());
                 return;
             }
 
@@ -144,7 +265,7 @@ public class MainActivity extends AppCompatActivity {
 
             TransitionManager.beginDelayedTransition(viewGroup, autoTransition);
             data.goBack();
-            open(JsonData.getPathFormat(data.getPath()), data.getPath());
+            open(JsonData.getPathFormat(data.getPath()), data.getPath(),-1);
             if (data.isEmptyPath()) {
                 backBtn.setVisibility(View.GONE);
             }
@@ -168,6 +289,8 @@ public class MainActivity extends AppCompatActivity {
         dim_bg.bringToFront();
         menu.bringToFront();
         menuBtn.bringToFront();
+        dropTarget = findViewById(R.id.dropTarget);
+        list.setLayoutManager(new LinearLayoutManager(this));
     }
 
     private void open_closeMenu() {
@@ -254,7 +377,7 @@ public class MainActivity extends AppCompatActivity {
         readFileThread.start();
     }
 
-    public void open(String Title, String path) {
+    public void open(String Title, String path, int previousPosition) {
         TransitionManager.beginDelayedTransition(viewGroup, autoTransition);
 
         if (isMenuOpen)
@@ -268,6 +391,18 @@ public class MainActivity extends AppCompatActivity {
         ArrayList<ListItem> arrayList = getListFromPath(path,data.getRootList());
         adapter = new ListAdapter(arrayList, this, path);
         list.setAdapter(adapter);
+
+        if (previousPosition == -1) {
+            handler.postDelayed(() -> {
+                list.smoothScrollToPosition(data.getPreviousPos()+2);
+                adapter.setHighlightItem(data.getPreviousPos());
+            }, 500);
+            handler.postDelayed(() -> {
+                adapter.notifyItemChanged(data.getPreviousPos());
+            }, 600);
+        }
+        else data.addPreviousPos(previousPosition);
+
         if (arrayList.size() == 0) {
             emptyListTxt.setVisibility(View.VISIBLE);
         }
@@ -286,7 +421,7 @@ public class MainActivity extends AppCompatActivity {
 
         Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
         intent.addCategory(Intent.CATEGORY_OPENABLE);
-        intent.setType("application/json");
+        intent.setType(Build.VERSION.SDK_INT > Build.VERSION_CODES.P?"application/json":"application/*");
         ActivityResultData.launch(intent);
     }
 
@@ -314,21 +449,27 @@ public class MainActivity extends AppCompatActivity {
         }
         loadingStarted("Reading file");
 
+        try {
+            InputStream inputStream = getContentResolver().openInputStream(uri);
+            AssetFileDescriptor fileDescriptor = getContentResolver().openAssetFileDescriptor(uri , "r");
 
-        readFileThread = new Thread(() -> {
-          String Data = FileSystem.LoadDataFromFile(MainActivity.this, uri);
+            readFileThread = new Thread(() -> {
 
-            if (Data == null) {
-                Log.d(TAG, "ReadFile: null data");
-                return;
-            }
-            handler.post(() -> {
-                LoadData(Data);
+                String Data = FileSystem.LoadDataFromFile(MainActivity.this, uri, inputStream, fileDescriptor);
+
+                if (Data == null) {
+                    Log.d(TAG, "ReadFile: null data");
+                    return;
+                }
+                handler.post(() -> {
+                    LoadData(Data);
+                });
+
             });
-
-        });
-        readFileThread.start();
-
+            readFileThread.start();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     void loadingStarted(){
@@ -378,6 +519,12 @@ public class MainActivity extends AppCompatActivity {
         },1000);
     }
 
+
+    int setColor(int resid){
+        TypedValue typedValue = new TypedValue();
+        getTheme().resolveAttribute(resid, typedValue, true);
+        return typedValue.data;
+    }
 
     public static void setAnimation(Context context, @NonNull View view, @AnimRes int animationRes) {
         setAnimation(context,view,animationRes,null);

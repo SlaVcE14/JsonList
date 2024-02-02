@@ -76,7 +76,7 @@
         android:layout_height="match_parent"
         android:background="#70000000"
         android:visibility="invisible" />
-    <ListView
+    <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/list"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -161,6 +161,40 @@
                 android:indeterminateTint="#ffffff"
                 />
         </LinearLayout>
+    </RelativeLayout>
+
+
+    <RelativeLayout
+        android:id="@+id/dropTarget"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:backgroundTintMode="add"
+        android:layout_margin="10dp"
+        android:alpha="0"
+
+        >
+
+        <View
+            android:id="@+id/dropTargetBackground"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="?colorOnBackground"
+            android:alpha=".5"
+            />
+
+        <TextView
+            android:id="@+id/dropTargetText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingBottom="30dp"
+
+            android:text="@string/drop_json_file_here"
+            android:textColor="#ffffff"
+
+            android:layout_centerInParent="true"
+            android:layout_alignParentBottom="true"
+            />
+
     </RelativeLayout>
 
 
