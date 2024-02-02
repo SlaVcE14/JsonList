@@ -106,7 +106,9 @@ public class MainActivity extends AppCompatActivity {
         autoTransition.setDuration(150);
         menuBtn.setOnClickListener(view -> open_closeMenu());
 
-        backBtn.setOnClickListener(view -> getOnBackPressedDispatcher().onBackPressed());
+        backBtn.setOnClickListener(view -> {
+            if(!data.isEmptyPath()) getOnBackPressedDispatcher().onBackPressed();
+        });
         openFileBtn.setOnClickListener(view -> ImportFromFile());
 
         menu.findViewById(R.id.openFileBtn2).setOnClickListener(view -> {
@@ -262,7 +264,7 @@ public class MainActivity extends AppCompatActivity {
                         .show();
                 return;
             }
-
+            TransitionManager.endTransitions(viewGroup);
             TransitionManager.beginDelayedTransition(viewGroup, autoTransition);
             data.goBack();
             open(JsonData.getPathFormat(data.getPath()), data.getPath(),-1);
@@ -378,6 +380,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void open(String Title, String path, int previousPosition) {
+        TransitionManager.endTransitions(viewGroup);
         TransitionManager.beginDelayedTransition(viewGroup, autoTransition);
 
         if (isMenuOpen)
