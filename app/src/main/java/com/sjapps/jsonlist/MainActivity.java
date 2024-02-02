@@ -17,6 +17,7 @@ import android.content.ClipData;
 import android.content.Intent;
 import android.content.res.AssetFileDescriptor;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.transition.AutoTransition;
@@ -137,6 +138,8 @@ public class MainActivity extends AppCompatActivity {
             TextView dropTargetTxt = v.findViewById(R.id.dropTargetText);
             View dropTargetBackground = v.findViewById(R.id.dropTargetBackground);
 
+            String MIMEType = Build.VERSION.SDK_INT > Build.VERSION_CODES.P?"application/json":"application/*";
+
             switch (event.getAction()) {
                 case DragEvent.ACTION_DRAG_STARTED:
                     dropTarget.setAlpha(1);
@@ -149,7 +152,7 @@ public class MainActivity extends AppCompatActivity {
                         dropTargetBackground.setAlpha(.8f);
                         return false;
                     }
-                    if (!event.getClipDescription().hasMimeType("application/json")) {
+                    if (!event.getClipDescription().hasMimeType(MIMEType)) {
                         dropTargetTxt.setText(R.string.this_is_not_json_file);
                         dropTargetBackground.setBackgroundColor(setColor(R.attr.colorError));
                         dropTargetBackground.setAlpha(.8f);
@@ -176,7 +179,7 @@ public class MainActivity extends AppCompatActivity {
                     if (event.getClipData().getItemCount() > 1){
                         return false;
                     }
-                    if (!event.getClipDescription().hasMimeType("application/json"))
+                    if (!event.getClipDescription().hasMimeType(MIMEType))
                         return false;
                     if (readFileThread != null && readFileThread.isAlive()) {
                         Snackbar.make(getWindow().getDecorView(),"Loading file in progress, try again later", BaseTransientBottomBar.LENGTH_SHORT).show();
@@ -418,7 +421,7 @@ public class MainActivity extends AppCompatActivity {
 
         Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
         intent.addCategory(Intent.CATEGORY_OPENABLE);
-        intent.setType("application/json");
+        intent.setType(Build.VERSION.SDK_INT > Build.VERSION_CODES.P?"application/json":"application/*");
         ActivityResultData.launch(intent);
     }
 
