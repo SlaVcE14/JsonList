@@ -3,25 +3,17 @@ package com.sjapps.adapters;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
-import android.graphics.Color;
-import android.os.Handler;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.AccelerateDecelerateInterpolator;
-import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
-import android.view.animation.DecelerateInterpolator;
-import android.view.animation.Interpolator;
-import android.view.animation.LinearInterpolator;
 import android.view.animation.OvershootInterpolator;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.annotation.AnimRes;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.sjapps.jsonlist.functions;
 import com.sjapps.jsonlist.java.JsonData;
 import com.sjapps.jsonlist.java.ListItem;
 import com.sjapps.jsonlist.MainActivity;
@@ -30,8 +22,6 @@ import com.sjapps.jsonlist.R;
 import java.util.ArrayList;
 
 public class ListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
-
-    Handler handler = new Handler();
 
     ArrayList<ListItem> list;
     Context context;
@@ -155,7 +145,7 @@ public class ListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             }else view.findViewById(R.id.copyBtn).setVisibility(View.GONE);
 
             if (highlightedItem == position){
-                setAnimation(context,view,R.anim.button_prev,new OvershootInterpolator());
+                functions.setAnimation(context,view,R.anim.button_prev,new OvershootInterpolator());
                 highlightedItem = -1;
             }
 
@@ -218,12 +208,5 @@ public class ListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     public void setHighlightItem(int position){
         highlightedItem = position;
-    }
-
-    public static void setAnimation(Context context, @NonNull View view, @AnimRes int animationRes, Interpolator interpolator) {
-        Animation animation = AnimationUtils.loadAnimation(context, animationRes);
-        if (interpolator != null)
-            animation.setInterpolator(interpolator);
-        view.startAnimation(animation);
     }
 }

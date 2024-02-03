@@ -1,7 +1,10 @@
 package com.sjapps.jsonlist.java;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 import java.util.ArrayList;
 import java.util.Set;
@@ -165,5 +168,11 @@ public class JsonFunctions {
         }
         return list;
 
+    }
+
+    public static String getAsPrettyPrint(String data){
+        JsonElement json = JsonParser.parseString(data);
+        Gson gson = new Gson().newBuilder().setPrettyPrinting().create();
+        return gson.toJson(json);
     }
 }

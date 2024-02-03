@@ -5,14 +5,12 @@ import static com.sjapps.jsonlist.java.JsonFunctions.*;
 import androidx.activity.OnBackPressedCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.annotation.AnimRes;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.app.Activity;
-import android.content.Context;
 import android.content.ClipData;
 import android.content.Intent;
 import android.content.res.AssetFileDescriptor;
@@ -30,10 +28,7 @@ import android.view.DragEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AccelerateDecelerateInterpolator;
-import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
 import android.view.animation.DecelerateInterpolator;
-import android.view.animation.Interpolator;
 import android.view.animation.OvershootInterpolator;
 import android.widget.Button;
 import android.widget.ImageButton;
@@ -46,7 +41,6 @@ import android.widget.Toast;
 import com.google.android.material.progressindicator.LinearProgressIndicator;
 import com.google.android.material.snackbar.BaseTransientBottomBar;
 import com.google.android.material.snackbar.Snackbar;
-import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -55,6 +49,7 @@ import com.google.gson.JsonParser;
 import com.sjapps.about.AboutActivity;
 import com.sjapps.adapters.ListAdapter;
 import com.sjapps.jsonlist.java.JsonData;
+import com.sjapps.jsonlist.java.JsonFunctions;
 import com.sjapps.jsonlist.java.ListItem;
 import com.sjapps.library.customdialog.BasicDialog;
 import com.sjapps.logs.CustomExceptionHandler;
@@ -96,9 +91,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        if (!(Thread.getDefaultUncaughtExceptionHandler() instanceof CustomExceptionHandler)) {
+        if (!(Thread.getDefaultUncaughtExceptionHandler() instanceof CustomExceptionHandler))
             Thread.setDefaultUncaughtExceptionHandler(new CustomExceptionHandler(this));
-        }
 
         setContentView(R.layout.activity_main);
         initialize();
@@ -108,8 +102,8 @@ public class MainActivity extends AppCompatActivity {
             mainLL.setOrientation(LinearLayout.HORIZONTAL);
         }
 
-        setAnimation(this,fileImg,R.anim.scale_in_file_img, new DecelerateInterpolator());
-        setAnimation(this,openFileBtn,R.anim.button_pop, new OvershootInterpolator());
+        functions.setAnimation(this,fileImg,R.anim.scale_in_file_img, new DecelerateInterpolator());
+        functions.setAnimation(this,openFileBtn,R.anim.button_pop, new OvershootInterpolator());
 
         autoTransition.setDuration(150);
         menuBtn.setOnClickListener(view -> open_closeMenu());
@@ -390,7 +384,7 @@ public class MainActivity extends AppCompatActivity {
                     openFileBtn.clearAnimation();
                     fileImg.setVisibility(View.GONE);
                     openFileBtn.setVisibility(View.GONE);
-                    setAnimation(MainActivity.this,list,R.anim.scale_in2,new DecelerateInterpolator());
+                    functions.setAnimation(MainActivity.this,list,R.anim.scale_in2,new DecelerateInterpolator());
                     list.setVisibility(View.VISIBLE);
                     backBtn.setVisibility(View.GONE);
                     titleTxt.setText("");
@@ -449,14 +443,14 @@ public class MainActivity extends AppCompatActivity {
         TransitionManager.beginDelayedTransition(viewGroup, autoTransition);
 
         if (showJson){
-            setAnimation(this,jsonView,isVertical?R.anim.slide_bottom_out:R.anim.slide_right_out,new AccelerateDecelerateInterpolator());
+            functions.setAnimation(this,jsonView,isVertical?R.anim.slide_bottom_out:R.anim.slide_right_out,new AccelerateDecelerateInterpolator());
             handler.postDelayed(()-> jsonView.setVisibility(View.GONE),400);
             showJson = false;
             return;
         }
         showJson = true;
         jsonView.setVisibility(View.VISIBLE);
-        setAnimation(this,jsonView,isVertical?R.anim.slide_bottom_in:R.anim.slide_right_in,new DecelerateInterpolator());
+        functions.setAnimation(this,jsonView,isVertical?R.anim.slide_bottom_in:R.anim.slide_right_in,new DecelerateInterpolator());
         if (!isRawJsonLoaded)
             ShowJSON();
 
@@ -478,10 +472,7 @@ public class MainActivity extends AppCompatActivity {
         loadingStarted("Displaying json...");
 
         Thread thread = new Thread(() -> {
-            JsonElement json = JsonParser.parseString(data.getRawData());
-            Gson gson = new Gson().newBuilder().setPrettyPrinting().create();
-
-            String dataStr = gson.toJson(json);
+            String dataStr = JsonFunctions.getAsPrettyPrint(data.getRawData());
             handler.post(()-> {
                 jsonTxt.setText(dataStr);
                 loadingFinished(true);
@@ -564,7 +555,7 @@ public class MainActivity extends AppCompatActivity {
         text.setText(txt);
         handler.postDelayed(() -> {
             if (progressView.getVisibility() != View.VISIBLE) {
-                setAnimation(this, progressView, R.anim.scale_in);
+                functions.setAnimation(this, progressView, R.anim.scale_in);
                 text.setVisibility(View.VISIBLE);
                 progressView.setVisibility(View.VISIBLE);
             }
@@ -582,7 +573,7 @@ public class MainActivity extends AppCompatActivity {
 
         if (!isFinished){
             handler.postDelayed(()-> {
-                setAnimation(this, progressView,R.anim.scale_out);
+                functions.setAnimation(this, progressView,R.anim.scale_out);
                 progressView.setVisibility(View.INVISIBLE);
             },300);
             return;
@@ -597,7 +588,7 @@ public class MainActivity extends AppCompatActivity {
         },700);
         handler.postDelayed(() -> text.setVisibility(View.INVISIBLE),900);
         handler.postDelayed(() -> {
-            setAnimation(this, progressView,R.anim.scale_out);
+            functions.setAnimation(this, progressView,R.anim.scale_out);
             progressView.setVisibility(View.INVISIBLE);
         },1000);
     }
@@ -607,17 +598,6 @@ public class MainActivity extends AppCompatActivity {
         TypedValue typedValue = new TypedValue();
         getTheme().resolveAttribute(resid, typedValue, true);
         return typedValue.data;
-    }
-
-    public static void setAnimation(Context context, @NonNull View view, @AnimRes int animationRes) {
-        setAnimation(context,view,animationRes,null);
-    }
-
-    public static void setAnimation(Context context, @NonNull View view, @AnimRes int animationRes, Interpolator interpolator) {
-        Animation animation = AnimationUtils.loadAnimation(context, animationRes);
-        if (interpolator != null)
-            animation.setInterpolator(interpolator);
-        view.startAnimation(animation);
     }
 
     void fileTooLargeException(){
