@@ -16,6 +16,7 @@ import android.content.Context;
 import android.content.ClipData;
 import android.content.Intent;
 import android.content.res.AssetFileDescriptor;
+import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -28,6 +29,7 @@ import android.view.DragAndDropPermissions;
 import android.view.DragEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.AccelerateDecelerateInterpolator;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.view.animation.DecelerateInterpolator;
@@ -44,6 +46,7 @@ import android.widget.Toast;
 import com.google.android.material.progressindicator.LinearProgressIndicator;
 import com.google.android.material.snackbar.BaseTransientBottomBar;
 import com.google.android.material.snackbar.Snackbar;
+import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -65,17 +68,17 @@ import java.util.ArrayList;
 public class MainActivity extends AppCompatActivity {
 
     final String TAG = "MainActivity";
-    ImageButton backBtn, menuBtn;
+    ImageButton backBtn, menuBtn, splitViewBtn;
     ImageView fileImg;
     Button openFileBtn;
-    TextView titleTxt, emptyListTxt;
+    TextView titleTxt, emptyListTxt, jsonTxt;
     RecyclerView list;
     JsonData data = new JsonData();
-    LinearLayout progressView;
+    LinearLayout progressView, mainLL;
     LinearProgressIndicator progressBar;
-    boolean isMenuOpen;
+    boolean isMenuOpen, showJson, isRawJsonLoaded, isVertical = true;
     ListAdapter adapter;
-    View menu, dim_bg;
+    View menu, dim_bg, jsonView;
     ViewGroup viewGroup;
     AutoTransition autoTransition = new AutoTransition();
     Handler handler = new Handler();
@@ -99,6 +102,11 @@ public class MainActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_main);
         initialize();
+
+        if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE){
+            isVertical = false;
+            mainLL.setOrientation(LinearLayout.HORIZONTAL);
+        }
 
         setAnimation(this,fileImg,R.anim.scale_in_file_img, new DecelerateInterpolator());
         setAnimation(this,openFileBtn,R.anim.button_pop, new OvershootInterpolator());
@@ -124,8 +132,7 @@ public class MainActivity extends AppCompatActivity {
             open_closeMenu();
         });
         dim_bg.setOnClickListener(view -> open_closeMenu());
-
-
+        splitViewBtn.setOnClickListener(view -> open_closeSplitView());
         Intent intent = getIntent();
         Log.d(TAG, "onCreate: " + intent);
         if (Intent.ACTION_VIEW.equals(intent.getAction())) {
@@ -205,6 +212,18 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    @Override
+    public void onConfigurationChanged(@NonNull Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE){
+            isVertical = false;
+            mainLL.setOrientation(LinearLayout.HORIZONTAL);
+        }else {
+            isVertical = true;
+            mainLL.setOrientation(LinearLayout.VERTICAL);
+        }
+    }
+
     void checkCrashLogs() {
 
         AppState state = FileSystem.loadStateData(this);
@@ -278,7 +297,10 @@ public class MainActivity extends AppCompatActivity {
         getOnBackPressedDispatcher().addCallback(this, backPressedCallback);
         backBtn = findViewById(R.id.backBtn);
         menuBtn = findViewById(R.id.menuBtn);
+        mainLL = findViewById(R.id.mainLL);
+        splitViewBtn = findViewById(R.id.splitViewBtn);
         titleTxt = findViewById(R.id.titleTxt);
+        jsonTxt = findViewById(R.id.jsonTxt);
         emptyListTxt = findViewById(R.id.emptyListTxt);
         list = findViewById(R.id.list);
         openFileBtn = findViewById(R.id.openFileBtn);
@@ -290,6 +312,7 @@ public class MainActivity extends AppCompatActivity {
         fileImg = findViewById(R.id.fileImg);
         dim_bg.bringToFront();
         menu.bringToFront();
+        jsonView = findViewById(R.id.rawJsonView);
         menuBtn.bringToFront();
         dropTarget = findViewById(R.id.dropTarget);
         list.setLayoutManager(new LinearLayoutManager(this));
@@ -336,7 +359,7 @@ public class MainActivity extends AppCompatActivity {
                 fileNotLoadedException();
                 return;
             }
-
+            readFileThread.setName("readFileThread");
             handler.post(()-> loadingStarted("creating list"));
             try {
                 if (element instanceof JsonObject) {
@@ -349,6 +372,9 @@ public class MainActivity extends AppCompatActivity {
                     JsonArray array = FileSystem.loadDataToJsonArray(element);
                     data.setRootList(getJsonArrayRoot(array));
                 }
+                if (Data.length()<500000)
+                    data.setRawData(Data);
+                else data.setRawData("-1");
             } catch (Exception e){
                 e.printStackTrace();
                 creatingListException();
@@ -372,8 +398,10 @@ public class MainActivity extends AppCompatActivity {
                 });
 
             } else data.setRootList(temp);
-
-            handler.post(() -> loadingFinished(true));
+            isRawJsonLoaded = false;
+            if (showJson)
+                handler.post(this::ShowJSON);
+            else handler.post(() -> loadingFinished(true));
 
         });
         readFileThread.start();
@@ -413,6 +441,55 @@ public class MainActivity extends AppCompatActivity {
         if (!path.equals("")) {
             backBtn.setVisibility(View.VISIBLE);
         }
+
+    }
+
+    private void open_closeSplitView(){
+        TransitionManager.endTransitions(viewGroup);
+        TransitionManager.beginDelayedTransition(viewGroup, autoTransition);
+
+        if (showJson){
+            setAnimation(this,jsonView,isVertical?R.anim.slide_bottom_out:R.anim.slide_right_out,new AccelerateDecelerateInterpolator());
+            handler.postDelayed(()-> jsonView.setVisibility(View.GONE),400);
+            showJson = false;
+            return;
+        }
+        showJson = true;
+        jsonView.setVisibility(View.VISIBLE);
+        setAnimation(this,jsonView,isVertical?R.anim.slide_bottom_in:R.anim.slide_right_in,new DecelerateInterpolator());
+        if (!isRawJsonLoaded)
+            ShowJSON();
+
+    }
+
+    private void ShowJSON(){
+
+        if (data.getRawData().equals("-1")) {
+            Snackbar.make(getWindow().getDecorView(),"File is to large to be shown in a split screen!", BaseTransientBottomBar.LENGTH_SHORT).show();
+            if (progressView.getVisibility() == View.VISIBLE)
+                loadingFinished(true);
+            if (showJson)
+                open_closeSplitView();
+            return;
+        }
+        if (data.getRawData().equals(""))
+            return;
+
+        loadingStarted("Displaying json...");
+
+        Thread thread = new Thread(() -> {
+            JsonElement json = JsonParser.parseString(data.getRawData());
+            Gson gson = new Gson().newBuilder().setPrettyPrinting().create();
+
+            String dataStr = gson.toJson(json);
+            handler.post(()-> {
+                jsonTxt.setText(dataStr);
+                loadingFinished(true);
+                isRawJsonLoaded = true;
+            });
+        });
+        thread.setName("loadingJson");
+        thread.start();
 
     }
 
@@ -469,6 +546,7 @@ public class MainActivity extends AppCompatActivity {
                 });
 
             });
+            readFileThread.setName("readFileThread");
             readFileThread.start();
         } catch (IOException e) {
             throw new RuntimeException(e);
