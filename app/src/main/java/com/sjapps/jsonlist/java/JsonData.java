@@ -7,6 +7,7 @@ public class JsonData {
     String path = "";
     ArrayList<ListItem> rootList = new ArrayList<>();
     Stack<Integer> previousPosStack = new Stack<>();
+    String rawData = "";
 
     int previousPos = -1;
 
@@ -24,6 +25,14 @@ public class JsonData {
 
     public void setRootList(ArrayList<ListItem> rootList) {
         this.rootList = rootList;
+    }
+
+    public void setRawData(String data) {
+        this.rawData = data;
+    }
+
+    public String getRawData() {
+        return rawData;
     }
 
     public boolean isEmptyPath(){
