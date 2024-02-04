@@ -4,7 +4,11 @@ import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
+import android.util.DisplayMetrics;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -91,10 +95,44 @@ public class LogActivity extends AppCompatActivity {
 
         numberOfLogs = logs.getLogs().size();
 
+        log.append(getDeviceInfo());
+
         for (String s : logs.getLogs()){
             log.append(s);
         }
         logTxt.setText(log.toString());
+    }
+
+    private String getDeviceInfo(){
+
+        String s = "";
+        try {
+            PackageInfo pInfo = getPackageManager().getPackageInfo(
+                    getPackageName(), PackageManager.GET_META_DATA);
+            s += "\n App Version Name: " + pInfo.versionName;
+            s += "\n App Version Code: " + pInfo.versionCode;
+            s += "\n";
+        } catch (PackageManager.NameNotFoundException ignored) {}
+        s += "\n OS Version: " + System.getProperty("os.version") + " ("
+                + Build.VERSION.INCREMENTAL + ")";
+        s += "\n OS API Level: " + Build.VERSION.SDK_INT;
+        s += "\n Device: " + Build.DEVICE;
+        s += "\n Model (and Product): " + Build.MODEL + " (" + Build.PRODUCT + ")";
+        s += "\n Manufacturer: " + Build.MANUFACTURER;
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            s += "\n screenWidth: " + getWindowManager().getCurrentWindowMetrics().getBounds().width();
+            s += "\n screenHeight: " + getWindowManager().getCurrentWindowMetrics().getBounds().height();
+        }else {
+            DisplayMetrics metrics = new DisplayMetrics();
+            getWindowManager().getDefaultDisplay().getMetrics(metrics);
+            s += "\n screenWidth: " + metrics.widthPixels;
+            s += "\n screenHeight: " + metrics.heightPixels;
+        }
+
+        s += "\n";
+
+        return s;
     }
 
     public void shareLog(View view) {
