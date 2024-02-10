@@ -2,11 +2,13 @@
 # JsonList
 Introducing a Material You Android application for previewing JSON files in a user-friendly list format.
 
-![JsonList]()
+![JsonList](images/jsonlist_main.jpg)
 
 Use the convenient split view feature that allows simultaneous display of the raw JSON string alongside the list representation.
 
-![JsonList split view]()
+![JsonList split view](images/jsonlist_splitview.jpg)
+
+![JsonList split view landscape](images/jsonlist_splitview_landscape.jpg)
 
 Enjoy the flexibility of dynamic color support, adapting to your Material Design preferences.
 
