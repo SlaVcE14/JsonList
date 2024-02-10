@@ -28,16 +28,16 @@
         <TextView
             android:id="@+id/titleTxt"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="40dp"
             android:layout_centerVertical="true"
             android:layout_marginVertical="15dp"
             android:layout_marginStart="15dp"
-            android:layout_toStartOf="@+id/menuBtn"
+            android:layout_toStartOf="@+id/splitViewBtn"
             android:layout_toEndOf="@+id/backBtn"
-            android:autoSizeMaxTextSize="30sp"
-            android:autoSizeMinTextSize="5dp"
-            android:autoSizeStepGranularity="1dp"
-            android:autoSizeTextType="uniform"
+            app:autoSizeMaxTextSize="20dp"
+            app:autoSizeMinTextSize="10dp"
+            app:autoSizeStepGranularity="1dp"
+            app:autoSizeTextType="uniform"
             android:gravity="center_vertical"
             android:maxLines="1"
             android:text=""
@@ -46,11 +46,23 @@
             android:textStyle="bold" />
 
         <ImageButton
+            android:id="@+id/splitViewBtn"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="15dp"
+            android:layout_marginTop="15dp"
+            android:layout_marginBottom="15dp"
+            android:layout_toStartOf="@+id/menuBtn"
+            android:background="@drawable/ripple"
+
+            android:src="@drawable/ic_splitscreen" />
+
+        <ImageButton
             android:id="@+id/menuBtn"
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:layout_alignParentEnd="true"
-            android:layout_marginStart="15dp"
+            android:layout_marginStart="5dp"
             android:layout_marginTop="15dp"
             android:layout_marginEnd="15dp"
             android:layout_marginBottom="15dp"
@@ -76,30 +88,93 @@
         android:layout_height="match_parent"
         android:background="#70000000"
         android:visibility="invisible" />
-    <ListView
-        android:id="@+id/list"
+    <LinearLayout
+        android:id="@+id/mainLL"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:divider="@null"
+        android:layout_height="match_parent"
         android:layout_below="@+id/titlePanel"
-        android:listSelector="@drawable/transparent_drawable"
-        />
+        android:weightSum="2"
+        android:orientation="vertical"
+        >
 
-    <Button
-        android:id="@+id/openFileBtn"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerInParent="true"
-        android:text="Open file" />
-    <TextView
-        android:id="@+id/emptyListTxt"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerInParent="true"
-        android:text="List is empty"
-        android:textSize="17dp"
-        android:visibility="gone"
-        />
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            >
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/list"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:divider="@null"
+
+                android:listSelector="@drawable/transparent_drawable"
+                android:visibility="gone"
+                />
+
+            <TextView
+                android:id="@+id/emptyListTxt"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:text="List is empty"
+                android:textSize="17dp"
+                android:visibility="gone"
+                />
+
+            <ImageView
+                android:id="@+id/fileImg"
+                android:layout_width="140dp"
+                android:layout_height="140dp"
+                android:layout_centerHorizontal="true"
+                android:layout_above="@id/openFileBtn"
+                android:background="@drawable/ic_open_file_foreground"
+                android:backgroundTint="?colorPrimary"
+                android:scaleX="2"
+                android:scaleY="2"
+                android:rotation="-15"
+                />
+
+            <Button
+                android:id="@+id/openFileBtn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:text="Open file" />
+
+        </RelativeLayout>
+        <ScrollView
+            android:id="@+id/rawJsonView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginVertical="10dp"
+            android:scrollbars="vertical"
+            android:layout_marginHorizontal="10dp"
+            android:background="@drawable/split_view_bg"
+            android:layout_weight="1"
+            android:layout_marginTop="10dp"
+            android:padding="10dp"
+            android:visibility="gone"
+            >
+            <HorizontalScrollView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+
+                >
+                <TextView
+
+                    android:id="@+id/jsonTxt"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:textIsSelectable="true"
+                    />
+
+            </HorizontalScrollView>
+
+        </ScrollView>
+
+    </LinearLayout>
+
 
     <RelativeLayout
         android:layout_width="wrap_content"
@@ -109,25 +184,76 @@
         android:layout_marginBottom="20dp"
         >
 
-        <ProgressBar
-            android:id="@+id/progressBar"
+        <LinearLayout
+            android:id="@+id/loadingView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_above="@+id/LoadFileTxt"
-            android:layout_centerHorizontal="true"
+            android:minWidth="150dp"
+            android:animateLayoutChanges="true"
+            android:background="@drawable/background_transparent"
 
-            android:visibility="gone" />
-        <TextView
-            android:id="@+id/LoadFileTxt"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Loading File..."
-            android:layout_centerHorizontal="true"
-            android:layout_alignParentBottom="true"
-            android:layout_marginTop="10dp"
-            android:visibility="gone"
+            android:padding="10dp"
+            android:layout_marginBottom="20dp"
+            android:visibility="invisible"
+            android:gravity="center"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:elevation="5dp"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/loadingTxt"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="loading data from file"
+                android:textAlignment="center"
+                android:textColor="#ffffff"
+
+                />
+            <com.google.android.material.progressindicator.LinearProgressIndicator
+                android:id="@+id/progressBar"
+                android:layout_width="150dp"
+                android:layout_height="wrap_content"
+                android:indeterminate="true"
+                android:layout_marginTop="5dp"
+                android:max="100"
+                app:indicatorColor="#ffffff"
+                />
+        </LinearLayout>
+    </RelativeLayout>
+
+
+    <RelativeLayout
+        android:id="@+id/dropTarget"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:backgroundTintMode="add"
+        android:layout_margin="10dp"
+        android:alpha="0"
+
+        >
+
+        <View
+            android:id="@+id/dropTargetBackground"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="?colorOnBackground"
+            android:alpha=".5"
             />
 
+        <TextView
+            android:id="@+id/dropTargetText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingBottom="30dp"
+
+            android:text="@string/drop_json_file_here"
+            android:textColor="#ffffff"
+
+            android:layout_centerInParent="true"
+            android:layout_alignParentBottom="true"
+            />
 
     </RelativeLayout>
 

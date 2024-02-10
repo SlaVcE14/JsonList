@@ -30,8 +30,14 @@
         <item name="colorPrimaryInverse">@color/md_theme_light_primaryInverse</item>
 
         <item name="android:statusBarColor">?android:windowBackgroundFallback</item>
-        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:navigationBarColor">?android:windowBackgroundFallback</item>
+        <item name="android:windowLayoutInDisplayCutoutMode" tools:targetApi="o_mr1">shortEdges</item>
+        <item name="android:windowSplashScreenBackground" tools:targetApi="s">#ffffff</item>
+        <item name="android:windowSplashScreenIconBackgroundColor" tools:targetApi="s">#ffffff</item>
 
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="snackbarTextViewStyle">@style/SnackbarStyle</item>
+        <item name="snackbarStyle">@style/SnackbarStyle</item>
         <item name="materialButtonStyle">@style/ButtonColor</item>
     </style>
     <style name="ButtonColor" parent="@android:style/Widget.Button">
@@ -47,6 +53,11 @@
         <item name="android:textColor">?colorOnPrimary</item>
         <item name="android:gravity">center_vertical|center_horizontal</item>
     </style>
-
+    <style name="SnackbarStyle" parent="@style/Widget.MaterialComponents.Snackbar">
+        <item name="backgroundTint">?colorOnPrimaryContainer</item>
+        <item name="android:textColor">?colorPrimaryContainer</item>
+        <item name="android:background">@drawable/background</item>
+        <item name="animationMode">slide</item>
+    </style>
 
 </resources>
