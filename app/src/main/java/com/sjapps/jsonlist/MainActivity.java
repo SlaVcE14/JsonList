@@ -369,6 +369,7 @@ public class MainActivity extends AppCompatActivity {
                 if (Data.length()<500000)
                     data.setRawData(Data);
                 else data.setRawData("-1");
+                data.clearPreviousPos();
             } catch (Exception e){
                 e.printStackTrace();
                 creatingListException();

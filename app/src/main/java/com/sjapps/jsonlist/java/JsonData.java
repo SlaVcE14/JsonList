@@ -73,6 +73,10 @@ public class JsonData {
         return previousPos;
     }
 
+    public void clearPreviousPos(){
+        previousPosStack.clear();
+    }
+
     public static String getPathFormat(String path){
         String[] pathStrings = splitPath(path);
         StringBuilder builder = new StringBuilder();
