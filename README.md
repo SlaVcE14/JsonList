@@ -12,4 +12,4 @@ Use the convenient split view feature that allows simultaneous display of the ra
 
 Enjoy the flexibility of dynamic color support, adapting to your Material Design preferences.
 
-![JsonList dynamic colors]()
+![JsonList dynamic colors](images/jsonlist_material_colots.gif)
