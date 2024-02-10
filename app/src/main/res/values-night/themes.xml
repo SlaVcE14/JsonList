@@ -31,6 +31,8 @@
         <item name="materialButtonStyle">@style/ButtonColor</item>
 
         <item name="android:statusBarColor">?android:windowBackgroundFallback</item>
+        <item name="android:navigationBarColor">?android:windowBackgroundFallback</item>
+        <item name="android:windowLayoutInDisplayCutoutMode" tools:targetApi="o_mr1">shortEdges</item>
         <item name="android:windowSplashScreenBackground" tools:targetApi="s">#000000</item>
         <item name="android:windowSplashScreenIconBackgroundColor" tools:targetApi="s">#000000</item>
         <item name="snackbarTextViewStyle">@style/SnackbarStyle</item>
