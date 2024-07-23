@@ -4,9 +4,12 @@ Introducing a Material You Android application for previewing JSON files in a us
 
 [<img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png"
      alt="Get it on F-Droid"
-     height="80">](https://f-droid.org/packages/com.sjapps.jsonlist/)
+     height="80">](https://slavce14.github.io/redirect?link=jsonlist-fdroid)
+[<img src="https://gitlab.com/IzzyOnDroid/repo/-/raw/master/assets/IzzyOnDroid.png"
+     alt="Get it on IzzyOnDroid"
+     height="80">](https://slavce14.github.io/redirect?link=jsonlist-izzy)
 
-Or download the latest APK form the [Releases Section](https://github.com/SlaVcE14/JsonList/releases/latest).
+Or download the latest APK from the [Releases Section](https://github.com/SlaVcE14/JsonList/releases/latest).
 
 ![JsonList](images/jsonlist_main.jpg)
 
