@@ -1,0 +1,23 @@
+Bugfix
+- fix onBackPressed crash when adapter is null
+- fix path bug
+- Fix support for JSON Array
+- fix MIME types
+
+New features
+- Added autolink
+- Added themed icon
+- Added splash screen
+- Added Drag and Drop feature
+- Highlight previous position
+- Added Crash logs page
+- Added warning dialog before sharing logs
+- Added Split view
+
+Updates
+- update About page
+- Update loading file
+- UI update
+  - add start screen animation
+  - loading animation update
+  - Snackbar update
