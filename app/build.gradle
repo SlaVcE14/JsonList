@@ -9,7 +9,7 @@ android {
         applicationId "com.sjapps.jsonlist"
         minSdk 23
         targetSdk 34
-        versionCode 10
+        versionCode 11
         versionName "1.4"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -22,7 +22,7 @@ android {
         }
         debug {
             applicationIdSuffix '.debug'
-            versionNameSuffix ' dev'
+            versionNameSuffix ' dev 1'
         }
     }
     compileOptions {
