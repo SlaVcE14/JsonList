@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".SettingsActivity">
+
+    <ImageButton
+        android:id="@+id/BackBtn"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="20dp"
+        android:contentDescription="@string/back"
+        android:background="@drawable/ripple"
+        android:onClick="goBack"
+        android:src="@drawable/ic_back"
+        android:text="Back" />
+
+    <TextView
+        android:id="@+id/TitleText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="20dp"
+        android:layout_toEndOf="@+id/BackBtn"
+        android:text="Settings"
+        android:textColor="?colorOnBackground"
+        android:textSize="30sp" />
+
+    <ScrollView
+        android:id="@+id/mainSV"
+        android:layout_width="600dp"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/TitleText"
+        android:layout_centerHorizontal="true"
+        android:layout_marginHorizontal="5dp"
+        android:layout_marginTop="20dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingVertical="15dp"
+            android:showDividers="middle">
+
+
+            <com.google.android.material.materialswitch.MaterialSwitch
+                android:id="@+id/CheckForUpdateSwitch"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:paddingHorizontal="20dp"
+                android:text="Enable checking for update"
+                android:textSize="20dp"
+                android:textColor="?colorOnSurfaceVariant"
+                android:background="@drawable/ripple_list2"
+                android:layout_marginBottom="10dp"
+                android:enabled="false"
+                />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@drawable/ripple_list2"
+                android:layout_marginBottom="10dp"
+                >
+
+                <com.google.android.material.materialswitch.MaterialSwitch
+                    android:id="@+id/MIMESwitch"
+                    android:layout_width="match_parent"
+                    android:layout_height="50dp"
+                    android:paddingHorizontal="20dp"
+                    android:text="Disable MIME filter"
+                    android:textSize="20dp"
+                    android:textColor="?colorOnSurfaceVariant"
+                    />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="If you have problem with opening json file, disable the MIME filter"
+                    android:paddingHorizontal="20dp"
+                    android:layout_marginBottom="10dp"
+                    />
+
+            </LinearLayout>
+
+
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@drawable/ripple_list2"
+                android:paddingBottom="10dp"
+                android:paddingHorizontal="20dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="50dp"
+                    android:gravity="center_vertical"
+                    android:text="Theme"
+                    android:textColor="?colorOnSurfaceVariant"
+                    android:textSize="20dp"
+
+                    />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/outline_background">
+
+                    <Spinner
+                        android:id="@+id/theme_spinner"
+                        android:layout_width="match_parent"
+                        android:layout_height="40dp"
+                        android:dropDownWidth="match_parent"
+                        android:paddingStart="10dp"
+                        android:popupBackground="@drawable/ripple_list"
+
+                        />
+                </LinearLayout>
+
+            </LinearLayout>
+
+
+        </LinearLayout>
+
+    </ScrollView>
+
+
+</RelativeLayout>

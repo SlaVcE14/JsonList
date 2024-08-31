@@ -96,6 +96,7 @@ public class MainActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_main);
         initialize();
+        LoadStateData();
 
         if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE){
             isVertical = false;
@@ -115,6 +116,10 @@ public class MainActivity extends AppCompatActivity {
 
         menu.findViewById(R.id.openFileBtn2).setOnClickListener(view -> {
             ImportFromFile();
+            open_closeMenu();
+        });
+        menu.findViewById(R.id.settingsBtn).setOnClickListener(view -> {
+            OpenSettings();
             open_closeMenu();
         });
         menu.findViewById(R.id.aboutBtn).setOnClickListener(view -> {
@@ -206,6 +211,23 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    private void LoadStateData() {
+        AppState state = FileSystem.loadStateData(this);
+
+        switch (state.getTheme()) {
+            case 0:
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
+                break;
+            case 1:
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+                break;
+            case 2:
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+                break;
+        }
+
+    }
+
     @Override
     public void onConfigurationChanged(@NonNull Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
@@ -241,6 +263,10 @@ public class MainActivity extends AppCompatActivity {
         logBtn.setTextColor(typedValue.data);
         logBtn.setBackgroundResource(R.drawable.ripple_list2);
         menuBtn.setImageResource(R.drawable.ic_menu);
+    }
+
+    private void OpenSettings() {
+        startActivity(new Intent(MainActivity.this, SettingsActivity.class));
     }
 
     private void OpenAbout() {

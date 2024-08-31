@@ -29,6 +29,17 @@
             android:background="@drawable/ripple_list2"
             android:text="Open file"/>
         <TextView
+            android:id="@+id/settingsBtn"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:textSize="15dp"
+            android:gravity="center|left"
+            android:paddingVertical="10dp"
+
+            android:paddingHorizontal="20dp"
+            android:background="@drawable/ripple_list2"
+            android:text="Settings"/>
+        <TextView
             android:id="@+id/aboutBtn"
             android:layout_width="match_parent"
             android:layout_height="40dp"

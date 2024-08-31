@@ -5,4 +5,10 @@
     <string name="drop_json_file_here">Drop JSON file here</string>
     <string name="this_is_not_json_file">This is not JSON file</string>
     <string name="only_one_file_is_allowed">Only one file is allowed!</string>
+
+    <string-array name="Themes">
+        <item>System theme</item>
+        <item>Light</item>
+        <item>Dark</item>
+    </string-array>
 </resources>
