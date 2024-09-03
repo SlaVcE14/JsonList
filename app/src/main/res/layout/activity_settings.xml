@@ -50,7 +50,8 @@
             <com.google.android.material.materialswitch.MaterialSwitch
                 android:id="@+id/CheckForUpdateSwitch"
                 android:layout_width="match_parent"
-                android:layout_height="50dp"
+                android:layout_height="wrap_content"
+                android:minHeight="50dp"
                 android:paddingHorizontal="20dp"
                 android:text="Enable checking for update"
                 android:textSize="20dp"
@@ -71,7 +72,8 @@
                 <com.google.android.material.materialswitch.MaterialSwitch
                     android:id="@+id/MIMESwitch"
                     android:layout_width="match_parent"
-                    android:layout_height="50dp"
+                    android:layout_height="wrap_content"
+                    android:minHeight="50dp"
                     android:paddingHorizontal="20dp"
                     android:text="Disable MIME filter"
                     android:textSize="20dp"
@@ -94,7 +96,7 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:background="@drawable/ripple_list2"
-                android:paddingBottom="10dp"
+                android:paddingBottom="15dp"
                 android:paddingHorizontal="20dp">
 
                 <TextView
