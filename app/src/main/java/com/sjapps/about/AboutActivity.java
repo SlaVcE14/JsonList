@@ -28,6 +28,9 @@ import java.util.ArrayList;
 
 public class AboutActivity extends AppCompatActivity {
 
+    private static final String SITE_APP_VERSIONS = "https://slavce14.github.io/redirect?link=jsonlist-app-versions";
+    private static final String SITE_FDroid = "https://slavce14.github.io/redirect?link=jsonlist-fdroid";
+    private static final String SITE_IzzyOnDroid = "https://slavce14.github.io/redirect?link=jsonlist-izzy";
     private static final String GITHUB_REPOSITORY_RELEASES = "https://github.com/SlaVcE14/JsonList/releases";
     final String STORE_PACKAGE_NAME = "com.sjapps.sjstore";
 
@@ -85,16 +88,18 @@ public class AboutActivity extends AppCompatActivity {
     }
 
     public void CheckForUpdate(View view) {
-        if (!isStoreInstalled) {
-            openGitHub();
-            return;
-        }
-
         ListDialog dialog = new ListDialog();
 
         ArrayList<ImageListItem> items = new ArrayList<>();
+        items.add(new ImageListItem("Site", AppCompatResources.getDrawable(this,R.drawable.ic_globe), (ImageItemClick) this::openSite));
         items.add(new ImageListItem("GitHub", AppCompatResources.getDrawable(this,R.drawable.github_logo), (ImageItemClick) this::openGitHub));
-        items.add(new ImageListItem("SJ Store", storeIcon, (ImageItemClick) this::openStore));
+        items.add(new ImageListItem("F-Droid", AppCompatResources.getDrawable(this,R.drawable.fdroid_logo), (ImageItemClick) this::openFDroid));
+        items.add(new ImageListItem("IzzyOnDroid", AppCompatResources.getDrawable(this, R.drawable.izzyondroid_logo), (ImageItemClick) this::openIzzy));
+
+        if (isStoreInstalled) {
+            items.add(new ImageListItem("SJ Store", storeIcon, (ImageItemClick) this::openStore));
+        }
+
 
         dialog.Builder(this,true)
                 .setTitle("Open...")
@@ -109,6 +114,23 @@ public class AboutActivity extends AppCompatActivity {
     
     private void openGitHub(){
         Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(GITHUB_REPOSITORY_RELEASES));
+        startActivity(intent);
+    }
+
+    private void openSite(){
+        openLink(SITE_APP_VERSIONS);
+    }
+
+    private void openFDroid(){
+        openLink(SITE_FDroid);
+    }
+
+    private void openIzzy(){
+        openLink(SITE_IzzyOnDroid);
+    }
+
+    private void openLink(String site){
+        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(site));
         startActivity(intent);
     }
 
