@@ -107,8 +107,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:divider="@null"
-
                 android:listSelector="@drawable/transparent_drawable"
+                android:foreground="@drawable/foreground"
                 android:visibility="gone"
                 />
 
