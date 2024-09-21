@@ -3,6 +3,9 @@ package com.sjapps.jsonlist;
 public class AppState {
     boolean hasNewCrash;
     boolean hasCrashLogs;
+    boolean MIMEFilterDisabled;
+    boolean autoCheckForUpdate;
+    private int theme;
 
     public boolean hasNewCrash() {
         return hasNewCrash;
@@ -20,11 +23,38 @@ public class AppState {
         this.hasCrashLogs = hasCrashLogs;
     }
 
+    public boolean isMIMEFilterDisabled() {
+        return MIMEFilterDisabled;
+    }
+
+    public void setMIMEFilterDisabled(boolean MIMEFilterDisabled) {
+        this.MIMEFilterDisabled = MIMEFilterDisabled;
+    }
+
+    public boolean isAutoCheckForUpdate() {
+        return autoCheckForUpdate;
+    }
+
+    public void setAutoCheckForUpdate(boolean autoCheckForUpdate) {
+        this.autoCheckForUpdate = autoCheckForUpdate;
+    }
+
+    public int getTheme() {
+        return theme;
+    }
+
+    public void setTheme(int theme) {
+        this.theme = theme;
+    }
+
     @Override
     public String toString() {
         return "AppState{" +
                 "hasNewCrash=" + hasNewCrash +
                 ", hasCrashLogs=" + hasCrashLogs +
+                ", MIMEFilterDisabled=" + MIMEFilterDisabled +
+                ", autoCheckForUpdate=" + autoCheckForUpdate +
+                ", theme=" + theme +
                 '}';
     }
 }

@@ -7,6 +7,7 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -79,11 +80,13 @@ public class MainActivity extends AppCompatActivity {
     Handler handler = new Handler();
     Thread readFileThread;
     RelativeLayout dropTarget;
+    AppState state;
 
     @Override
     protected void onResume() {
         super.onResume();
         checkCrashLogs();
+        LoadStateData();
         Log.d(TAG, "onResume: resume");
     }
 
@@ -117,6 +120,10 @@ public class MainActivity extends AppCompatActivity {
             ImportFromFile();
             open_closeMenu();
         });
+        menu.findViewById(R.id.settingsBtn).setOnClickListener(view -> {
+            OpenSettings();
+            open_closeMenu();
+        });
         menu.findViewById(R.id.aboutBtn).setOnClickListener(view -> {
             OpenAbout();
             open_closeMenu();
@@ -141,7 +148,7 @@ public class MainActivity extends AppCompatActivity {
             TextView dropTargetTxt = v.findViewById(R.id.dropTargetText);
             View dropTargetBackground = v.findViewById(R.id.dropTargetBackground);
 
-            String MIMEType = Build.VERSION.SDK_INT > Build.VERSION_CODES.P?"application/json":"application/*";
+            String MIMEType = state.isMIMEFilterDisabled()?"*/*": Build.VERSION.SDK_INT > Build.VERSION_CODES.P?"application/json":"application/*";
 
             switch (event.getAction()) {
                 case DragEvent.ACTION_DRAG_STARTED:
@@ -206,6 +213,10 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    private void LoadStateData() {
+        state = FileSystem.loadStateData(this);
+    }
+
     @Override
     public void onConfigurationChanged(@NonNull Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
@@ -241,6 +252,10 @@ public class MainActivity extends AppCompatActivity {
         logBtn.setTextColor(typedValue.data);
         logBtn.setBackgroundResource(R.drawable.ripple_list2);
         menuBtn.setImageResource(R.drawable.ic_menu);
+    }
+
+    private void OpenSettings() {
+        startActivity(new Intent(MainActivity.this, SettingsActivity.class));
     }
 
     private void OpenAbout() {
@@ -493,7 +508,7 @@ public class MainActivity extends AppCompatActivity {
 
         Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
         intent.addCategory(Intent.CATEGORY_OPENABLE);
-        intent.setType(Build.VERSION.SDK_INT > Build.VERSION_CODES.P?"application/json":"application/*");
+        intent.setType(state.isMIMEFilterDisabled()?"*/*" : Build.VERSION.SDK_INT > Build.VERSION_CODES.P?"application/json":"application/*");
         ActivityResultData.launch(intent);
     }
 

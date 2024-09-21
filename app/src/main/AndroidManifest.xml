@@ -15,6 +15,9 @@
         android:supportsRtl="true"
         android:largeHeap="true"
         android:theme="@style/Theme.JsonList">
+        <activity
+            android:name=".SettingsActivity"
+            android:exported="false" />
         <activity android:name="com.sjapps.about.AboutActivity"/>
         <activity
             android:name="com.sjapps.logs.LogActivity"
