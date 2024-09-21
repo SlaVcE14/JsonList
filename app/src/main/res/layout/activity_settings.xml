@@ -53,7 +53,7 @@
                 android:layout_height="wrap_content"
                 android:minHeight="50dp"
                 android:paddingHorizontal="20dp"
-                android:text="Enable checking for update"
+                android:text="@string/checking_for_update"
                 android:textSize="20dp"
                 android:textColor="?colorOnSurfaceVariant"
                 android:background="@drawable/ripple_list2"
@@ -75,14 +75,14 @@
                     android:layout_height="wrap_content"
                     android:minHeight="50dp"
                     android:paddingHorizontal="20dp"
-                    android:text="Disable MIME filter"
+                    android:text="@string/disable_MIME"
                     android:textSize="20dp"
                     android:textColor="?colorOnSurfaceVariant"
                     />
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="If you have problem with opening json file, disable the MIME filter"
+                    android:text="@string/disable_MIME_description"
                     android:paddingHorizontal="20dp"
                     android:layout_marginBottom="10dp"
                     />
@@ -103,7 +103,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="50dp"
                     android:gravity="center_vertical"
-                    android:text="Theme"
+                    android:text="@string/theme"
                     android:textColor="?colorOnSurfaceVariant"
                     android:textSize="20dp"
 
