@@ -3,42 +3,45 @@
     package="com.sjapps.jsonlist">
 
     <queries>
-        <package android:name="com.sjapps.sjstore"/>
+        <package android:name="com.sjapps.sjstore" />
     </queries>
 
     <application
-        android:allowBackup="true"
         android:name=".App"
+        android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
+        android:largeHeap="true"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:largeHeap="true"
         android:theme="@style/Theme.JsonList">
         <activity
             android:name=".SettingsActivity"
             android:exported="false" />
-        <activity android:name="com.sjapps.about.AboutActivity"/>
+        <activity
+            android:name="com.sjapps.about.AboutActivity" />
         <activity
             android:name="com.sjapps.logs.LogActivity"
             android:exported="false" />
         <activity
             android:name=".MainActivity"
-            android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout"
+            android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|density"
             android:exported="true">
-            <meta-data android:name="android.app.shortcuts"
+            <meta-data
+                android:name="android.app.shortcuts"
                 android:resource="@xml/shortcuts" />
+
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-                <action android:name="android.intent.action.OPEN_DOCUMENT"/>
+                <action android:name="android.intent.action.OPEN_DOCUMENT" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
 
                 <category android:name="android.intent.category.DEFAULT" />
+
                 <data android:host="*" />
                 <data android:mimeType="application/json" />
                 <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\.json" />
@@ -51,13 +54,13 @@
         </activity>
 
         <provider
-            android:authorities="${applicationId}.logs.provider"
             android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.logs.provider"
             android:exported="false"
             android:grantUriPermissions="true">
             <meta-data
                 android:name="android.support.FILE_PROVIDER_PATHS"
-                android:resource="@xml/file_path"/>
+                android:resource="@xml/file_path" />
         </provider>
     </application>
 
