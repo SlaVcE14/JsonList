@@ -351,6 +351,7 @@ public class MainActivity extends AppCompatActivity {
 
         readFileThread = new Thread(() -> {
             ArrayList<ListItem> temp = data.getRootList();
+            String tempRaw = data.getRawData();
             JsonElement element;
             try {
                 element = JsonParser.parseString(Data);
@@ -371,6 +372,7 @@ public class MainActivity extends AppCompatActivity {
             readFileThread.setName("readFileThread");
             handler.post(()-> loadingStarted("creating list"));
             try {
+                data.setRootList(null);
                 if (element instanceof JsonObject) {
                     Log.d(TAG, "run: Json object");
                     JsonObject object = FileSystem.loadDataToJsonObj(element);
@@ -407,7 +409,13 @@ public class MainActivity extends AppCompatActivity {
                     data.clearPath();
                 });
 
-            } else data.setRootList(temp);
+            } else {
+                data.setRootList(temp);
+                data.setRawData(tempRaw);
+                handler.post(() -> loadingFinished(false));
+                fileNotLoadedException();
+                return;
+            }
             isRawJsonLoaded = false;
             if (showJson)
                 handler.post(this::ShowJSON);
