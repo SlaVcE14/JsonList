@@ -161,32 +161,33 @@ public class MainActivity extends AppCompatActivity {
                     return true;
 
                 case DragEvent.ACTION_DRAG_ENTERED:
+                    dropTarget.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK);
                     if(event.getClipDescription().getMimeTypeCount() > 1){
                         dropTargetTxt.setText(R.string.only_one_file_is_allowed);
-                        dropTargetBackground.setBackgroundColor(setColor(R.attr.colorError));
+                        dropTargetBackground.getBackground().mutate().setTint(setColor(R.attr.colorError));
                         dropTargetBackground.setAlpha(.8f);
                         return false;
                     }
                     if (!event.getClipDescription().hasMimeType(MIMEType)) {
                         dropTargetTxt.setText(R.string.this_is_not_json_file);
-                        dropTargetBackground.setBackgroundColor(setColor(R.attr.colorError));
+                        dropTargetBackground.getBackground().mutate().setTint(setColor(R.attr.colorError));
                         dropTargetBackground.setAlpha(.8f);
                         return false;
                     }
 
-                    dropTargetBackground.setBackgroundColor(setColor(R.attr.colorPrimary));
+                    dropTargetBackground.getBackground().mutate().setTint(setColor(R.attr.colorPrimary));
                     dropTargetBackground.setAlpha(.8f);
                     return true;
 
                 case DragEvent.ACTION_DRAG_EXITED:
                     dropTargetTxt.setText(R.string.drop_json_file_here);
-                    dropTargetBackground.setBackgroundColor(setColor(R.attr.colorOnBackground));
+                    dropTargetBackground.getBackground().mutate().setTint(setColor(R.attr.colorOnBackground));
                     dropTargetBackground.setAlpha(.5f);
                     return true;
 
                 case DragEvent.ACTION_DRAG_ENDED:
                     dropTargetTxt.setText(R.string.drop_json_file_here);
-                    dropTargetBackground.setBackgroundColor(setColor(R.attr.colorOnBackground));
+                    dropTargetBackground.getBackground().mutate().setTint(setColor(R.attr.colorOnBackground));
                     dropTarget.setAlpha(0);
                     return true;
 

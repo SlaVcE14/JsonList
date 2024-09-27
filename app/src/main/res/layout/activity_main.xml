@@ -259,7 +259,7 @@
             android:id="@+id/dropTargetBackground"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="?colorOnBackground"
+            android:background="@drawable/background2"
             android:alpha=".5"
             />
 
