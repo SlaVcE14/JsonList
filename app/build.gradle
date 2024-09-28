@@ -23,7 +23,7 @@ android {
         }
         debug {
             applicationIdSuffix '.debug'
-            versionNameSuffix ' dev 3'
+            versionNameSuffix ' dev 3.1'
         }
     }
     compileOptions {
