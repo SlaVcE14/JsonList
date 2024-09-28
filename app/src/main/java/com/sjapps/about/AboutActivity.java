@@ -7,6 +7,7 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 import android.view.animation.Animation;
@@ -21,8 +22,11 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.sjapps.jsonlist.R;
+import com.sjapps.library.customdialog.BasicDialog;
+import com.sjapps.library.customdialog.DialogButtonEvents;
 import com.sjapps.library.customdialog.ImageListItem;
 import com.sjapps.library.customdialog.ListDialog;
+import com.sjapps.library.customdialog.SJDialog;
 
 import java.util.ArrayList;
 
@@ -33,6 +37,7 @@ public class AboutActivity extends AppCompatActivity {
     private static final String SITE_IzzyOnDroid = "https://slavce14.github.io/redirect?link=jsonlist-izzy";
     private static final String GITHUB_REPOSITORY_RELEASES = "https://github.com/SlaVcE14/JsonList/releases";
     final String STORE_PACKAGE_NAME = "com.sjapps.sjstore";
+    final String CONTACT_MAIL = "slavce14.apps@gmail.com";
 
     ImageView logo;
     NestedScrollView nestedScrollView;
@@ -81,7 +86,6 @@ public class AboutActivity extends AppCompatActivity {
         ListRV = findViewById(R.id.aboutList);
         LibListRV = findViewById(R.id.LibrariesList);
         nestedScrollView = findViewById(R.id.nestedList);
-        findViewById(R.id.updateBtn).setVisibility(View.VISIBLE);
         if (CheckStoreIsInstalled()){
             isStoreInstalled = true;
         }
@@ -142,15 +146,68 @@ public class AboutActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
-    private boolean CheckStoreIsInstalled(){
+    private boolean CheckStoreIsInstalled() {
         PackageManager packageManager = getPackageManager();
         try {
-            PackageInfo packageInfo = packageManager.getPackageInfo(STORE_PACKAGE_NAME,0);
+            PackageInfo packageInfo = packageManager.getPackageInfo(STORE_PACKAGE_NAME, 0);
             storeIcon = packageInfo.applicationInfo.loadIcon(packageManager);
             return true;
         } catch (PackageManager.NameNotFoundException e) {
             return false;
         }
+    }
+
+    public void SendFeedback(View view) {
+
+        BasicDialog dialog = new BasicDialog();
+        dialog.Builder(this,true)
+                .setTitle("Include info?")
+                .setMessage("Do you want to include app and device info?")
+                .setLeftButtonText("No")
+                .setRightButtonText("Yes")
+                .setMessageAlignment(SJDialog.TEXT_ALIGNMENT_CENTER)
+                .onButtonClick(new DialogButtonEvents() {
+                    @Override
+                    public void onLeftButtonClick() {
+                        sendMail(false);
+                        dialog.dismiss();
+                    }
+
+                    @Override
+                    public void onRightButtonClick() {
+                        sendMail(true);
+                        dialog.dismiss();
+                    }
+                })
+                .show();
+    }
+
+    private void sendMail(boolean sendInfo){
+        Intent intent = new Intent(Intent.ACTION_SENDTO);
+        intent.setData(Uri.parse("mailto:"));
+        intent.putExtra(Intent.EXTRA_EMAIL,new String[]{CONTACT_MAIL});
+        intent.putExtra(Intent.EXTRA_SUBJECT,"Json List Feedback:");
+        if (sendInfo)
+            intent.putExtra(Intent.EXTRA_TEXT,getInfo());
+        startActivity(intent);
+    }
+
+    private String getInfo(){
+        String s = "";
+        try {
+            PackageInfo pInfo = getPackageManager().getPackageInfo(
+                    getPackageName(), PackageManager.GET_META_DATA);
+            s += "\n App Version Name: " + pInfo.versionName;
+            s += "\n App Version Code: " + pInfo.versionCode;
+            s += "\n";
+        } catch (PackageManager.NameNotFoundException ignored) {}
+        s += "\n OS API Level: " + Build.VERSION.SDK_INT;
+        s += "\n Manufacturer: " + Build.MANUFACTURER;
+        s += "\n Model (and Product): " + Build.MODEL + " (" + Build.PRODUCT + ")";
+        s += "\n Device Version: " + Build.VERSION.INCREMENTAL;
+        s += "\n";
+
+        return s;
     }
 
     public void Back(View view) {
