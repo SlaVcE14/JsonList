@@ -7,6 +7,7 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -25,6 +26,7 @@ import android.util.Log;
 import android.util.TypedValue;
 import android.view.DragAndDropPermissions;
 import android.view.DragEvent;
+import android.view.HapticFeedbackConstants;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AccelerateDecelerateInterpolator;
@@ -79,11 +81,16 @@ public class MainActivity extends AppCompatActivity {
     Handler handler = new Handler();
     Thread readFileThread;
     RelativeLayout dropTarget;
+    RelativeLayout listRL;
+    RelativeLayout rawJsonRL;
+    AppState state;
+    View fullRawBtn;
 
     @Override
     protected void onResume() {
         super.onResume();
         checkCrashLogs();
+        LoadStateData();
         Log.d(TAG, "onResume: resume");
     }
 
@@ -100,6 +107,7 @@ public class MainActivity extends AppCompatActivity {
         if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE){
             isVertical = false;
             mainLL.setOrientation(LinearLayout.HORIZONTAL);
+            updateFullRawBtn();
         }
 
         functions.setAnimation(this,fileImg,R.anim.scale_in_file_img, new DecelerateInterpolator());
@@ -115,6 +123,10 @@ public class MainActivity extends AppCompatActivity {
 
         menu.findViewById(R.id.openFileBtn2).setOnClickListener(view -> {
             ImportFromFile();
+            open_closeMenu();
+        });
+        menu.findViewById(R.id.settingsBtn).setOnClickListener(view -> {
+            OpenSettings();
             open_closeMenu();
         });
         menu.findViewById(R.id.aboutBtn).setOnClickListener(view -> {
@@ -141,7 +153,7 @@ public class MainActivity extends AppCompatActivity {
             TextView dropTargetTxt = v.findViewById(R.id.dropTargetText);
             View dropTargetBackground = v.findViewById(R.id.dropTargetBackground);
 
-            String MIMEType = Build.VERSION.SDK_INT > Build.VERSION_CODES.P?"application/json":"application/*";
+            String MIMEType = state.isMIMEFilterDisabled()?"*/*": Build.VERSION.SDK_INT > Build.VERSION_CODES.P?"application/json":"application/*";
 
             switch (event.getAction()) {
                 case DragEvent.ACTION_DRAG_STARTED:
@@ -149,32 +161,33 @@ public class MainActivity extends AppCompatActivity {
                     return true;
 
                 case DragEvent.ACTION_DRAG_ENTERED:
+                    dropTarget.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK);
                     if(event.getClipDescription().getMimeTypeCount() > 1){
                         dropTargetTxt.setText(R.string.only_one_file_is_allowed);
-                        dropTargetBackground.setBackgroundColor(setColor(R.attr.colorError));
+                        dropTargetBackground.getBackground().mutate().setTint(setColor(R.attr.colorError));
                         dropTargetBackground.setAlpha(.8f);
                         return false;
                     }
                     if (!event.getClipDescription().hasMimeType(MIMEType)) {
                         dropTargetTxt.setText(R.string.this_is_not_json_file);
-                        dropTargetBackground.setBackgroundColor(setColor(R.attr.colorError));
+                        dropTargetBackground.getBackground().mutate().setTint(setColor(R.attr.colorError));
                         dropTargetBackground.setAlpha(.8f);
                         return false;
                     }
 
-                    dropTargetBackground.setBackgroundColor(setColor(R.attr.colorPrimary));
+                    dropTargetBackground.getBackground().mutate().setTint(setColor(R.attr.colorPrimary));
                     dropTargetBackground.setAlpha(.8f);
                     return true;
 
                 case DragEvent.ACTION_DRAG_EXITED:
                     dropTargetTxt.setText(R.string.drop_json_file_here);
-                    dropTargetBackground.setBackgroundColor(setColor(R.attr.colorOnBackground));
+                    dropTargetBackground.getBackground().mutate().setTint(setColor(R.attr.colorOnBackground));
                     dropTargetBackground.setAlpha(.5f);
                     return true;
 
                 case DragEvent.ACTION_DRAG_ENDED:
                     dropTargetTxt.setText(R.string.drop_json_file_here);
-                    dropTargetBackground.setBackgroundColor(setColor(R.attr.colorOnBackground));
+                    dropTargetBackground.getBackground().mutate().setTint(setColor(R.attr.colorOnBackground));
                     dropTarget.setAlpha(0);
                     return true;
 
@@ -206,15 +219,26 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    private void LoadStateData() {
+        state = FileSystem.loadStateData(this);
+    }
+
     @Override
     public void onConfigurationChanged(@NonNull Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
-        if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE){
-            isVertical = false;
+
+        if ((newConfig.orientation != Configuration.ORIENTATION_LANDSCAPE) == isVertical){
+            return;
+        }
+
+        isVertical = !isVertical;
+
+        if (!isVertical){
             mainLL.setOrientation(LinearLayout.HORIZONTAL);
+            updateFullRawBtn();
         }else {
-            isVertical = true;
             mainLL.setOrientation(LinearLayout.VERTICAL);
+            updateFullRawBtn();
         }
     }
 
@@ -243,6 +267,10 @@ public class MainActivity extends AppCompatActivity {
         menuBtn.setImageResource(R.drawable.ic_menu);
     }
 
+    private void OpenSettings() {
+        startActivity(new Intent(MainActivity.this, SettingsActivity.class));
+    }
+
     private void OpenAbout() {
         startActivity(new Intent(MainActivity.this, AboutActivity.class));
     }
@@ -256,6 +284,11 @@ public class MainActivity extends AppCompatActivity {
         public void handleOnBackPressed() {
             if (isMenuOpen) {
                 open_closeMenu();
+                return;
+            }
+
+            if (listRL.getVisibility() == View.GONE){
+                FullRaw(null);
                 return;
             }
 
@@ -297,6 +330,7 @@ public class MainActivity extends AppCompatActivity {
         jsonTxt = findViewById(R.id.jsonTxt);
         emptyListTxt = findViewById(R.id.emptyListTxt);
         list = findViewById(R.id.list);
+        listRL = findViewById(R.id.listRL);
         openFileBtn = findViewById(R.id.openFileBtn);
         viewGroup = findViewById(R.id.content);
         menu = findViewById(R.id.menu);
@@ -307,9 +341,12 @@ public class MainActivity extends AppCompatActivity {
         dim_bg.bringToFront();
         menu.bringToFront();
         jsonView = findViewById(R.id.rawJsonView);
+        rawJsonRL = findViewById(R.id.rawJsonRL);
         menuBtn.bringToFront();
         dropTarget = findViewById(R.id.dropTarget);
         list.setLayoutManager(new LinearLayoutManager(this));
+
+        fullRawBtn = findViewById(R.id.fullRawBtn);
     }
 
     private void open_closeMenu() {
@@ -336,6 +373,7 @@ public class MainActivity extends AppCompatActivity {
 
         readFileThread = new Thread(() -> {
             ArrayList<ListItem> temp = data.getRootList();
+            String tempRaw = data.getRawData();
             JsonElement element;
             try {
                 element = JsonParser.parseString(Data);
@@ -356,6 +394,7 @@ public class MainActivity extends AppCompatActivity {
             readFileThread.setName("readFileThread");
             handler.post(()-> loadingStarted("creating list"));
             try {
+                data.setRootList(null);
                 if (element instanceof JsonObject) {
                     Log.d(TAG, "run: Json object");
                     JsonObject object = FileSystem.loadDataToJsonObj(element);
@@ -392,7 +431,13 @@ public class MainActivity extends AppCompatActivity {
                     data.clearPath();
                 });
 
-            } else data.setRootList(temp);
+            } else {
+                data.setRootList(temp);
+                data.setRawData(tempRaw);
+                handler.post(() -> loadingFinished(false));
+                fileNotLoadedException();
+                return;
+            }
             isRawJsonLoaded = false;
             if (showJson)
                 handler.post(this::ShowJSON);
@@ -444,17 +489,58 @@ public class MainActivity extends AppCompatActivity {
         TransitionManager.beginDelayedTransition(viewGroup, autoTransition);
 
         if (showJson){
-            functions.setAnimation(this,jsonView,isVertical?R.anim.slide_bottom_out:R.anim.slide_right_out,new AccelerateDecelerateInterpolator());
-            handler.postDelayed(()-> jsonView.setVisibility(View.GONE),400);
+            functions.setAnimation(this,rawJsonRL,isVertical?R.anim.slide_bottom_out:R.anim.slide_right_out,new AccelerateDecelerateInterpolator());
+            handler.postDelayed(()-> rawJsonRL.setVisibility(View.GONE),400);
             showJson = false;
+            if (listRL.getVisibility() == View.GONE)
+                listRL.setVisibility(View.VISIBLE);
             return;
         }
         showJson = true;
-        jsonView.setVisibility(View.VISIBLE);
-        functions.setAnimation(this,jsonView,isVertical?R.anim.slide_bottom_in:R.anim.slide_right_in,new DecelerateInterpolator());
+        rawJsonRL.setVisibility(View.VISIBLE);
+        functions.setAnimation(this,rawJsonRL,isVertical?R.anim.slide_bottom_in:R.anim.slide_right_in,new DecelerateInterpolator());
         if (!isRawJsonLoaded)
             ShowJSON();
 
+    }
+
+    public void FullRaw(View view) {
+        TransitionManager.endTransitions(viewGroup);
+        TransitionManager.beginDelayedTransition(viewGroup, autoTransition);
+
+        fullRawBtn.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP);
+        if (listRL.getVisibility() == View.VISIBLE){
+            listRL.setVisibility(View.GONE);
+        }else
+            listRL.setVisibility(View.VISIBLE);
+    }
+
+    private void updateFullRawBtn(){
+
+        int initWidth = functions.dpToPixels(this,100);
+        int initHeight = functions.dpToPixels(this,7);
+
+        RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) fullRawBtn.getLayoutParams();
+
+        if (!isVertical){
+
+            params.width = initHeight;
+            params.height = initWidth;
+
+            params.addRule(RelativeLayout.CENTER_VERTICAL);
+            params.removeRule(RelativeLayout.CENTER_HORIZONTAL);
+
+            fullRawBtn.setLayoutParams(params);
+            return;
+        }
+
+        params.width = initWidth;
+        params.height = initHeight;
+
+        params.addRule(RelativeLayout.CENTER_HORIZONTAL);
+        params.removeRule(RelativeLayout.CENTER_VERTICAL);
+
+        fullRawBtn.setLayoutParams(params);
     }
 
     private void ShowJSON(){
@@ -493,7 +579,7 @@ public class MainActivity extends AppCompatActivity {
 
         Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
         intent.addCategory(Intent.CATEGORY_OPENABLE);
-        intent.setType(Build.VERSION.SDK_INT > Build.VERSION_CODES.P?"application/json":"application/*");
+        intent.setType(state.isMIMEFilterDisabled()?"*/*" : Build.VERSION.SDK_INT > Build.VERSION_CODES.P?"application/json":"application/*");
         ActivityResultData.launch(intent);
     }
 

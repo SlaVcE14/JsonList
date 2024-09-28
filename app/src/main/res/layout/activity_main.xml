@@ -98,6 +98,7 @@
         >
 
         <RelativeLayout
+            android:id="@+id/listRL"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_weight="1"
@@ -107,8 +108,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:divider="@null"
-
                 android:listSelector="@drawable/transparent_drawable"
+                android:foreground="@drawable/foreground"
                 android:visibility="gone"
                 />
 
@@ -143,35 +144,55 @@
                 android:text="Open file" />
 
         </RelativeLayout>
-        <ScrollView
-            android:id="@+id/rawJsonView"
+        <RelativeLayout
+            android:id="@+id/rawJsonRL"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginVertical="10dp"
-            android:scrollbars="vertical"
-            android:layout_marginHorizontal="10dp"
-            android:background="@drawable/split_view_bg"
+            android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:layout_marginTop="10dp"
-            android:padding="10dp"
             android:visibility="gone"
             >
-            <HorizontalScrollView
+
+
+
+            <ScrollView
+                android:id="@+id/rawJsonView"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_marginVertical="10dp"
+                android:scrollbars="vertical"
+                android:layout_marginHorizontal="10dp"
+                android:background="@drawable/split_view_bg"
 
+                android:padding="10dp"
+                android:visibility="visible"
                 >
-                <TextView
+                <HorizontalScrollView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
 
-                    android:id="@+id/jsonTxt"
-                    android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:textIsSelectable="true"
-                    />
+                    >
+                    <TextView
 
-            </HorizontalScrollView>
+                        android:id="@+id/jsonTxt"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:textIsSelectable="true"
+                        />
 
-        </ScrollView>
+                </HorizontalScrollView>
+
+            </ScrollView>
+            <View
+                android:id="@+id/fullRawBtn"
+                android:layout_width="100dp"
+                android:layout_height="7dp"
+                android:background="@drawable/ripple_button"
+                android:onClick="FullRaw"
+                android:layout_centerHorizontal="true"
+
+                />
+        </RelativeLayout>
+
 
     </LinearLayout>
 
@@ -238,7 +259,7 @@
             android:id="@+id/dropTargetBackground"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="?colorOnBackground"
+            android:background="@drawable/background2"
             android:alpha=".5"
             />
 

@@ -119,6 +119,10 @@ public class FileSystem {
         return new Gson().fromJson(data,CrashLogs.class);
     }
 
+    public static void SaveState(Context context, AppState state) {
+        SaveData(context,StateFile,new Gson().toJson(state));
+    }
+
     public static void SaveState(Context context, String data) {
         SaveData(context,StateFile,data);
     }
