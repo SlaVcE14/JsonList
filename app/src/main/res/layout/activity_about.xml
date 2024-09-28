@@ -92,10 +92,24 @@
                 android:layout_height="wrap_content"
                 android:layout_below="@+id/list"
                 android:layout_centerHorizontal="true"
-                android:layout_marginVertical="20dp"
+                android:layout_marginTop="20dp"
                 android:onClick="CheckForUpdate"
                 android:text="Check for update"
-                android:visibility="gone" />
+                />
+
+            <Button
+                android:id="@+id/feedbackBtn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/updateBtn"
+                android:layout_centerHorizontal="true"
+                android:layout_marginVertical="10dp"
+                android:onClick="SendFeedback"
+                android:text="Send Feedback"
+                android:background="@drawable/ripple"
+                android:textColor="?colorOnBackground"
+                />
+
         </RelativeLayout>
 
 
