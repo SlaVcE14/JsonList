@@ -6,6 +6,7 @@ import java.util.Stack;
 public class JsonData {
     String path = "";
     ArrayList<ListItem> rootList = new ArrayList<>();
+    ArrayList<ListItem> currentList = new ArrayList<>();
     Stack<Integer> previousPosStack = new Stack<>();
     String rawData = "";
 
@@ -25,6 +26,18 @@ public class JsonData {
 
     public void setRootList(ArrayList<ListItem> rootList) {
         this.rootList = rootList;
+    }
+
+    public ArrayList<ListItem> getCurrentList() {
+        return currentList;
+    }
+
+    public void setCurrentList(ArrayList<ListItem> currentList) {
+        this.currentList = currentList;
+    }
+
+    public void setRootAsCurrentList() {
+        currentList.addAll(rootList);
     }
 
     public void setRawData(String data) {

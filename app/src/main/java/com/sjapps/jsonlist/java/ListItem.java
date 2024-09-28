@@ -12,6 +12,8 @@ public class ListItem {
     private ArrayList<ListItem> Objects;
     private ArrayList<ArrayList<ListItem>> ListObjects;
     private int id = -1;
+    private int position = -1;
+
 
     public ListItem(){
     }
@@ -81,10 +83,19 @@ public class ListItem {
         return id;
     }
 
+    public int getPosition() {
+        return position;
+    }
+
+    public void setPosition(int position) {
+        this.position = position;
+    }
+
     @Override
     public String toString() {
         return "{" +
                 "\"ID\":" + id +
+                ",\"Position\":" + position +
                 ",\"Name\":" +(Name!=null && !Name.startsWith("\"")?"\"":"") +  Name + (Name!=null && !Name.startsWith("\"")?"\"":"") +
                 ", \"Value\":" + (Value!=null && !Value.startsWith("\"")?"\"":"") + Value + (Value!=null && !Value.startsWith("\"")?"\"":"") +
                 ", \"isArray\":" + isArray +
