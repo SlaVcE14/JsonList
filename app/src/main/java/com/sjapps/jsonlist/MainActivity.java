@@ -433,6 +433,8 @@ public class MainActivity extends AppCompatActivity {
             if (!data.isRootListNull()) {
                 handler.post(() -> {
                     TransitionManager.beginDelayedTransition(viewGroup, autoTransition);
+                    data.setCurrentList(data.getRootList());
+                    updateFilterList(data.getRootList());
                     adapter = new ListAdapter(data.getRootList(), MainActivity.this, "");
                     list.setAdapter(adapter);
                     fileImg.clearAnimation();
@@ -462,8 +464,6 @@ public class MainActivity extends AppCompatActivity {
         TransitionManager.endTransitions(viewGroup);
         TransitionManager.beginDelayedTransition(viewGroup, autoTransition);
 
-        filterList.clear();
-
         if (isMenuOpen)
             open_closeMenu();
 
@@ -474,6 +474,7 @@ public class MainActivity extends AppCompatActivity {
         titleTxt.setText(Title);
         ArrayList<ListItem> arrayList = getListFromPath(path,data.getRootList());
         data.setCurrentList(arrayList);
+        updateFilterList(arrayList);
         adapter = new ListAdapter(arrayList, this, path);
         list.setAdapter(adapter);
 
@@ -526,10 +527,16 @@ public class MainActivity extends AppCompatActivity {
             }
         }else newList = data.getCurrentList();
 
-        Log.d("test", newList.toString());
-
         adapter = new ListAdapter(newList, this, data.getPath());
         list.setAdapter(adapter);
+    }
+
+    private void updateFilterList(ArrayList<ListItem> items) {
+        filterList.clear();
+        for (ListItem item : items){
+            if (!item.isSpace() && item.getName() != null)
+                addToFilterList(item.getName());
+        }
     }
 
     public void addToFilterList(String name) {

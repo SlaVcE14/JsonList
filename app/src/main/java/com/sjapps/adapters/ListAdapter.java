@@ -129,9 +129,6 @@ public class ListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             return;
         }
 
-        if (item.getName() != null)
-            activity.addToFilterList(item.getName()); // TODO make it more optimize later, I'm too lazy now
-
         int position = pos;
 
         if (item.isArray() || item.isObject()) {
