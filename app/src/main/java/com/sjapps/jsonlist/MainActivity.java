@@ -54,6 +54,7 @@ import com.sjapps.jsonlist.java.JsonData;
 import com.sjapps.jsonlist.java.JsonFunctions;
 import com.sjapps.jsonlist.java.ListItem;
 import com.sjapps.library.customdialog.BasicDialog;
+import com.sjapps.library.customdialog.ListDialog;
 import com.sjapps.logs.CustomExceptionHandler;
 import com.sjapps.logs.LogActivity;
 
@@ -65,7 +66,7 @@ import java.util.ArrayList;
 public class MainActivity extends AppCompatActivity {
 
     final String TAG = "MainActivity";
-    ImageButton backBtn, menuBtn, splitViewBtn;
+    ImageButton backBtn, menuBtn, splitViewBtn, filterBtn;
     ImageView fileImg;
     Button openFileBtn;
     TextView titleTxt, emptyListTxt, jsonTxt;
@@ -73,7 +74,7 @@ public class MainActivity extends AppCompatActivity {
     JsonData data = new JsonData();
     LinearLayout progressView, mainLL;
     LinearProgressIndicator progressBar;
-    boolean isMenuOpen, showJson, isRawJsonLoaded, isVertical = true;
+    boolean isMenuOpen, showJson, isRawJsonLoaded, isTopMenuVisible, isVertical = true;
     ListAdapter adapter;
     View menu, dim_bg, jsonView;
     ViewGroup viewGroup;
@@ -85,6 +86,10 @@ public class MainActivity extends AppCompatActivity {
     RelativeLayout rawJsonRL;
     AppState state;
     View fullRawBtn;
+    LinearLayout topMenu;
+    int listPrevDx = 0;
+
+    ArrayList<String> filterList = new ArrayList<>();
 
     @Override
     protected void onResume() {
@@ -139,6 +144,7 @@ public class MainActivity extends AppCompatActivity {
         });
         dim_bg.setOnClickListener(view -> open_closeMenu());
         splitViewBtn.setOnClickListener(view -> open_closeSplitView());
+        filterBtn.setOnClickListener(view -> filter());
         Intent intent = getIntent();
         Log.d(TAG, "onCreate: " + intent);
         if (Intent.ACTION_VIEW.equals(intent.getAction())) {
@@ -326,6 +332,7 @@ public class MainActivity extends AppCompatActivity {
         menuBtn = findViewById(R.id.menuBtn);
         mainLL = findViewById(R.id.mainLL);
         splitViewBtn = findViewById(R.id.splitViewBtn);
+        filterBtn = findViewById(R.id.filterBtn);
         titleTxt = findViewById(R.id.titleTxt);
         jsonTxt = findViewById(R.id.jsonTxt);
         emptyListTxt = findViewById(R.id.emptyListTxt);
@@ -344,9 +351,54 @@ public class MainActivity extends AppCompatActivity {
         rawJsonRL = findViewById(R.id.rawJsonRL);
         menuBtn.bringToFront();
         dropTarget = findViewById(R.id.dropTarget);
-        list.setLayoutManager(new LinearLayoutManager(this));
-
         fullRawBtn = findViewById(R.id.fullRawBtn);
+        topMenu = findViewById(R.id.topMenu);
+
+        LinearLayoutManager layoutManager = new LinearLayoutManager(this){
+            @Override
+            public int scrollVerticallyBy(int dx, RecyclerView.Recycler recycler, RecyclerView.State state) {
+                int scrollRange = super.scrollVerticallyBy(dx, recycler, state);
+                int overScroll = dx - scrollRange;
+
+                if ((dx < -40 || overScroll < -10) && !isTopMenuVisible && Math.abs(listPrevDx - dx) < 100) {
+                    showTopMenu();
+                    listPrevDx = dx;
+                    return scrollRange;
+                }
+
+                if (dx > 40 && isTopMenuVisible && Math.abs(listPrevDx - dx) < 100){
+                    listPrevDx = dx;
+                    hideTopMenu();
+                }
+                listPrevDx = dx;
+                return scrollRange;
+            }
+        };
+
+        list.setLayoutManager(layoutManager);
+
+    }
+    private void showTopMenu() {
+        topMenu.animate().cancel();
+
+        isTopMenuVisible = true;
+        topMenu.setVisibility(View.VISIBLE);
+        topMenu.animate()
+                .translationY(0)
+                .setDuration(200)
+                .start();
+
+    }
+
+    private void hideTopMenu() {
+        topMenu.animate().cancel();
+      
+        isTopMenuVisible = false;
+        topMenu.animate()
+                .translationY(-topMenu.getHeight())
+                .setDuration(100)
+                .withEndAction(()-> topMenu.setVisibility(View.GONE))
+                .start();
     }
 
     private void open_closeMenu() {
@@ -418,6 +470,8 @@ public class MainActivity extends AppCompatActivity {
             if (!data.isRootListNull()) {
                 handler.post(() -> {
                     TransitionManager.beginDelayedTransition(viewGroup, autoTransition);
+                    data.setCurrentList(data.getRootList());
+                    updateFilterList(data.getRootList());
                     adapter = new ListAdapter(data.getRootList(), MainActivity.this, "");
                     list.setAdapter(adapter);
                     fileImg.clearAnimation();
@@ -438,6 +492,7 @@ public class MainActivity extends AppCompatActivity {
                 fileNotLoadedException();
                 return;
             }
+
             isRawJsonLoaded = false;
             if (showJson)
                 handler.post(this::ShowJSON);
@@ -460,6 +515,8 @@ public class MainActivity extends AppCompatActivity {
         data.setPath(path);
         titleTxt.setText(Title);
         ArrayList<ListItem> arrayList = getListFromPath(path,data.getRootList());
+        data.setCurrentList(arrayList);
+        updateFilterList(arrayList);
         adapter = new ListAdapter(arrayList, this, path);
         list.setAdapter(adapter);
 
@@ -482,6 +539,51 @@ public class MainActivity extends AppCompatActivity {
             backBtn.setVisibility(View.VISIBLE);
         }
 
+    }
+
+    private void filter(){
+        ListDialog dialog = new ListDialog();
+        dialog.Builder(this,true)
+                .setTitle("Filter...")
+                .dialogWithTwoButtons()
+                .setSelectableList()
+                .setItems(filterList,val -> val)
+                .onButtonClick(() -> {
+                    setFilter(dialog.getSelectedItems());
+                    dialog.dismiss();
+                })
+                .show();
+    }
+
+    public void setFilter(ArrayList<String> items) {
+        ArrayList<ListItem> newList = new ArrayList<>();
+
+        if (!items.isEmpty()){
+            int pos = -1;
+            for (ListItem item : data.getCurrentList()){
+                pos++;
+                if (item.isSpace() || item.getName() == null || items.contains(item.getName())){
+                    item.setPosition(pos);
+                    newList.add(item);
+                }
+            }
+        }else newList = data.getCurrentList();
+
+        adapter = new ListAdapter(newList, this, data.getPath());
+        list.setAdapter(adapter);
+    }
+
+    private void updateFilterList(ArrayList<ListItem> items) {
+        filterList.clear();
+        for (ListItem item : items){
+            if (!item.isSpace() && item.getName() != null)
+                addToFilterList(item.getName());
+        }
+    }
+
+    public void addToFilterList(String name) {
+        if (!filterList.contains(name))
+            filterList.add(name);
     }
 
     private void open_closeSplitView(){
