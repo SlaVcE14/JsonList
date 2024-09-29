@@ -492,7 +492,6 @@ public class MainActivity extends AppCompatActivity {
                 fileNotLoadedException();
                 return;
             }
-            data.setRootAsCurrentList();
 
             isRawJsonLoaded = false;
             if (showJson)

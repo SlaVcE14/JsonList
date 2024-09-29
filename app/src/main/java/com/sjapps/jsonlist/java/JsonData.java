@@ -36,9 +36,6 @@ public class JsonData {
         this.currentList = currentList;
     }
 
-    public void setRootAsCurrentList() {
-        currentList.addAll(rootList);
-    }
 
     public void setRawData(String data) {
         this.rawData = data;
