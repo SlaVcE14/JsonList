@@ -10,6 +10,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.ClipData;
 import android.content.Intent;
@@ -25,6 +26,7 @@ import android.util.Log;
 import android.util.TypedValue;
 import android.view.DragAndDropPermissions;
 import android.view.DragEvent;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AccelerateDecelerateInterpolator;
@@ -72,7 +74,7 @@ public class MainActivity extends AppCompatActivity {
     JsonData data = new JsonData();
     LinearLayout progressView, mainLL;
     LinearProgressIndicator progressBar;
-    boolean isMenuOpen, showJson, isRawJsonLoaded, isVertical = true;
+    boolean isMenuOpen, showJson, isRawJsonLoaded, isTopMenuVisible, isVertical = true;
     ListAdapter adapter;
     View menu, dim_bg, jsonView;
     ViewGroup viewGroup;
@@ -320,25 +322,46 @@ public class MainActivity extends AppCompatActivity {
         LinearLayoutManager layoutManager = new LinearLayoutManager(this){
             @Override
             public int scrollVerticallyBy(int dx, RecyclerView.Recycler recycler, RecyclerView.State state) {
-
                 int scrollRange = super.scrollVerticallyBy(dx, recycler, state);
                 int overScroll = dx - scrollRange;
-                if (overScroll < 0 && topMenu.getVisibility() == View.GONE) {
-                    TransitionManager.endTransitions(viewGroup);
-                    TransitionManager.beginDelayedTransition(viewGroup, autoTransition);
-                    topMenu.setVisibility(View.VISIBLE);
+
+                if ((dx < -40 || overScroll < -10) && !isTopMenuVisible) {
+                    showTopMenu();
                     return scrollRange;
                 }
-                if (scrollRange > 0 && topMenu.getVisibility() == View.VISIBLE){
-                    TransitionManager.endTransitions(viewGroup);
-                    TransitionManager.beginDelayedTransition(viewGroup, autoTransition);
-                    topMenu.setVisibility(View.GONE);
+
+                if (dx > 40 && isTopMenuVisible){
+                    hideTopMenu();
                 }
                 return scrollRange;
             }
         };
 
         list.setLayoutManager(layoutManager);
+
+    }
+    private void showTopMenu() {
+        topMenu.animate().cancel();
+
+        isTopMenuVisible = true;
+        topMenu.setVisibility(View.VISIBLE);
+        topMenu.animate()
+                .translationY(0)
+                .setDuration(200)
+                .start();
+
+    }
+
+    private void hideTopMenu() {
+
+        topMenu.animate().cancel();
+        isTopMenuVisible = false;
+        topMenu.animate()
+                .translationY(-topMenu.getHeight())
+                .setDuration(100)
+                .withEndAction(()-> topMenu.setVisibility(View.GONE))
+                .start();
+
     }
 
     private void open_closeMenu() {
