@@ -1,6 +1,8 @@
 package com.sjapps.jsonlist;
 
 import android.content.Context;
+import android.content.res.Resources;
+import android.util.TypedValue;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
@@ -36,6 +38,11 @@ public class functions {
         if (interpolator != null)
             animation.setInterpolator(interpolator);
         view.startAnimation(animation);
+    }
+
+    public static int dpToPixels(@NonNull Context context, float dp) {
+        Resources r = context.getResources();
+        return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, r.getDisplayMetrics());
     }
 
 }
