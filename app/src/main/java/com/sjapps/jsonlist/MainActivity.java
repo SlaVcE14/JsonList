@@ -10,7 +10,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.ClipData;
 import android.content.Intent;
@@ -26,7 +25,6 @@ import android.util.Log;
 import android.util.TypedValue;
 import android.view.DragAndDropPermissions;
 import android.view.DragEvent;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AccelerateDecelerateInterpolator;
@@ -83,6 +81,7 @@ public class MainActivity extends AppCompatActivity {
     Thread readFileThread;
     RelativeLayout dropTarget;
     LinearLayout topMenu;
+    int listPrevDx = 0;
 
     ArrayList<String> filterList = new ArrayList<>();
 
@@ -325,14 +324,17 @@ public class MainActivity extends AppCompatActivity {
                 int scrollRange = super.scrollVerticallyBy(dx, recycler, state);
                 int overScroll = dx - scrollRange;
 
-                if ((dx < -40 || overScroll < -10) && !isTopMenuVisible) {
+                if ((dx < -40 || overScroll < -10) && !isTopMenuVisible && Math.abs(listPrevDx - dx) < 100) {
                     showTopMenu();
+                    listPrevDx = dx;
                     return scrollRange;
                 }
 
-                if (dx > 40 && isTopMenuVisible){
+                if (dx > 40 && isTopMenuVisible && Math.abs(listPrevDx - dx) < 100){
+                    listPrevDx = dx;
                     hideTopMenu();
                 }
+                listPrevDx = dx;
                 return scrollRange;
             }
         };
