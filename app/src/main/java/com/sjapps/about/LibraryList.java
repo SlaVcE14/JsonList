@@ -9,7 +9,7 @@ public class LibraryList extends ListGenerator{
         addItem("SJ Dialog", BuildConfig.VERSION_NAME, "https://github.com/SlaVcE14/SJ-Dialog");
         addItem("gson", GsonBuildConfig.VERSION, "https://github.com/google/gson");
         addItem("core-splashscreen","1.0.1","https://developer.android.com/develop/ui/views/launch/splash-screen");
-        addItem("material-components","1.12.0-alpha03","https://github.com/material-components/material-components-android");
+        addItem("material-components","1.12.0","https://github.com/material-components/material-components-android");
     }
 }
 
