@@ -562,7 +562,7 @@ public class MainActivity extends AppCompatActivity {
             int pos = -1;
             for (ListItem item : data.getCurrentList()){
                 pos++;
-                if (item.isSpace() || item.getName() == null || items.contains(item.getName())){
+                if (item.isSpace() || items.contains(item.getName())){
                     item.setPosition(pos);
                     newList.add(item);
                 }
