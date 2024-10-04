@@ -45,4 +45,12 @@ public class functions {
         return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, r.getDisplayMetrics());
     }
 
+    public static int setColor(Context context, int resid){
+        TypedValue typedValue = new TypedValue();
+        Resources.Theme theme = context.getTheme();
+        theme.resolveAttribute(resid, typedValue, true);
+        return typedValue.data;
+
+    }
+
 }

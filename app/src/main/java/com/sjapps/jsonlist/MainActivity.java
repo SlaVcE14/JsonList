@@ -20,6 +20,9 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.text.Spannable;
+import android.text.SpannableStringBuilder;
+import android.text.style.ForegroundColorSpan;
 import android.transition.AutoTransition;
 import android.transition.TransitionManager;
 import android.util.Log;
@@ -61,7 +64,8 @@ import com.sjapps.logs.LogActivity;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -76,7 +80,7 @@ public class MainActivity extends AppCompatActivity {
     LinearProgressIndicator progressBar;
     boolean isMenuOpen, showJson, isRawJsonLoaded, isTopMenuVisible, isVertical = true;
     ListAdapter adapter;
-    View menu, dim_bg, jsonView;
+    View menu, dim_bg;
     ViewGroup viewGroup;
     AutoTransition autoTransition = new AutoTransition();
     Handler handler = new Handler();
@@ -347,7 +351,6 @@ public class MainActivity extends AppCompatActivity {
         fileImg = findViewById(R.id.fileImg);
         dim_bg.bringToFront();
         menu.bringToFront();
-        jsonView = findViewById(R.id.rawJsonView);
         rawJsonRL = findViewById(R.id.rawJsonRL);
         menuBtn.bringToFront();
         dropTarget = findViewById(R.id.dropTarget);
@@ -663,7 +666,8 @@ public class MainActivity extends AppCompatActivity {
         Thread thread = new Thread(() -> {
             String dataStr = JsonFunctions.getAsPrettyPrint(data.getRawData());
             handler.post(()-> {
-                jsonTxt.setText(dataStr);
+                SpannableStringBuilder builder = highlightJsonSyntax(dataStr);
+                jsonTxt.setText(builder);
                 loadingFinished(true);
                 isRawJsonLoaded = true;
             });
@@ -671,6 +675,40 @@ public class MainActivity extends AppCompatActivity {
         thread.setName("loadingJson");
         thread.start();
 
+    }
+
+    private SpannableStringBuilder highlightJsonSyntax(String json) {
+
+        SpannableStringBuilder spannable = new SpannableStringBuilder(json);
+
+        int keyColor = functions.setColor(this,R.attr.colorPrimary);
+        int numberColor = functions.setColor(this,R.attr.colorTertiary);
+        int booleanAndNullColor = functions.setColor(this,R.attr.colorError);
+
+        Pattern keyPattern = Pattern.compile("(\"\\w+\")\\s*:");
+        Pattern numberPattern = Pattern.compile(":\\s(-?\\d+(\\.\\d+)?([eE][+-]?\\d+)?)");
+        Pattern booleanAndNullPattern = Pattern.compile(":\\s*(true|false|null)");
+
+        Pattern[] patterns = {keyPattern, numberPattern, booleanAndNullPattern};
+        int[] colors = {keyColor, numberColor, booleanAndNullColor};
+
+        for (int i = 0; i < patterns.length; i++) {
+            applyPatternHighlighting(spannable, json, patterns[i], colors[i]);
+        }
+
+        return spannable;
+    }
+
+    private void applyPatternHighlighting(SpannableStringBuilder spannable, String json, Pattern pattern, int color) {
+        Matcher matcher = pattern.matcher(json);
+        while (matcher.find()) {
+            spannable.setSpan(
+                    new ForegroundColorSpan(color),
+                    matcher.start(1),
+                    matcher.end(1),
+                    Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+            );
+        }
     }
 
     private void ImportFromFile() {
