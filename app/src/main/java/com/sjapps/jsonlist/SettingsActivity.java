@@ -17,6 +17,7 @@ public class SettingsActivity extends AppCompatActivity {
 
     MaterialSwitch CheckForUpdateSw;
     MaterialSwitch disableMIMEFilterSw;
+    MaterialSwitch syntaxHighlightingSw;
     Spinner ThemeSpinner;
     ArrayAdapter<CharSequence> Themes;
     AppState state;
@@ -63,6 +64,7 @@ public class SettingsActivity extends AppCompatActivity {
 
         CheckForUpdateSw.setChecked(state.isAutoCheckForUpdate());
         disableMIMEFilterSw.setChecked(state.isMIMEFilterDisabled());
+        syntaxHighlightingSw.setChecked(state.isSyntaxHighlighting());
 
         CheckForUpdateSw.setOnCheckedChangeListener((buttonView, isChecked) -> {
             state.setAutoCheckForUpdate(isChecked);
@@ -71,6 +73,11 @@ public class SettingsActivity extends AppCompatActivity {
 
         disableMIMEFilterSw.setOnCheckedChangeListener((buttonView, isChecked) -> {
             state.setMIMEFilterDisabled(isChecked);
+            SaveData();
+        });
+
+        syntaxHighlightingSw.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            state.setSyntaxHighlighting(isChecked);
             SaveData();
         });
 
@@ -87,6 +94,7 @@ public class SettingsActivity extends AppCompatActivity {
     private void initialize() {
         CheckForUpdateSw = findViewById(R.id.CheckForUpdateSwitch);
         disableMIMEFilterSw = findViewById(R.id.MIMESwitch);
+        syntaxHighlightingSw = findViewById(R.id.sHighlightingSwitch);
         ThemeSpinner = findViewById(R.id.theme_spinner);
         Themes = ArrayAdapter.createFromResource(this, R.array.Themes, android.R.layout.simple_spinner_item);
         Themes.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);

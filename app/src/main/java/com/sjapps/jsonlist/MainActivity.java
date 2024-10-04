@@ -230,7 +230,15 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void LoadStateData() {
+        boolean prevSH = state != null && state.isSyntaxHighlighting();
+
         state = FileSystem.loadStateData(this);
+
+        if (isRawJsonLoaded && prevSH != state.isSyntaxHighlighting()) {
+            isRawJsonLoaded = false;
+            if (showJson)
+                ShowJSON();
+        }
     }
 
     @Override
@@ -666,8 +674,10 @@ public class MainActivity extends AppCompatActivity {
         Thread thread = new Thread(() -> {
             String dataStr = JsonFunctions.getAsPrettyPrint(data.getRawData());
             handler.post(()-> {
-                SpannableStringBuilder builder = highlightJsonSyntax(dataStr);
-                jsonTxt.setText(builder);
+                if (state.isSyntaxHighlighting()) {
+                    SpannableStringBuilder builder = highlightJsonSyntax(dataStr);
+                    jsonTxt.setText(builder);
+                }else jsonTxt.setText(dataStr);
                 loadingFinished(true);
                 isRawJsonLoaded = true;
             });

@@ -4,6 +4,7 @@ public class AppState {
     boolean hasNewCrash;
     boolean hasCrashLogs;
     boolean MIMEFilterDisabled;
+    boolean syntaxHighlighting = true;
     boolean autoCheckForUpdate;
     private int theme;
 
@@ -31,6 +32,14 @@ public class AppState {
         this.MIMEFilterDisabled = MIMEFilterDisabled;
     }
 
+    public boolean isSyntaxHighlighting() {
+        return syntaxHighlighting;
+    }
+
+    public void setSyntaxHighlighting(boolean syntaxHighlighting) {
+        this.syntaxHighlighting = syntaxHighlighting;
+    }
+
     public boolean isAutoCheckForUpdate() {
         return autoCheckForUpdate;
     }
@@ -53,6 +62,7 @@ public class AppState {
                 "hasNewCrash=" + hasNewCrash +
                 ", hasCrashLogs=" + hasCrashLogs +
                 ", MIMEFilterDisabled=" + MIMEFilterDisabled +
+                ", syntaxHighlighting=" + syntaxHighlighting +
                 ", autoCheckForUpdate=" + autoCheckForUpdate +
                 ", theme=" + theme +
                 '}';
