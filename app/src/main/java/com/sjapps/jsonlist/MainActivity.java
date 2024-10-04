@@ -20,6 +20,9 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.text.Spannable;
+import android.text.SpannableStringBuilder;
+import android.text.style.ForegroundColorSpan;
 import android.transition.AutoTransition;
 import android.transition.TransitionManager;
 import android.util.Log;
@@ -61,7 +64,8 @@ import com.sjapps.logs.LogActivity;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -76,7 +80,7 @@ public class MainActivity extends AppCompatActivity {
     LinearProgressIndicator progressBar;
     boolean isMenuOpen, showJson, isRawJsonLoaded, isTopMenuVisible, isVertical = true;
     ListAdapter adapter;
-    View menu, dim_bg, jsonView;
+    View menu, dim_bg;
     ViewGroup viewGroup;
     AutoTransition autoTransition = new AutoTransition();
     Handler handler = new Handler();
@@ -170,30 +174,30 @@ public class MainActivity extends AppCompatActivity {
                     dropTarget.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK);
                     if(event.getClipDescription().getMimeTypeCount() > 1){
                         dropTargetTxt.setText(R.string.only_one_file_is_allowed);
-                        dropTargetBackground.getBackground().mutate().setTint(setColor(R.attr.colorError));
+                        dropTargetBackground.getBackground().mutate().setTint(functions.setColor(this, R.attr.colorError));
                         dropTargetBackground.setAlpha(.8f);
                         return false;
                     }
                     if (!event.getClipDescription().hasMimeType(MIMEType)) {
                         dropTargetTxt.setText(R.string.this_is_not_json_file);
-                        dropTargetBackground.getBackground().mutate().setTint(setColor(R.attr.colorError));
+                        dropTargetBackground.getBackground().mutate().setTint(functions.setColor(this, R.attr.colorError));
                         dropTargetBackground.setAlpha(.8f);
                         return false;
                     }
 
-                    dropTargetBackground.getBackground().mutate().setTint(setColor(R.attr.colorPrimary));
+                    dropTargetBackground.getBackground().mutate().setTint(functions.setColor(this, R.attr.colorPrimary));
                     dropTargetBackground.setAlpha(.8f);
                     return true;
 
                 case DragEvent.ACTION_DRAG_EXITED:
                     dropTargetTxt.setText(R.string.drop_json_file_here);
-                    dropTargetBackground.getBackground().mutate().setTint(setColor(R.attr.colorOnBackground));
+                    dropTargetBackground.getBackground().mutate().setTint(functions.setColor(this, R.attr.colorOnBackground));
                     dropTargetBackground.setAlpha(.5f);
                     return true;
 
                 case DragEvent.ACTION_DRAG_ENDED:
                     dropTargetTxt.setText(R.string.drop_json_file_here);
-                    dropTargetBackground.getBackground().mutate().setTint(setColor(R.attr.colorOnBackground));
+                    dropTargetBackground.getBackground().mutate().setTint(functions.setColor(this, R.attr.colorOnBackground));
                     dropTarget.setAlpha(0);
                     return true;
 
@@ -226,7 +230,15 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void LoadStateData() {
+        boolean prevSH = state != null && state.isSyntaxHighlighting();
+
         state = FileSystem.loadStateData(this);
+
+        if (isRawJsonLoaded && prevSH != state.isSyntaxHighlighting()) {
+            isRawJsonLoaded = false;
+            if (showJson)
+                ShowJSON();
+        }
     }
 
     @Override
@@ -347,7 +359,6 @@ public class MainActivity extends AppCompatActivity {
         fileImg = findViewById(R.id.fileImg);
         dim_bg.bringToFront();
         menu.bringToFront();
-        jsonView = findViewById(R.id.rawJsonView);
         rawJsonRL = findViewById(R.id.rawJsonRL);
         menuBtn.bringToFront();
         dropTarget = findViewById(R.id.dropTarget);
@@ -663,7 +674,10 @@ public class MainActivity extends AppCompatActivity {
         Thread thread = new Thread(() -> {
             String dataStr = JsonFunctions.getAsPrettyPrint(data.getRawData());
             handler.post(()-> {
-                jsonTxt.setText(dataStr);
+                if (state.isSyntaxHighlighting()) {
+                    SpannableStringBuilder builder = highlightJsonSyntax(dataStr);
+                    jsonTxt.setText(builder);
+                }else jsonTxt.setText(dataStr);
                 loadingFinished(true);
                 isRawJsonLoaded = true;
             });
@@ -671,6 +685,40 @@ public class MainActivity extends AppCompatActivity {
         thread.setName("loadingJson");
         thread.start();
 
+    }
+
+    private SpannableStringBuilder highlightJsonSyntax(String json) {
+
+        SpannableStringBuilder spannable = new SpannableStringBuilder(json);
+
+        int keyColor = functions.setColor(this,R.attr.colorPrimary);
+        int numberColor = functions.setColor(this,R.attr.colorTertiary);
+        int booleanAndNullColor = functions.setColor(this,R.attr.colorError);
+
+        Pattern keyPattern = Pattern.compile("(\"\\w+\")\\s*:");
+        Pattern numberPattern = Pattern.compile(":\\s(-?\\d+(\\.\\d+)?([eE][+-]?\\d+)?)");
+        Pattern booleanAndNullPattern = Pattern.compile(":\\s*(true|false|null)");
+
+        Pattern[] patterns = {keyPattern, numberPattern, booleanAndNullPattern};
+        int[] colors = {keyColor, numberColor, booleanAndNullColor};
+
+        for (int i = 0; i < patterns.length; i++) {
+            applyPatternHighlighting(spannable, json, patterns[i], colors[i]);
+        }
+
+        return spannable;
+    }
+
+    private void applyPatternHighlighting(SpannableStringBuilder spannable, String json, Pattern pattern, int color) {
+        Matcher matcher = pattern.matcher(json);
+        while (matcher.find()) {
+            spannable.setSpan(
+                    new ForegroundColorSpan(color),
+                    matcher.start(1),
+                    matcher.end(1),
+                    Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+            );
+        }
     }
 
     private void ImportFromFile() {
@@ -780,13 +828,6 @@ public class MainActivity extends AppCompatActivity {
             functions.setAnimation(this, progressView,R.anim.scale_out);
             progressView.setVisibility(View.INVISIBLE);
         },1000);
-    }
-
-
-    int setColor(int resid){
-        TypedValue typedValue = new TypedValue();
-        getTheme().resolveAttribute(resid, typedValue, true);
-        return typedValue.data;
     }
 
     void fileTooLargeException(){
