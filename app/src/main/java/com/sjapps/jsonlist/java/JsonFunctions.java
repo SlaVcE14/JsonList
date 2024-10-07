@@ -172,7 +172,7 @@ public class JsonFunctions {
 
     public static String getAsPrettyPrint(String data){
         JsonElement json = JsonParser.parseString(data);
-        Gson gson = new Gson().newBuilder().setPrettyPrinting().create();
+        Gson gson = new Gson().newBuilder().setPrettyPrinting().serializeNulls().create();
         return gson.toJson(json);
     }
 }
