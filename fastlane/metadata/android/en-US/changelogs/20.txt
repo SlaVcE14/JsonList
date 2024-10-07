@@ -1,0 +1,15 @@
+Bugfix
+- fix raw JSON view not displaying correct data
+- Fix null fields not showing in raw JSON view
+
+New features
+- Add Settings page
+- Expand JSON Raw View
+- Added Filter
+- Added Syntax Highlighter for raw JSON
+
+Updates
+- Update UI
+  - update drag and drop UI
+- Update about page
+  - Add Feedback button
