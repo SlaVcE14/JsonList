@@ -59,6 +59,7 @@
                 android:background="@drawable/ripple_list2"
                 android:layout_marginBottom="10dp"
                 android:enabled="false"
+                android:visibility="gone"
                 />
 
             <LinearLayout
@@ -109,7 +110,7 @@
                         android:paddingHorizontal="10dp"
                         android:background="@drawable/ripple_red"
                         android:textColor="?colorOnError"
-                        android:layout_marginTop="0dp"
+                        android:layout_marginTop="2dp"
                         android:textSize="12dp"
                         />
                     <com.google.android.material.materialswitch.MaterialSwitch
