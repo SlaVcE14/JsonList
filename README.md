@@ -15,7 +15,7 @@ Or download the latest APK from the [Releases Section](https://github.com/SlaVcE
 
 Use the convenient split view feature that allows simultaneous display of the raw JSON string alongside the list representation.
 
-![JsonList split view](images/jsonlist_splitview.jpg)
+<img src="images/jsonlist_splitview.jpg" width="450">
 
 ![JsonList split view landscape](images/jsonlist_splitview_landscape.jpg)
 
