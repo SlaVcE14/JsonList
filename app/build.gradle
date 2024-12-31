@@ -13,6 +13,11 @@ android {
         versionName "1.5"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        vectorDrawables.generatedDensities = []
+    }
+
+    aaptOptions {
+        cruncherEnabled = false
     }
 
     buildTypes {
