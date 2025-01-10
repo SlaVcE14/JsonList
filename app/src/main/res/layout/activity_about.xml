@@ -16,7 +16,7 @@
         android:background="@drawable/ripple"
         android:onClick="Back"
         android:src="@drawable/ic_back"
-        android:text="Back" />
+        android:text="@string/back" />
 
     <TextView
         android:id="@+id/TitleText"
@@ -26,7 +26,7 @@
         android:layout_marginStart="20dp"
         android:layout_marginTop="20dp"
         android:layout_toEndOf="@+id/BackBtn"
-        android:text="About"
+        android:text="@string/about"
         android:textColor="?colorOnBackground"
         android:textSize="30sp" />
     <androidx.core.widget.NestedScrollView
@@ -72,7 +72,7 @@
                     android:layout_marginTop="20dp"
 
                     android:layout_marginBottom="5dp"
-                    android:text="Open source libraries"
+                    android:text="@string/open_source_libraries"
                     android:textSize="25sp" />
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/LibrariesList"
@@ -94,7 +94,7 @@
                 android:layout_centerHorizontal="true"
                 android:layout_marginTop="20dp"
                 android:onClick="CheckForUpdate"
-                android:text="Check for update"
+                android:text="@string/check_for_update"
                 />
 
             <Button
@@ -105,7 +105,7 @@
                 android:layout_centerHorizontal="true"
                 android:layout_marginVertical="10dp"
                 android:onClick="SendFeedback"
-                android:text="Send Feedback"
+                android:text="@string/send_feedback"
                 android:background="@drawable/ripple"
                 android:textColor="?colorOnBackground"
                 />

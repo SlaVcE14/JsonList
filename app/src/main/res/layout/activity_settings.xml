@@ -16,7 +16,7 @@
         android:background="@drawable/ripple"
         android:onClick="goBack"
         android:src="@drawable/ic_back"
-        android:text="Back" />
+        android:text="@string/back" />
 
     <TextView
         android:id="@+id/TitleText"
@@ -26,7 +26,7 @@
         android:layout_marginStart="20dp"
         android:layout_marginTop="20dp"
         android:layout_toEndOf="@+id/BackBtn"
-        android:text="Settings"
+        android:text="@string/settings"
         android:textColor="?colorOnBackground"
         android:textSize="30sp" />
 
@@ -105,7 +105,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Beta"
+                        android:text="@string/beta"
                         android:layout_marginStart="20dp"
                         android:paddingHorizontal="10dp"
                         android:background="@drawable/ripple_red"

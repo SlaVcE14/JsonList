@@ -27,7 +27,7 @@
 
             android:paddingHorizontal="20dp"
             android:background="@drawable/ripple_list2"
-            android:text="Open file"/>
+            android:text="@string/open_file"/>
         <TextView
             android:id="@+id/settingsBtn"
             android:layout_width="match_parent"
@@ -38,7 +38,7 @@
 
             android:paddingHorizontal="20dp"
             android:background="@drawable/ripple_list2"
-            android:text="Settings"/>
+            android:text="@string/settings"/>
         <TextView
             android:id="@+id/aboutBtn"
             android:layout_width="match_parent"
@@ -49,7 +49,7 @@
 
             android:paddingHorizontal="20dp"
             android:background="@drawable/ripple_list2"
-            android:text="About"/>
+            android:text="@string/about"/>
         <TextView
             android:id="@+id/logBtn"
             android:layout_width="match_parent"
@@ -60,7 +60,7 @@
             android:textColor="?colorOnSurfaceVariant"
             android:paddingHorizontal="20dp"
             android:background="@drawable/ripple_list2"
-            android:text="Crash Logs"/>
+            android:text="@string/crash_logs"/>
     </LinearLayout>
 
 </RelativeLayout>

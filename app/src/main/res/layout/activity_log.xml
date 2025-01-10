@@ -22,7 +22,7 @@
             android:background="@drawable/ripple"
             android:onClick="Back"
             android:src="@drawable/ic_back"
-            android:text="Back" />
+            android:text="@string/back" />
 
         <TextView
             android:id="@+id/TitleText"
@@ -32,7 +32,7 @@
             android:layout_marginStart="10dp"
             android:layout_marginTop="10dp"
             android:layout_toEndOf="@+id/BackBtn"
-            android:text="Crash logs"
+            android:text="@string/crash_logs"
             android:textSize="30dp"
             android:textStyle="bold" />
 
