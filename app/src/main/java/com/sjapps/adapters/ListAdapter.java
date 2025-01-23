@@ -155,7 +155,7 @@ public class ListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                 ClipboardManager clipboard = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
                 ClipData clipData = ClipData.newPlainText("Text",item.getName());
                 clipboard.setPrimaryClip(clipData);
-                Toast.makeText(v.getContext(),"Copied to clipboard",Toast.LENGTH_SHORT).show();
+                Toast.makeText(v.getContext(), R.string.copied_to_clipboard,Toast.LENGTH_SHORT).show();
                 selectedItem = -1;
                 notifyItemChanged(position);
             });

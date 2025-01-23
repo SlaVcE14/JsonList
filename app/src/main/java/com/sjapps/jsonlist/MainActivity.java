@@ -208,7 +208,7 @@ public class MainActivity extends AppCompatActivity {
                     if (!event.getClipDescription().hasMimeType(MIMEType))
                         return false;
                     if (readFileThread != null && readFileThread.isAlive()) {
-                        Snackbar.make(getWindow().getDecorView(),"Loading file in progress, try again later", BaseTransientBottomBar.LENGTH_SHORT).show();
+                        Snackbar.make(getWindow().getDecorView(), R.string.loading_file_in_progress, BaseTransientBottomBar.LENGTH_SHORT).show();
                         return false;
                     }
 
@@ -319,8 +319,9 @@ public class MainActivity extends AppCompatActivity {
             if (data.isEmptyPath()){
                 BasicDialog dialog = new BasicDialog();
                 dialog.Builder(MainActivity.this, true)
-                        .setTitle("Exit?")
-                        .setRightButtonText("Yes")
+                        .setTitle(getString(R.string.exit))
+                        .setLeftButtonText(getString(R.string.no))
+                        .setRightButtonText(getString(R.string.yes))
                         .onButtonClick(() ->{
                                 dialog.dismiss();
                                 MainActivity.this.finish();
@@ -431,7 +432,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void LoadData(String Data) {
 
-        loadingStarted("loading json");
+        loadingStarted(getString(R.string.loading_json));
         emptyListTxt.setVisibility(View.GONE);
 
         readFileThread = new Thread(() -> {
@@ -455,7 +456,7 @@ public class MainActivity extends AppCompatActivity {
                 return;
             }
             readFileThread.setName("readFileThread");
-            handler.post(()-> loadingStarted("creating list"));
+            handler.post(()-> loadingStarted(getString(R.string.creating_list)));
             try {
                 data.setRootList(null);
                 if (element instanceof JsonObject) {
@@ -555,7 +556,7 @@ public class MainActivity extends AppCompatActivity {
     private void filter(){
         ListDialog dialog = new ListDialog();
         dialog.Builder(this,true)
-                .setTitle("Filter...")
+                .setTitle(getString(R.string.filter))
                 .dialogWithTwoButtons()
                 .setSelectableList()
                 .setItems(filterList,val -> val)
@@ -659,7 +660,7 @@ public class MainActivity extends AppCompatActivity {
     private void ShowJSON(){
 
         if (data.getRawData().equals("-1")) {
-            Snackbar.make(getWindow().getDecorView(),"File is to large to be shown in a split screen!", BaseTransientBottomBar.LENGTH_SHORT).show();
+            Snackbar.make(getWindow().getDecorView(), R.string.file_is_to_large_to_be_shown_in_a_split_screen, BaseTransientBottomBar.LENGTH_SHORT).show();
             if (progressView.getVisibility() == View.VISIBLE)
                 loadingFinished(true);
             if (showJson)
@@ -669,7 +670,7 @@ public class MainActivity extends AppCompatActivity {
         if (data.getRawData().equals(""))
             return;
 
-        loadingStarted("Displaying json...");
+        loadingStarted(getString(R.string.displaying_json));
 
         Thread thread = new Thread(() -> {
             String dataStr = JsonFunctions.getAsPrettyPrint(data.getRawData());
@@ -723,7 +724,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void ImportFromFile() {
         if (readFileThread != null && readFileThread.isAlive()) {
-            Snackbar.make(getWindow().getDecorView(),"Loading file in progress, try again later", BaseTransientBottomBar.LENGTH_SHORT).show();
+            Snackbar.make(getWindow().getDecorView(), R.string.loading_file_in_progress, BaseTransientBottomBar.LENGTH_SHORT).show();
             return;
         }
 
@@ -739,12 +740,12 @@ public class MainActivity extends AppCompatActivity {
             result -> {
                 if (result.getResultCode() != Activity.RESULT_OK) {
                     if(result.getResultCode() == Activity.RESULT_CANCELED){
-                        Toast.makeText(MainActivity.this,"Import data canceled",Toast.LENGTH_SHORT).show();
+                        Toast.makeText(MainActivity.this, R.string.import_data_canceled,Toast.LENGTH_SHORT).show();
                     }
                     return;
                 }
                 if (result.getData() == null || result.getData().getData() == null){
-                    Toast.makeText(MainActivity.this, "Fail to load data", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(MainActivity.this, R.string.fail_to_load_data, Toast.LENGTH_SHORT).show();
                     return;
                 }
                 //File
@@ -755,7 +756,7 @@ public class MainActivity extends AppCompatActivity {
         if (readFileThread != null && readFileThread.isAlive()){
             return;
         }
-        loadingStarted("Reading file");
+        loadingStarted(getString(R.string.reading_file));
 
         try {
             InputStream inputStream = getContentResolver().openInputStream(uri);
@@ -782,7 +783,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     void loadingStarted(){
-        loadingStarted("loading...");
+        loadingStarted(getString(R.string.loading));
 
     }
 
@@ -820,7 +821,7 @@ public class MainActivity extends AppCompatActivity {
         progressBar.setProgressCompat(100,true);
 
         TextView text =  progressView.findViewById(R.id.loadingTxt);
-        handler.postDelayed(() -> text.setText( "finished"),500);
+        handler.postDelayed(() -> text.setText( R.string.finished),500);
         handler.postDelayed(() -> {
         },700);
         handler.postDelayed(() -> text.setVisibility(View.INVISIBLE),900);
@@ -831,13 +832,13 @@ public class MainActivity extends AppCompatActivity {
     }
 
     void fileTooLargeException(){
-        postMessageException("File is too large");
+        postMessageException(getString(R.string.file_is_too_large));
     }
     void fileNotLoadedException(){
-        postMessageException("Fail to load file!");
+        postMessageException(getString(R.string.fail_to_load_file));
     }
     void creatingListException(){
-        postMessageException("Fail to create list!");
+        postMessageException(getString(R.string.fail_to_create_list));
     }
     void postMessageException(String msg){
         handler.post(() -> {

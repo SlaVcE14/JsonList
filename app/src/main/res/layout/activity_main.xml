@@ -139,7 +139,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_centerInParent="true"
-                android:text="List is empty"
+                android:text="@string/list_is_empty"
                 android:textSize="17dp"
                 android:visibility="gone"
                 />
@@ -162,7 +162,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_centerInParent="true"
-                android:text="Open file" />
+                android:text="@string/open_file" />
 
         </RelativeLayout>
         <RelativeLayout
@@ -249,7 +249,7 @@
                 android:id="@+id/loadingTxt"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="loading data from file"
+                android:text="@string/loading_data_from_file"
                 android:textAlignment="center"
                 android:textColor="#ffffff"
 

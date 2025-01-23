@@ -62,8 +62,8 @@ public class AboutActivity extends AppCompatActivity {
             String Name = (String) manager.getApplicationLabel(applicationInfo);
             String Version = manager.getPackageInfo(getPackageName(), 0).versionName;
 
-            appInfoItems.add(new AboutListItem("Name",Name));
-            appInfoItems.add(new AboutListItem("Version",Version));
+            appInfoItems.add(new AboutListItem(getString(R.string.name),Name));
+            appInfoItems.add(new AboutListItem(getString(R.string.version),Version));
             libsItems = new LibraryList().getItems(this);
             setupList(appInfoItems,ListRV);
             setupList(libsItems,LibListRV);
@@ -161,10 +161,10 @@ public class AboutActivity extends AppCompatActivity {
 
         BasicDialog dialog = new BasicDialog();
         dialog.Builder(this,true)
-                .setTitle("Include info?")
-                .setMessage("Do you want to include app and device info?")
-                .setLeftButtonText("No")
-                .setRightButtonText("Yes")
+                .setTitle(getString(R.string.include_info))
+                .setMessage(getString(R.string.include_info_description))
+                .setLeftButtonText(getString(R.string.no))
+                .setRightButtonText(getString(R.string.yes))
                 .setMessageAlignment(SJDialog.TEXT_ALIGNMENT_CENTER)
                 .onButtonClick(new DialogButtonEvents() {
                     @Override
