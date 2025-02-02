@@ -46,6 +46,7 @@
 
     <string name="open_from_url">Open from url</string>
     <string name="invalid_url">Invalid url</string>
+    <string name="enter_url">Enter url</string>
 
 
     <string-array name="Themes">

@@ -107,7 +107,7 @@
             android:paddingHorizontal="15dp"
             android:imeOptions="actionSearch"
             android:inputType="textUri"
-            android:hint="enter url"
+            android:hint="@string/enter_url"
             android:layout_weight="1"
             />
 
