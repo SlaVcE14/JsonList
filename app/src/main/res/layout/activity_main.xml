@@ -102,7 +102,7 @@
             android:id="@+id/urlSearch"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:background="@drawable/background"
+            android:background="@drawable/outline_background"
             android:paddingVertical="10dp"
             android:paddingHorizontal="15dp"
             android:imeOptions="actionSearch"
