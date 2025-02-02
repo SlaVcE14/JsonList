@@ -26,6 +26,7 @@ import android.text.SpannableStringBuilder;
 import android.text.style.ForegroundColorSpan;
 import android.transition.AutoTransition;
 import android.transition.TransitionManager;
+import android.transition.Visibility;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.DragAndDropPermissions;
@@ -140,7 +141,7 @@ public class MainActivity extends AppCompatActivity {
         menuBtn.setOnClickListener(view -> open_closeMenu());
 
         backBtn.setOnClickListener(view -> {
-            if(!data.isEmptyPath()) getOnBackPressedDispatcher().onBackPressed();
+            if(!data.isEmptyPath() || urlLL.getVisibility() == View.VISIBLE) getOnBackPressedDispatcher().onBackPressed();
         });
         openFileBtn.setOnClickListener(view -> ImportFromFile());
         openUrlBtn.setOnClickListener(view -> {
@@ -477,9 +478,13 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
+
         TransitionManager.beginDelayedTransition(viewGroup, autoTransition);
         mainLL.setVisibility(View.GONE);
         urlLL.setVisibility(View.VISIBLE);
+
+        if (backBtn.getVisibility() == View.GONE)
+            backBtn.setVisibility(View.VISIBLE);
 
         urlSearch.requestFocus();
         InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
@@ -495,6 +500,10 @@ public class MainActivity extends AppCompatActivity {
         InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
         if (imm.isActive())
             imm.hideSoftInputFromWindow(urlSearch.getWindowToken(), 0);
+
+        if (data.isEmptyPath()) {
+            backBtn.setVisibility(View.GONE);
+        }
 
     }
 
