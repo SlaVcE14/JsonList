@@ -92,7 +92,7 @@ public class MainActivity extends AppCompatActivity {
     JsonData data = new JsonData();
     LinearLayout progressView, mainLL;
     LinearProgressIndicator progressBar;
-    boolean isMenuOpen, showJson, isRawJsonLoaded, isTopMenuVisible, isVertical = true;
+    boolean isMenuOpen, showJson, isRawJsonLoaded, isTopMenuVisible, isUrlSearching, isVertical = true;
     ListAdapter adapter;
     View menu, dim_bg;
     ViewGroup viewGroup;
@@ -241,7 +241,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                     if (!event.getClipDescription().hasMimeType(MIMEType))
                         return false;
-                    if (readFileThread != null && readFileThread.isAlive()) {
+                    if ((readFileThread != null && readFileThread.isAlive()) || isUrlSearching) {
                         Snackbar.make(getWindow().getDecorView(), R.string.loading_file_in_progress, BaseTransientBottomBar.LENGTH_SHORT).show();
                         return false;
                     }
@@ -472,7 +472,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void showUrlSearchView() {
-        if (readFileThread != null && readFileThread.isAlive()) {
+        if ((readFileThread != null && readFileThread.isAlive()) || isUrlSearching) {
             Snackbar.make(getWindow().getDecorView(), R.string.loading_file_in_progress, BaseTransientBottomBar.LENGTH_SHORT).show();
             return;
         }
@@ -797,7 +797,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void ImportFromFile() {
-        if (readFileThread != null && readFileThread.isAlive()) {
+        if ((readFileThread != null && readFileThread.isAlive()) || isUrlSearching) {
             Snackbar.make(getWindow().getDecorView(), R.string.loading_file_in_progress, BaseTransientBottomBar.LENGTH_SHORT).show();
             return;
         }
@@ -827,7 +827,7 @@ public class MainActivity extends AppCompatActivity {
             });
 
     void ReadFile(Uri uri){
-        if (readFileThread != null && readFileThread.isAlive()){
+        if ((readFileThread != null && readFileThread.isAlive()) || isUrlSearching){
             return;
         }
         loadingStarted(getString(R.string.reading_file));
@@ -891,18 +891,21 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onFailure(@NonNull Call call, @NonNull IOException e) {
                 handler.post(()-> loadingFinished(false));
+                isUrlSearching = false;
                 handler.post(()-> Toast.makeText(MainActivity.this,"Fail",Toast.LENGTH_SHORT).show());
             }
 
             @Override
             public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
                 handler.post(()-> loadingFinished(false));
+                isUrlSearching = false;
                 if (response.body() != null)
                     LoadData(response.body().string());
                 else handler.post(()->Toast.makeText(MainActivity.this, "Fail, Code:" + response.code(), Toast.LENGTH_SHORT).show());
             }
         });
         loadingStarted();
+        isUrlSearching = true;
 
     }
 
