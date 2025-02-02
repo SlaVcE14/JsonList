@@ -890,16 +890,19 @@ public class MainActivity extends AppCompatActivity {
         client.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(@NonNull Call call, @NonNull IOException e) {
-                handler.post(()->Toast.makeText(MainActivity.this,"Fail",Toast.LENGTH_SHORT).show());
+                handler.post(()-> loadingFinished(false));
+                handler.post(()-> Toast.makeText(MainActivity.this,"Fail",Toast.LENGTH_SHORT).show());
             }
 
             @Override
             public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
+                handler.post(()-> loadingFinished(false));
                 if (response.body() != null)
                     LoadData(response.body().string());
                 else handler.post(()->Toast.makeText(MainActivity.this, "Fail, Code:" + response.code(), Toast.LENGTH_SHORT).show());
             }
         });
+        loadingStarted();
 
     }
 
