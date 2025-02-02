@@ -22,3 +22,6 @@ Use the convenient split view feature that allows simultaneous display of the ra
 Enjoy the flexibility of dynamic color support, adapting to your Material Design preferences.
 
 ![JsonList dynamic colors](images/jsonlist_material_colots.gif)
+
+## Stargazers over time
+[![Stargazers over time](https://starchart.cc/SlaVcE14/JsonList.svg?background=%23000101&axis=%23cccccc&line=%230060f4)](https://starchart.cc/SlaVcE14/JsonList)
