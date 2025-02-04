@@ -87,6 +87,43 @@
         android:layout_height="match_parent"
         android:background="#70000000"
         android:visibility="invisible" />
+
+    <LinearLayout
+        android:id="@+id/searchUrlView"
+        android:layout_width="match_parent"
+        android:orientation="horizontal"
+        android:weightSum="1"
+        android:layout_marginHorizontal="20dp"
+        android:layout_centerInParent="true"
+        android:translationY="-100dp"
+        android:visibility="gone"
+        android:layout_height="wrap_content">
+        <EditText
+            android:id="@+id/urlSearch"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:background="@drawable/outline_background"
+            android:paddingVertical="10dp"
+            android:paddingHorizontal="15dp"
+            android:imeOptions="actionSearch"
+            android:inputType="textUri"
+            android:hint="@string/enter_url"
+            android:layout_weight="1"
+            />
+
+        <ImageButton
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_gravity="center"
+            android:src="@drawable/ic_search"
+            android:background="@drawable/ripple_list2"
+            android:layout_marginStart="5dp"
+            android:onClick="SearchUrl"
+            />
+
+
+    </LinearLayout>
+
     <LinearLayout
         android:id="@+id/mainLL"
         android:layout_width="match_parent"
@@ -163,6 +200,17 @@
                 android:layout_height="wrap_content"
                 android:layout_centerInParent="true"
                 android:text="@string/open_file" />
+            <Button
+                android:id="@+id/openUrlBtn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:layout_marginTop="5dp"
+                android:layout_below="@+id/openFileBtn"
+                android:background="@drawable/ripple"
+                android:textColor="?colorOnBackground"
+                android:text="@string/open_from_url" />
+
 
         </RelativeLayout>
         <RelativeLayout

@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.app.Activity;
 import android.content.ClipData;
+import android.content.Context;
 import android.content.Intent;
 import android.content.res.AssetFileDescriptor;
 import android.content.res.Configuration;
@@ -25,17 +26,22 @@ import android.text.SpannableStringBuilder;
 import android.text.style.ForegroundColorSpan;
 import android.transition.AutoTransition;
 import android.transition.TransitionManager;
+import android.transition.Visibility;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.DragAndDropPermissions;
 import android.view.DragEvent;
 import android.view.HapticFeedbackConstants;
+import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AccelerateDecelerateInterpolator;
 import android.view.animation.DecelerateInterpolator;
 import android.view.animation.OvershootInterpolator;
+import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -67,18 +73,27 @@ import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
+
 public class MainActivity extends AppCompatActivity {
 
     final String TAG = "MainActivity";
     ImageButton backBtn, menuBtn, splitViewBtn, filterBtn;
     ImageView fileImg;
     Button openFileBtn;
+    Button openUrlBtn;
+    EditText urlSearch;
+    LinearLayout urlLL;
     TextView titleTxt, emptyListTxt, jsonTxt;
     RecyclerView list;
     JsonData data = new JsonData();
     LinearLayout progressView, mainLL;
     LinearProgressIndicator progressBar;
-    boolean isMenuOpen, showJson, isRawJsonLoaded, isTopMenuVisible, isVertical = true;
+    boolean isMenuOpen, showJson, isRawJsonLoaded, isTopMenuVisible, isUrlSearching, isVertical = true;
     ListAdapter adapter;
     View menu, dim_bg;
     ViewGroup viewGroup;
@@ -126,13 +141,33 @@ public class MainActivity extends AppCompatActivity {
         menuBtn.setOnClickListener(view -> open_closeMenu());
 
         backBtn.setOnClickListener(view -> {
-            if(!data.isEmptyPath()) getOnBackPressedDispatcher().onBackPressed();
+            if(!data.isEmptyPath() || urlLL.getVisibility() == View.VISIBLE) getOnBackPressedDispatcher().onBackPressed();
         });
         openFileBtn.setOnClickListener(view -> ImportFromFile());
+        openUrlBtn.setOnClickListener(view -> {
+            showUrlSearchView();
+        });
+
+        urlSearch.setOnEditorActionListener((v, actionId, event) -> {
+            if (actionId == EditorInfo.IME_ACTION_DONE ||
+                    actionId == EditorInfo.IME_ACTION_SEARCH ||
+                    event != null &&
+                    event.getAction() == KeyEvent.ACTION_DOWN &&
+                    event.getKeyCode() == KeyEvent.KEYCODE_ENTER){
+
+                SearchUrl();
+                return true;
+            }
+            return false;
+        });
 
         menu.findViewById(R.id.openFileBtn2).setOnClickListener(view -> {
             ImportFromFile();
             open_closeMenu();
+        });
+        menu.findViewById(R.id.searchUrlBtn).setOnClickListener(view -> {
+            open_closeMenu();
+            showUrlSearchView();
         });
         menu.findViewById(R.id.settingsBtn).setOnClickListener(view -> {
             OpenSettings();
@@ -207,7 +242,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                     if (!event.getClipDescription().hasMimeType(MIMEType))
                         return false;
-                    if (readFileThread != null && readFileThread.isAlive()) {
+                    if ((readFileThread != null && readFileThread.isAlive()) || isUrlSearching) {
                         Snackbar.make(getWindow().getDecorView(), R.string.loading_file_in_progress, BaseTransientBottomBar.LENGTH_SHORT).show();
                         return false;
                     }
@@ -305,6 +340,11 @@ public class MainActivity extends AppCompatActivity {
                 return;
             }
 
+            if (urlLL.getVisibility() == View.VISIBLE){
+                hideUrlSearchView();
+                return;
+            }
+
             if (listRL.getVisibility() == View.GONE){
                 FullRaw(null);
                 return;
@@ -352,6 +392,9 @@ public class MainActivity extends AppCompatActivity {
         list = findViewById(R.id.list);
         listRL = findViewById(R.id.listRL);
         openFileBtn = findViewById(R.id.openFileBtn);
+        openUrlBtn = findViewById(R.id.openUrlBtn);
+        urlSearch = findViewById(R.id.urlSearch);
+        urlLL = findViewById(R.id.searchUrlView);
         viewGroup = findViewById(R.id.content);
         menu = findViewById(R.id.menu);
         dim_bg = findViewById(R.id.dim_layout);
@@ -429,6 +472,41 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    private void showUrlSearchView() {
+        if ((readFileThread != null && readFileThread.isAlive()) || isUrlSearching) {
+            Snackbar.make(getWindow().getDecorView(), R.string.loading_file_in_progress, BaseTransientBottomBar.LENGTH_SHORT).show();
+            return;
+        }
+
+
+        TransitionManager.beginDelayedTransition(viewGroup, autoTransition);
+        mainLL.setVisibility(View.GONE);
+        urlLL.setVisibility(View.VISIBLE);
+
+        if (backBtn.getVisibility() == View.GONE)
+            backBtn.setVisibility(View.VISIBLE);
+
+        urlSearch.requestFocus();
+        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm.showSoftInput(urlSearch, InputMethodManager.SHOW_IMPLICIT);
+    }
+
+    private void hideUrlSearchView() {
+        urlLL.setVisibility(View.GONE);
+        TransitionManager.beginDelayedTransition(viewGroup, autoTransition);
+        mainLL.setVisibility(View.VISIBLE);
+        urlSearch.setText("");
+
+        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+        if (imm.isActive())
+            imm.hideSoftInputFromWindow(urlSearch.getWindowToken(), 0);
+
+        if (data.isEmptyPath()) {
+            backBtn.setVisibility(View.GONE);
+        }
+
+    }
+
 
     private void LoadData(String Data) {
 
@@ -482,6 +560,10 @@ public class MainActivity extends AppCompatActivity {
             if (!data.isRootListNull()) {
                 handler.post(() -> {
                     TransitionManager.beginDelayedTransition(viewGroup, autoTransition);
+
+                    if (urlLL.getVisibility() == View.VISIBLE)
+                        hideUrlSearchView();
+
                     data.setCurrentList(data.getRootList());
                     updateFilterList(data.getRootList());
                     adapter = new ListAdapter(data.getRootList(), MainActivity.this, "");
@@ -490,6 +572,7 @@ public class MainActivity extends AppCompatActivity {
                     openFileBtn.clearAnimation();
                     fileImg.setVisibility(View.GONE);
                     openFileBtn.setVisibility(View.GONE);
+                    openUrlBtn.setVisibility(View.GONE);
                     functions.setAnimation(MainActivity.this,list,R.anim.scale_in2,new DecelerateInterpolator());
                     list.setVisibility(View.VISIBLE);
                     backBtn.setVisibility(View.GONE);
@@ -723,7 +806,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void ImportFromFile() {
-        if (readFileThread != null && readFileThread.isAlive()) {
+        if ((readFileThread != null && readFileThread.isAlive()) || isUrlSearching) {
             Snackbar.make(getWindow().getDecorView(), R.string.loading_file_in_progress, BaseTransientBottomBar.LENGTH_SHORT).show();
             return;
         }
@@ -753,7 +836,7 @@ public class MainActivity extends AppCompatActivity {
             });
 
     void ReadFile(Uri uri){
-        if (readFileThread != null && readFileThread.isAlive()){
+        if ((readFileThread != null && readFileThread.isAlive()) || isUrlSearching){
             return;
         }
         loadingStarted(getString(R.string.reading_file));
@@ -780,6 +863,59 @@ public class MainActivity extends AppCompatActivity {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public void SearchUrl(View view) {
+        SearchUrl();
+    }
+
+    private void SearchUrl() {
+        getFromUrl(urlSearch.getText().toString());
+        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm.hideSoftInputFromWindow(urlSearch.getWindowToken(), 0);
+    }
+
+    void getFromUrl(String url){
+        if (url.trim().isEmpty())
+            return;
+
+        if (!url.startsWith("http"))
+            url = "https://" + url;
+
+        OkHttpClient client = new OkHttpClient();
+        Request request;
+        try {
+             request = new Request.Builder()
+                    .url(url)
+                    .build();
+
+        }catch (IllegalArgumentException e){
+            Toast.makeText(this, getString(R.string.invalid_url), Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        hideUrlSearchView();
+
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(@NonNull Call call, @NonNull IOException e) {
+                handler.post(()-> loadingFinished(false));
+                isUrlSearching = false;
+                handler.post(()-> Toast.makeText(MainActivity.this,"Fail",Toast.LENGTH_SHORT).show());
+            }
+
+            @Override
+            public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
+                handler.post(()-> loadingFinished(false));
+                isUrlSearching = false;
+                if (response.body() != null)
+                    LoadData(response.body().string());
+                else handler.post(()->Toast.makeText(MainActivity.this, "Fail, Code:" + response.code(), Toast.LENGTH_SHORT).show());
+            }
+        });
+        loadingStarted();
+        isUrlSearching = true;
+
     }
 
     void loadingStarted(){

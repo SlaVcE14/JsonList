@@ -44,6 +44,10 @@
     <string name="fail_to_load_file">Fail to load file!</string>
     <string name="fail_to_create_list">Fail to create list!</string>
 
+    <string name="open_from_url">Open from url</string>
+    <string name="invalid_url">Invalid url</string>
+    <string name="enter_url">Enter url</string>
+
 
     <string-array name="Themes">
         <item>System theme</item>

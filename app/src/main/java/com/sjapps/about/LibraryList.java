@@ -10,6 +10,7 @@ public class LibraryList extends ListGenerator{
         addItem("gson", GsonBuildConfig.VERSION, "https://github.com/google/gson");
         addItem("core-splashscreen","1.0.1","https://developer.android.com/develop/ui/views/launch/splash-screen");
         addItem("material-components","1.12.0","https://github.com/material-components/material-components-android");
+        addItem("OkHttp","4.12.0","https://github.com/square/okhttp");
     }
 }
 
