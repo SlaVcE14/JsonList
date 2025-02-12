@@ -26,7 +26,6 @@ import android.text.SpannableStringBuilder;
 import android.text.style.ForegroundColorSpan;
 import android.transition.AutoTransition;
 import android.transition.TransitionManager;
-import android.transition.Visibility;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.DragAndDropPermissions;
@@ -59,6 +58,7 @@ import com.google.gson.JsonParser;
 
 import com.sjapps.about.AboutActivity;
 import com.sjapps.adapters.ListAdapter;
+import com.sjapps.adapters.PathListAdapter;
 import com.sjapps.jsonlist.java.JsonData;
 import com.sjapps.jsonlist.java.JsonFunctions;
 import com.sjapps.jsonlist.java.ListItem;
@@ -90,12 +90,14 @@ public class MainActivity extends AppCompatActivity {
     LinearLayout urlLL;
     TextView titleTxt, emptyListTxt, jsonTxt;
     RecyclerView list;
+    RecyclerView pathList;
     JsonData data = new JsonData();
     LinearLayout progressView, mainLL;
     LinearProgressIndicator progressBar;
     boolean isMenuOpen, showJson, isRawJsonLoaded, isTopMenuVisible, isUrlSearching, isVertical = true;
     ListAdapter adapter;
-    View menu, dim_bg;
+    PathListAdapter pathAdapter;
+    View menu, dim_bg, pathListView;
     ViewGroup viewGroup;
     AutoTransition autoTransition = new AutoTransition();
     Handler handler = new Handler();
@@ -147,6 +149,13 @@ public class MainActivity extends AppCompatActivity {
         openUrlBtn.setOnClickListener(view -> {
             showUrlSearchView();
         });
+
+        titleTxt.setOnClickListener(v -> {
+            if (!data.isEmptyPath())
+                showHidePathList();
+        });
+
+        pathListView.setOnClickListener(v -> showHidePathList());
 
         urlSearch.setOnEditorActionListener((v, actionId, event) -> {
             if (actionId == EditorInfo.IME_ACTION_DONE ||
@@ -335,6 +344,11 @@ public class MainActivity extends AppCompatActivity {
     OnBackPressedCallback backPressedCallback = new OnBackPressedCallback(true) {
         @Override
         public void handleOnBackPressed() {
+            if (pathListView.getVisibility() == View.VISIBLE){
+                showHidePathList();
+                return;
+            }
+
             if (isMenuOpen) {
                 open_closeMenu();
                 return;
@@ -390,6 +404,8 @@ public class MainActivity extends AppCompatActivity {
         jsonTxt = findViewById(R.id.jsonTxt);
         emptyListTxt = findViewById(R.id.emptyListTxt);
         list = findViewById(R.id.list);
+        pathListView = findViewById(R.id.pathListBG);
+        pathList = findViewById(R.id.pathList);
         listRL = findViewById(R.id.listRL);
         openFileBtn = findViewById(R.id.openFileBtn);
         openUrlBtn = findViewById(R.id.openUrlBtn);
@@ -409,6 +425,7 @@ public class MainActivity extends AppCompatActivity {
         fullRawBtn = findViewById(R.id.fullRawBtn);
         topMenu = findViewById(R.id.topMenu);
 
+        LinearLayoutManager pathLM = new LinearLayoutManager(this);
         LinearLayoutManager layoutManager = new LinearLayoutManager(this){
             @Override
             public int scrollVerticallyBy(int dx, RecyclerView.Recycler recycler, RecyclerView.State state) {
@@ -431,6 +448,7 @@ public class MainActivity extends AppCompatActivity {
         };
 
         list.setLayoutManager(layoutManager);
+        pathList.setLayoutManager(pathLM);
 
     }
     private void showTopMenu() {
@@ -567,7 +585,9 @@ public class MainActivity extends AppCompatActivity {
                     data.setCurrentList(data.getRootList());
                     updateFilterList(data.getRootList());
                     adapter = new ListAdapter(data.getRootList(), MainActivity.this, "");
+                    pathAdapter = new PathListAdapter(this,data.getPath());
                     list.setAdapter(adapter);
+                    pathList.setAdapter(pathAdapter);
                     fileImg.clearAnimation();
                     openFileBtn.clearAnimation();
                     fileImg.setVisibility(View.GONE);
@@ -607,6 +627,8 @@ public class MainActivity extends AppCompatActivity {
         if (emptyListTxt.getVisibility() == View.VISIBLE)
             emptyListTxt.setVisibility(View.GONE);
 
+        pathAdapter = new PathListAdapter(this,path);
+        pathList.setAdapter(pathAdapter);
         data.setPath(path);
         titleTxt.setText(Title);
         ArrayList<ListItem> arrayList = getListFromPath(path,data.getRootList());
@@ -699,6 +721,16 @@ public class MainActivity extends AppCompatActivity {
         if (!isRawJsonLoaded)
             ShowJSON();
 
+    }
+
+    public void showHidePathList() {
+
+        if (pathListView.getVisibility() == View.VISIBLE) {
+            pathListView.setVisibility(View.GONE);
+            return;
+        }
+
+        pathListView.setVisibility(View.VISIBLE);
     }
 
     public void FullRaw(View view) {
