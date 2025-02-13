@@ -23,13 +23,18 @@ public class PathListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     static class ViewHolder extends RecyclerView.ViewHolder{
 
         TextView valTxt;
+        View btn;
 
         public ViewHolder(View itemView) {
             super(itemView);
-            valTxt =  itemView.findViewById(R.id.itemName);
+            valTxt = itemView.findViewById(R.id.itemName);
+            btn = itemView.findViewById(R.id.btn);
         }
         public TextView getValTxt(){
             return valTxt;
+        }
+        public View getBtn(){
+            return btn;
         }
 
         public View getView(){
@@ -63,6 +68,9 @@ public class PathListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         View view = currentHolder.getView();
         TextView valTxt = currentHolder.getValTxt();
         valTxt.setText(item);
+        currentHolder.getBtn().setOnClickListener(v -> {
+            activity.goBack(getLast() - position);
+        });
 
         if (position == getLast())
             view.findViewById(R.id.arrow_img).setVisibility(View.GONE);

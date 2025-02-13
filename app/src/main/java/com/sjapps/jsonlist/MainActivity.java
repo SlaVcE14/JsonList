@@ -387,9 +387,6 @@ public class MainActivity extends AppCompatActivity {
             TransitionManager.beginDelayedTransition(viewGroup, autoTransition);
             data.goBack();
             open(JsonData.getPathFormat(data.getPath()), data.getPath(),-1);
-            if (data.isEmptyPath()) {
-                backBtn.setVisibility(View.GONE);
-            }
         }
     };
 
@@ -652,9 +649,18 @@ public class MainActivity extends AppCompatActivity {
             emptyListTxt.setVisibility(View.VISIBLE);
         }
         System.out.println("path = " + path);
-        if (!path.equals("")) {
+        if (!path.isEmpty()) {
             backBtn.setVisibility(View.VISIBLE);
-        }
+        } else backBtn.setVisibility(View.GONE);
+
+    }
+
+    public void goBack(int n){
+        if (pathListView.getVisibility() == View.VISIBLE)
+            showHidePathList();
+        for (int i = 0; i<n; i++)
+            data.goBack();
+        open(JsonData.getPathFormat(data.getPath()), data.getPath(),-1);
 
     }
 
