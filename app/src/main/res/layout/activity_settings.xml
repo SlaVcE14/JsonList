@@ -102,23 +102,11 @@
                     android:layout_height="wrap_content"
                     >
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/beta"
-                        android:layout_marginStart="20dp"
-                        android:paddingHorizontal="10dp"
-                        android:background="@drawable/ripple_red"
-                        android:textColor="?colorOnError"
-                        android:layout_marginTop="2dp"
-                        android:textSize="12dp"
-                        />
                     <com.google.android.material.materialswitch.MaterialSwitch
                         android:id="@+id/sHighlightingSwitch"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:minHeight="50dp"
-                        android:layout_marginTop="5dp"
                         android:paddingHorizontal="20dp"
                         android:text="@string/SHighlighting"
                         android:textSize="20dp"

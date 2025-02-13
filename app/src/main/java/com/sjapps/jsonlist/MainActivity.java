@@ -21,9 +21,6 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import android.text.Spannable;
-import android.text.SpannableStringBuilder;
-import android.text.style.ForegroundColorSpan;
 import android.transition.AutoTransition;
 import android.transition.TransitionManager;
 import android.util.Log;
@@ -39,6 +36,8 @@ import android.view.animation.DecelerateInterpolator;
 import android.view.animation.OvershootInterpolator;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
+import android.webkit.WebSettings;
+import android.webkit.WebView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -70,8 +69,6 @@ import com.sjapps.logs.LogActivity;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -88,7 +85,7 @@ public class MainActivity extends AppCompatActivity {
     Button openUrlBtn;
     EditText urlSearch;
     LinearLayout urlLL;
-    TextView titleTxt, emptyListTxt, jsonTxt;
+    TextView titleTxt, emptyListTxt;
     RecyclerView list;
     RecyclerView pathList;
     JsonData data = new JsonData();
@@ -98,6 +95,7 @@ public class MainActivity extends AppCompatActivity {
     ListAdapter adapter;
     PathListAdapter pathAdapter;
     View menu, dim_bg, pathListView;
+    WebView rawJsonWV;
     ViewGroup viewGroup;
     AutoTransition autoTransition = new AutoTransition();
     Handler handler = new Handler();
@@ -398,7 +396,6 @@ public class MainActivity extends AppCompatActivity {
         splitViewBtn = findViewById(R.id.splitViewBtn);
         filterBtn = findViewById(R.id.filterBtn);
         titleTxt = findViewById(R.id.titleTxt);
-        jsonTxt = findViewById(R.id.jsonTxt);
         emptyListTxt = findViewById(R.id.emptyListTxt);
         list = findViewById(R.id.list);
         pathListView = findViewById(R.id.pathListBG);
@@ -417,6 +414,7 @@ public class MainActivity extends AppCompatActivity {
         dim_bg.bringToFront();
         menu.bringToFront();
         rawJsonRL = findViewById(R.id.rawJsonRL);
+        rawJsonWV = findViewById(R.id.rawJsonWV);
         menuBtn.bringToFront();
         dropTarget = findViewById(R.id.dropTarget);
         fullRawBtn = findViewById(R.id.fullRawBtn);
@@ -443,6 +441,13 @@ public class MainActivity extends AppCompatActivity {
                 return scrollRange;
             }
         };
+
+        WebSettings webSettings = rawJsonWV.getSettings();
+        webSettings.setBuiltInZoomControls(true);
+        webSettings.setDisplayZoomControls(false);
+        webSettings.setSupportZoom(true);
+
+        updateRawJson("");
 
         list.setLayoutManager(layoutManager);
         pathList.setLayoutManager(pathLM);
@@ -796,10 +801,7 @@ public class MainActivity extends AppCompatActivity {
         Thread thread = new Thread(() -> {
             String dataStr = JsonFunctions.getAsPrettyPrint(data.getRawData());
             handler.post(()-> {
-                if (state.isSyntaxHighlighting()) {
-                    SpannableStringBuilder builder = highlightJsonSyntax(dataStr);
-                    jsonTxt.setText(builder);
-                }else jsonTxt.setText(dataStr);
+                updateRawJson(dataStr);
                 loadingFinished(true);
                 isRawJsonLoaded = true;
             });
@@ -809,38 +811,58 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    private SpannableStringBuilder highlightJsonSyntax(String json) {
+    private void updateRawJson(String json) {
+        String htmlData = generateHtml(json);
+        rawJsonWV.loadDataWithBaseURL(null, htmlData, "text/html", "UTF-8", null);
+    }
 
-        SpannableStringBuilder spannable = new SpannableStringBuilder(json);
+    private String generateHtml(String jsonStr) {
 
+        int textColor = functions.setColor(this,R.attr.colorOnSecondaryContainer);
         int keyColor = functions.setColor(this,R.attr.colorPrimary);
         int numberColor = functions.setColor(this,R.attr.colorTertiary);
         int booleanAndNullColor = functions.setColor(this,R.attr.colorError);
+        int bgColor = functions.setColor(this,R.attr.colorSecondaryContainer);
 
-        Pattern keyPattern = Pattern.compile("(\"\\w+\")\\s*:");
-        Pattern numberPattern = Pattern.compile(":\\s(-?\\d+(\\.\\d+)?([eE][+-]?\\d+)?)");
-        Pattern booleanAndNullPattern = Pattern.compile(":\\s*(true|false|null)");
+        String textColorHex = String.format("#%06X", (0xFFFFFF & textColor));
+        String keyColorHex = String.format("#%06X", (0xFFFFFF & keyColor));
+        String numberColorHex = String.format("#%06X", (0xFFFFFF & numberColor));
+        String booleanAndNullColorHex = String.format("#%06X", (0xFFFFFF & booleanAndNullColor));
+        String bgColorHex = String.format("#%06X", (0xFFFFFF & bgColor));
 
-        Pattern[] patterns = {keyPattern, numberPattern, booleanAndNullPattern};
-        int[] colors = {keyColor, numberColor, booleanAndNullColor};
+        if (state != null && state.isSyntaxHighlighting())
+            jsonStr = highlightJsonSyntax(jsonStr);
 
-        for (int i = 0; i < patterns.length; i++) {
-            applyPatternHighlighting(spannable, json, patterns[i], colors[i]);
-        }
+        String style =
+                ".key { color: " + keyColorHex + "; }" +
+                ".string { color: " + textColorHex + "; }" +
+                ".number { color: " + numberColorHex + "; }" +
+                ".boolean { color: " + booleanAndNullColorHex + "; }" +
+                ".null { color: " + booleanAndNullColorHex + "; }";
 
-        return spannable;
+        return "<html>" +
+                "<head>" +
+                "<style>" +
+                "body { background-color: " + bgColorHex + "; color: " + textColorHex + "; padding: 10px; }" +
+                style +
+                "</style>" +
+                "</head>" +
+                "<body>" +
+                "<pre>" + jsonStr + "</pre>" +
+                "</body>" +
+                "</html>";
     }
 
-    private void applyPatternHighlighting(SpannableStringBuilder spannable, String json, Pattern pattern, int color) {
-        Matcher matcher = pattern.matcher(json);
-        while (matcher.find()) {
-            spannable.setSpan(
-                    new ForegroundColorSpan(color),
-                    matcher.start(1),
-                    matcher.end(1),
-                    Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
-            );
-        }
+    private String highlightJsonSyntax(String json) {
+        json = json.replaceAll("&", "&amp;")
+                .replaceAll("<", "&lt;")
+                .replaceAll(">", "&gt;")
+                .replaceAll("\"(.*?)\"(?=\\s*:)", "<span class='key'>\"$1\"</span>") // Keys
+                .replaceAll(":\\s*\"(.*?)\"", ": <span class='string'>\"$1\"</span>") // Strings
+                .replaceAll(":\\s*(-?\\d+(\\.\\d+)?)", ": <span class='number'>$1</span>") // Numbers
+                .replaceAll(":\\s*(true|false)", ": <span class='boolean'>$1</span>") // Booleans
+                .replaceAll(":\\s*(null)", ": <span class='null'>$1</span>"); // Null
+        return json;
     }
 
     private void ImportFromFile() {

@@ -216,42 +216,29 @@
         <RelativeLayout
             android:id="@+id/rawJsonRL"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:layout_weight="1"
             android:visibility="gone"
+
             >
 
-
-
-            <ScrollView
-                android:id="@+id/rawJsonView"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:layout_marginVertical="10dp"
-                android:scrollbars="vertical"
-                android:layout_marginHorizontal="10dp"
                 android:background="@drawable/split_view_bg"
-
-                android:padding="10dp"
+                android:layout_margin="10dp"
+                android:orientation="vertical"
                 android:visibility="visible"
                 >
-                <HorizontalScrollView
+
+                <WebView
+                    android:id="@+id/rawJsonWV"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
+                    android:layout_height="match_parent"
+                    android:layout_margin="10dp"
+                    />
 
-                    >
-                    <TextView
-
-                        android:id="@+id/jsonTxt"
-                        android:layout_width="wrap_content"
-                        android:layout_height="match_parent"
-                        android:textIsSelectable="true"
-                        android:textColor="?colorOnSecondaryContainer"
-                        />
-
-                </HorizontalScrollView>
-
-            </ScrollView>
+            </LinearLayout>
             <View
                 android:id="@+id/fullRawBtn"
                 android:layout_width="100dp"
@@ -327,6 +314,7 @@
             android:layout_height="wrap_content"
             android:listSelector="@drawable/transparent_drawable"
             android:layout_marginTop="60dp"
+            android:layout_marginBottom="20dp"
             android:background="@drawable/background3"
             android:layout_marginHorizontal="15dp"
             />
