@@ -3,6 +3,7 @@ package com.sjapps.jsonlist;
 import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.AdapterView;
@@ -10,6 +11,9 @@ import android.widget.ArrayAdapter;
 import android.widget.Spinner;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 
 import com.google.android.material.materialswitch.MaterialSwitch;
 
@@ -28,6 +32,7 @@ public class SettingsActivity extends AppCompatActivity {
         setContentView(R.layout.activity_settings);
 
         initialize();
+        setLayoutBounds();
 
         LoadData();
 
@@ -81,6 +86,22 @@ public class SettingsActivity extends AppCompatActivity {
             SaveData();
         });
 
+    }
+
+    private void setLayoutBounds() {
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.rootView), (v, windowInsets) -> {
+            Insets insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars());
+            Insets insetsN = windowInsets.getInsets(WindowInsetsCompat.Type.displayCutout());
+
+            ViewGroup.MarginLayoutParams layoutParams = (ViewGroup.MarginLayoutParams) v.getLayoutParams();
+
+            layoutParams.leftMargin = insets.left + insetsN.left;
+            layoutParams.topMargin = insets.top;
+            layoutParams.rightMargin = insets.right + insetsN.right;
+            layoutParams.bottomMargin = insets.bottom;
+            v.setLayoutParams(layoutParams);
+            return WindowInsetsCompat.CONSUMED;
+        });
     }
 
     private void LoadData() {

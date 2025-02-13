@@ -30,7 +30,7 @@
         <item name="colorPrimaryInverse">@color/md_theme_light_primaryInverse</item>
 
         <item name="android:statusBarColor">?android:windowBackgroundFallback</item>
-        <item name="android:navigationBarColor">?android:windowBackgroundFallback</item>
+        <item name="android:navigationBarColor">?android:backdropColor</item>
         <item name="android:windowLayoutInDisplayCutoutMode" tools:targetApi="o_mr1">shortEdges</item>
         <item name="android:windowSplashScreenBackground" tools:targetApi="s">#ffffff</item>
         <item name="android:windowSplashScreenIconBackgroundColor" tools:targetApi="s">#ffffff</item>
