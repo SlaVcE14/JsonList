@@ -1,24 +1,60 @@
 <resources>
     <string name="app_name">Json List</string>
-    <string name="open_file">Open file</string>
+
     <string name="back">Back</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    <string name="exit">Exit?</string>
+    <string name="filter">Filter…</string>
+    <string name="copied_to_clipboard">Copied to clipboard</string>
+
+    <string name="open_file">Open file</string>
+    <string name="import_data_canceled">Import data canceled</string>
+
+    <string name="open_from_url">Open from url</string>
+    <string name="invalid_url">Invalid url</string>
+    <string name="enter_url">Enter url</string>
+
+    <!--  Drag and Drop  -->
     <string name="drop_json_file_here">Drop JSON file here</string>
     <string name="this_is_not_json_file">This is not JSON file</string>
     <string name="only_one_file_is_allowed">Only one file is allowed!</string>
+
+    <!--  About Page  -->
+    <string name="about">About</string>
+    <string name="name">Name</string>
+    <string name="version">Version</string>
+    <string name="open_source_libraries">Open source libraries</string>
+    <string name="check_for_update">Check for update</string>
+
+    <!--  Sending Feedback  -->
+    <string name="send_feedback">Send Feedback</string>
+    <string name="include_info">Include info?</string>
+    <string name="include_info_description">Do you want to include app and device info?</string>
+
+    <!--  Settings Page -->
+    <string name="settings">Settings</string>
     <string name="disable_MIME">Disable MIME filter</string>
     <string name="disable_MIME_description">If you have a problem with opening json files or the file is not with .json extension, disable the MIME filter</string>
     <string name="SHighlighting">Syntax Highlighting</string>
     <string name="SHighlighting_description">Syntax Highlighting for the raw JSON text</string>
     <string name="checking_for_update">Enable checking for update</string>
-    <string name="theme">Theme</string>
-    <string name="about">About</string>
-    <string name="settings">Settings</string>
     <string name="beta">Beta</string>
-    <string name="open_source_libraries">Open source libraries</string>
-    <string name="check_for_update">Check for update</string>
-    <string name="send_feedback">Send Feedback</string>
+
+    <!--  Crash logs Page -->
     <string name="crash_logs">Crash logs</string>
     <string name="list_is_empty">List is empty</string>
+    <string name="file_is_empty">File is empty</string>
+    <string name="copy_logs_to_clipboard">Copy logs to clipboard</string>
+    <string name="share_logs">Share logs</string>
+    <string name="chose_action">Chose action</string>
+    <string name="warning">Warning!</string>
+    <string name="reports_may_include_personal_info">This reports may include personal information. Check before sharing to anyone</string>
+    <string name="logs_copied_to_clipboard">logs is copied to clipboard</string>
+    <string name="delete_logs">Delete logs?</string>
+
+
+    <!--  loading animation  -->
     <string name="loading_data_from_file">loading data from file</string>
     <string name="loading">loading…</string>
     <string name="loading_json">loading json</string>
@@ -26,28 +62,17 @@
     <string name="displaying_json">Displaying json…</string>
     <string name="reading_file">Reading file</string>
     <string name="finished">finished</string>
-    <string name="name">Name</string>
-    <string name="version">Version</string>
-    <string name="include_info">Include info?</string>
-    <string name="include_info_description">Do you want to include app and device info?</string>
-    <string name="no">No</string>
-    <string name="yes">Yes</string>
-    <string name="file_is_to_large_to_be_shown_in_a_split_screen">File is to large to be shown in a split screen!</string>
-    <string name="loading_file_in_progress">Loading file in progress, try again later</string>
-    <string name="exit">Exit?</string>
-    <string name="filter">Filter…</string>
-    <string name="import_data_canceled">Import data canceled</string>
-    <string name="copied_to_clipboard">Copied to clipboard</string>
+
 
     <string name="fail_to_load_data">Fail to load data</string>
     <string name="file_is_too_large">File is too large</string>
     <string name="fail_to_load_file">Fail to load file!</string>
     <string name="fail_to_create_list">Fail to create list!</string>
+    <string name="loading_file_in_progress">Loading file in progress, try again later</string>
+    <string name="file_is_to_large_to_be_shown_in_a_split_screen">File is to large to be shown in a split screen!</string>
 
-    <string name="open_from_url">Open from url</string>
-    <string name="invalid_url">Invalid url</string>
-    <string name="enter_url">Enter url</string>
-
+    <!--  Themes  -->
+    <string name="theme">Theme</string>
 
     <string-array name="Themes">
         <item>System theme</item>

@@ -94,7 +94,7 @@ public class LogActivity extends AppCompatActivity {
     public void deleteLog(View view) {
         BasicDialog dialog = new BasicDialog();
         dialog.Delete(this,true)
-                .setTitle("Delete logs?")
+                .setTitle(getString(R.string.delete_logs))
                 .onButtonClick(() ->{
                     dialog.dismiss();
                     FileSystem.SaveLog(this,new Gson().toJson(new CrashLogs()));
@@ -160,15 +160,15 @@ public class LogActivity extends AppCompatActivity {
     public void shareLog(View view) {
 
         if (logTxt.getText().toString().equals("")) {
-            Toast.makeText(this, "File is empty", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, R.string.file_is_empty, Toast.LENGTH_SHORT).show();
             return;
         }
 
-        String[] options = {"Copy logs to clipboard","Share logs"};
+        String[] options = {getString(R.string.copy_logs_to_clipboard), getString(R.string.share_logs)};
 
         ListDialog dialog = new ListDialog();
         dialog.Builder(this,true)
-                .setTitle("Chose action")
+                .setTitle(getString(R.string.chose_action))
                 .setItems(options,(position, value) -> {
                     dialog.dismiss();
                     switch (position){
@@ -181,8 +181,8 @@ public class LogActivity extends AppCompatActivity {
 
         MessageDialog warningDialog = new MessageDialog();
         warningDialog.ErrorDialogBuilder(this,true)
-                .setTitle("Warning!")
-                .setMessage("This reports may include personal information. Check before sharing to anyone")
+                .setTitle(getString(R.string.warning))
+                .setMessage(getString(R.string.reports_may_include_personal_info))
                 .show();
         warningDialog.dialog.setOnDismissListener(dialogInterface -> {
             warningDialog.dismiss();
@@ -211,6 +211,6 @@ public class LogActivity extends AppCompatActivity {
         ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
         ClipData clipData = ClipData.newPlainText("log",logTxt.getText().toString());
         clipboard.setPrimaryClip(clipData);
-        Toast.makeText(this, "logs is copied to clipboard", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, getString(R.string.logs_copied_to_clipboard), Toast.LENGTH_SHORT).show();
     }
 }
