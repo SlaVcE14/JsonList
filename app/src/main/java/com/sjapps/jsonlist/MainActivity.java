@@ -8,6 +8,9 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -127,6 +130,7 @@ public class MainActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_main);
         initialize();
+        setLayoutBounds();
 
         if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE){
             isVertical = false;
@@ -268,6 +272,22 @@ public class MainActivity extends AppCompatActivity {
                     return true;
             }
             return false;
+        });
+    }
+
+    private void setLayoutBounds() {
+        ViewCompat.setOnApplyWindowInsetsListener(viewGroup, (v, windowInsets) -> {
+            Insets insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars());
+            Insets insetsN = windowInsets.getInsets(WindowInsetsCompat.Type.displayCutout());
+
+            ViewGroup.MarginLayoutParams layoutParams = (ViewGroup.MarginLayoutParams) v.getLayoutParams();
+
+            layoutParams.leftMargin = insets.left + insetsN.left;
+            layoutParams.topMargin = insets.top;
+            layoutParams.rightMargin = insets.right + insetsN.right;
+            layoutParams.bottomMargin = insets.bottom;
+            v.setLayoutParams(layoutParams);
+            return WindowInsetsCompat.CONSUMED;
         });
     }
 

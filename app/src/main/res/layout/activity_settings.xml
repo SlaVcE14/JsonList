@@ -4,37 +4,47 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".SettingsActivity">
+    tools:context=".SettingsActivity"
+    android:id="@+id/rootView">
 
-    <ImageButton
-        android:id="@+id/BackBtn"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:layout_marginStart="20dp"
-        android:layout_marginTop="20dp"
-        android:contentDescription="@string/back"
-        android:background="@drawable/ripple"
-        android:onClick="goBack"
-        android:src="@drawable/ic_back"
-        android:text="@string/back" />
 
-    <TextView
-        android:id="@+id/TitleText"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:id="@+id/topBar"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:layout_marginStart="20dp"
-        android:layout_marginTop="20dp"
-        android:layout_toEndOf="@+id/BackBtn"
-        android:text="@string/settings"
-        android:textColor="?colorOnBackground"
-        android:textSize="30sp" />
+        android:layout_marginTop="10dp"
+        android:gravity="center_vertical"
+        >
+
+        <ImageButton
+            android:id="@+id/BackBtn"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="10dp"
+            android:contentDescription="@string/back"
+            android:background="@drawable/ripple"
+            android:onClick="goBack"
+            android:src="@drawable/ic_back"
+
+            android:text="@string/back" />
+
+        <TextView
+            android:id="@+id/TitleText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:text="@string/settings"
+            android:textStyle="bold"
+            android:textColor="?colorOnBackground"
+            android:textSize="30sp" />
+
+    </LinearLayout>
 
     <ScrollView
         android:id="@+id/mainSV"
         android:layout_width="600dp"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/TitleText"
+        android:layout_below="@+id/topBar"
         android:layout_centerHorizontal="true"
         android:layout_marginHorizontal="5dp"
         android:layout_marginTop="20dp">

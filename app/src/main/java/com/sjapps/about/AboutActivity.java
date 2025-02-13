@@ -10,13 +10,18 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
 
+import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.content.res.AppCompatResources;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.core.widget.NestedScrollView;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -50,8 +55,10 @@ public class AboutActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        EdgeToEdge.enable(this);
         setContentView(R.layout.activity_about);
         initialize();
+        setLayoutBounds();
         Animation animation = AnimationUtils.loadAnimation(this, R.anim.slide_from_bottom);
         nestedScrollView.startAnimation(animation);
         PackageManager manager = getPackageManager();
@@ -72,6 +79,23 @@ public class AboutActivity extends AppCompatActivity {
             e.printStackTrace();
         }
 
+    }
+
+    private void setLayoutBounds() {
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.rootView), (v, windowInsets) -> {
+            Insets insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars());
+            Insets insetsN = windowInsets.getInsets(WindowInsetsCompat.Type.displayCutout());
+
+            ViewGroup.MarginLayoutParams layoutParams = (ViewGroup.MarginLayoutParams) v.getLayoutParams();
+
+            layoutParams.leftMargin = insets.left + insetsN.left;
+            layoutParams.topMargin = insets.top;
+            layoutParams.rightMargin = insets.right + insetsN.right;
+            View scrollRL = findViewById(R.id.scrollRL);
+            scrollRL.setPadding(scrollRL.getPaddingLeft(),scrollRL.getPaddingTop(),scrollRL.getPaddingRight(),insets.bottom + insetsN.bottom);
+            v.setLayoutParams(layoutParams);
+            return WindowInsetsCompat.CONSUMED;
+        });
     }
 
     private void setupList(ArrayList<AboutListItem> items, @NonNull RecyclerView view) {
