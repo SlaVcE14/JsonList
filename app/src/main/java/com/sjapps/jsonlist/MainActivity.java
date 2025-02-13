@@ -8,11 +8,15 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.app.Activity;
 import android.content.ClipData;
+import android.content.Context;
 import android.content.Intent;
 import android.content.res.AssetFileDescriptor;
 import android.content.res.Configuration;
@@ -20,9 +24,6 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import android.text.Spannable;
-import android.text.SpannableStringBuilder;
-import android.text.style.ForegroundColorSpan;
 import android.transition.AutoTransition;
 import android.transition.TransitionManager;
 import android.util.Log;
@@ -30,12 +31,18 @@ import android.util.TypedValue;
 import android.view.DragAndDropPermissions;
 import android.view.DragEvent;
 import android.view.HapticFeedbackConstants;
+import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AccelerateDecelerateInterpolator;
 import android.view.animation.DecelerateInterpolator;
 import android.view.animation.OvershootInterpolator;
+import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
+import android.webkit.WebSettings;
+import android.webkit.WebView;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -53,6 +60,7 @@ import com.google.gson.JsonParser;
 
 import com.sjapps.about.AboutActivity;
 import com.sjapps.adapters.ListAdapter;
+import com.sjapps.adapters.PathListAdapter;
 import com.sjapps.jsonlist.java.JsonData;
 import com.sjapps.jsonlist.java.JsonFunctions;
 import com.sjapps.jsonlist.java.ListItem;
@@ -64,8 +72,12 @@ import com.sjapps.logs.LogActivity;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -73,14 +85,20 @@ public class MainActivity extends AppCompatActivity {
     ImageButton backBtn, menuBtn, splitViewBtn, filterBtn;
     ImageView fileImg;
     Button openFileBtn;
-    TextView titleTxt, emptyListTxt, jsonTxt;
+    Button openUrlBtn;
+    EditText urlSearch;
+    LinearLayout urlLL;
+    TextView titleTxt, emptyListTxt;
     RecyclerView list;
+    RecyclerView pathList;
     JsonData data = new JsonData();
     LinearLayout progressView, mainLL;
     LinearProgressIndicator progressBar;
-    boolean isMenuOpen, showJson, isRawJsonLoaded, isTopMenuVisible, isVertical = true;
+    boolean isMenuOpen, showJson, isRawJsonLoaded, isTopMenuVisible, isUrlSearching, isVertical = true;
     ListAdapter adapter;
-    View menu, dim_bg;
+    PathListAdapter pathAdapter;
+    View menu, dim_bg, pathListView;
+    WebView rawJsonWV;
     ViewGroup viewGroup;
     AutoTransition autoTransition = new AutoTransition();
     Handler handler = new Handler();
@@ -112,6 +130,7 @@ public class MainActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_main);
         initialize();
+        setLayoutBounds();
 
         if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE){
             isVertical = false;
@@ -126,13 +145,40 @@ public class MainActivity extends AppCompatActivity {
         menuBtn.setOnClickListener(view -> open_closeMenu());
 
         backBtn.setOnClickListener(view -> {
-            if(!data.isEmptyPath()) getOnBackPressedDispatcher().onBackPressed();
+            if(!data.isEmptyPath() || urlLL.getVisibility() == View.VISIBLE) getOnBackPressedDispatcher().onBackPressed();
         });
         openFileBtn.setOnClickListener(view -> ImportFromFile());
+        openUrlBtn.setOnClickListener(view -> {
+            showUrlSearchView();
+        });
+
+        titleTxt.setOnClickListener(v -> {
+            if (!data.isEmptyPath())
+                showHidePathList();
+        });
+
+        pathListView.setOnClickListener(v -> showHidePathList());
+
+        urlSearch.setOnEditorActionListener((v, actionId, event) -> {
+            if (actionId == EditorInfo.IME_ACTION_DONE ||
+                    actionId == EditorInfo.IME_ACTION_SEARCH ||
+                    event != null &&
+                    event.getAction() == KeyEvent.ACTION_DOWN &&
+                    event.getKeyCode() == KeyEvent.KEYCODE_ENTER){
+
+                SearchUrl();
+                return true;
+            }
+            return false;
+        });
 
         menu.findViewById(R.id.openFileBtn2).setOnClickListener(view -> {
             ImportFromFile();
             open_closeMenu();
+        });
+        menu.findViewById(R.id.searchUrlBtn).setOnClickListener(view -> {
+            open_closeMenu();
+            showUrlSearchView();
         });
         menu.findViewById(R.id.settingsBtn).setOnClickListener(view -> {
             OpenSettings();
@@ -207,8 +253,8 @@ public class MainActivity extends AppCompatActivity {
                     }
                     if (!event.getClipDescription().hasMimeType(MIMEType))
                         return false;
-                    if (readFileThread != null && readFileThread.isAlive()) {
-                        Snackbar.make(getWindow().getDecorView(),"Loading file in progress, try again later", BaseTransientBottomBar.LENGTH_SHORT).show();
+                    if ((readFileThread != null && readFileThread.isAlive()) || isUrlSearching) {
+                        Snackbar.make(getWindow().getDecorView(), R.string.loading_file_in_progress, BaseTransientBottomBar.LENGTH_SHORT).show();
                         return false;
                     }
 
@@ -226,6 +272,22 @@ public class MainActivity extends AppCompatActivity {
                     return true;
             }
             return false;
+        });
+    }
+
+    private void setLayoutBounds() {
+        ViewCompat.setOnApplyWindowInsetsListener(viewGroup, (v, windowInsets) -> {
+            Insets insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars());
+            Insets insetsN = windowInsets.getInsets(WindowInsetsCompat.Type.displayCutout());
+
+            ViewGroup.MarginLayoutParams layoutParams = (ViewGroup.MarginLayoutParams) v.getLayoutParams();
+
+            layoutParams.leftMargin = insets.left + insetsN.left;
+            layoutParams.topMargin = insets.top;
+            layoutParams.rightMargin = insets.right + insetsN.right;
+            layoutParams.bottomMargin = insets.bottom;
+            v.setLayoutParams(layoutParams);
+            return WindowInsetsCompat.CONSUMED;
         });
     }
 
@@ -300,8 +362,18 @@ public class MainActivity extends AppCompatActivity {
     OnBackPressedCallback backPressedCallback = new OnBackPressedCallback(true) {
         @Override
         public void handleOnBackPressed() {
+            if (pathListView.getVisibility() == View.VISIBLE){
+                showHidePathList();
+                return;
+            }
+
             if (isMenuOpen) {
                 open_closeMenu();
+                return;
+            }
+
+            if (urlLL.getVisibility() == View.VISIBLE){
+                hideUrlSearchView();
                 return;
             }
 
@@ -319,8 +391,9 @@ public class MainActivity extends AppCompatActivity {
             if (data.isEmptyPath()){
                 BasicDialog dialog = new BasicDialog();
                 dialog.Builder(MainActivity.this, true)
-                        .setTitle("Exit?")
-                        .setRightButtonText("Yes")
+                        .setTitle(getString(R.string.exit))
+                        .setLeftButtonText(getString(R.string.no))
+                        .setRightButtonText(getString(R.string.yes))
                         .onButtonClick(() ->{
                                 dialog.dismiss();
                                 MainActivity.this.finish();
@@ -332,9 +405,6 @@ public class MainActivity extends AppCompatActivity {
             TransitionManager.beginDelayedTransition(viewGroup, autoTransition);
             data.goBack();
             open(JsonData.getPathFormat(data.getPath()), data.getPath(),-1);
-            if (data.isEmptyPath()) {
-                backBtn.setVisibility(View.GONE);
-            }
         }
     };
 
@@ -346,11 +416,15 @@ public class MainActivity extends AppCompatActivity {
         splitViewBtn = findViewById(R.id.splitViewBtn);
         filterBtn = findViewById(R.id.filterBtn);
         titleTxt = findViewById(R.id.titleTxt);
-        jsonTxt = findViewById(R.id.jsonTxt);
         emptyListTxt = findViewById(R.id.emptyListTxt);
         list = findViewById(R.id.list);
+        pathListView = findViewById(R.id.pathListBG);
+        pathList = findViewById(R.id.pathList);
         listRL = findViewById(R.id.listRL);
         openFileBtn = findViewById(R.id.openFileBtn);
+        openUrlBtn = findViewById(R.id.openUrlBtn);
+        urlSearch = findViewById(R.id.urlSearch);
+        urlLL = findViewById(R.id.searchUrlView);
         viewGroup = findViewById(R.id.content);
         menu = findViewById(R.id.menu);
         dim_bg = findViewById(R.id.dim_layout);
@@ -360,11 +434,13 @@ public class MainActivity extends AppCompatActivity {
         dim_bg.bringToFront();
         menu.bringToFront();
         rawJsonRL = findViewById(R.id.rawJsonRL);
+        rawJsonWV = findViewById(R.id.rawJsonWV);
         menuBtn.bringToFront();
         dropTarget = findViewById(R.id.dropTarget);
         fullRawBtn = findViewById(R.id.fullRawBtn);
         topMenu = findViewById(R.id.topMenu);
 
+        LinearLayoutManager pathLM = new LinearLayoutManager(this);
         LinearLayoutManager layoutManager = new LinearLayoutManager(this){
             @Override
             public int scrollVerticallyBy(int dx, RecyclerView.Recycler recycler, RecyclerView.State state) {
@@ -386,7 +462,15 @@ public class MainActivity extends AppCompatActivity {
             }
         };
 
+        WebSettings webSettings = rawJsonWV.getSettings();
+        webSettings.setBuiltInZoomControls(true);
+        webSettings.setDisplayZoomControls(false);
+        webSettings.setSupportZoom(true);
+
+        updateRawJson("");
+
         list.setLayoutManager(layoutManager);
+        pathList.setLayoutManager(pathLM);
 
     }
     private void showTopMenu() {
@@ -428,10 +512,45 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    private void showUrlSearchView() {
+        if ((readFileThread != null && readFileThread.isAlive()) || isUrlSearching) {
+            Snackbar.make(getWindow().getDecorView(), R.string.loading_file_in_progress, BaseTransientBottomBar.LENGTH_SHORT).show();
+            return;
+        }
+
+
+        TransitionManager.beginDelayedTransition(viewGroup, autoTransition);
+        mainLL.setVisibility(View.GONE);
+        urlLL.setVisibility(View.VISIBLE);
+
+        if (backBtn.getVisibility() == View.GONE)
+            backBtn.setVisibility(View.VISIBLE);
+
+        urlSearch.requestFocus();
+        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm.showSoftInput(urlSearch, InputMethodManager.SHOW_IMPLICIT);
+    }
+
+    private void hideUrlSearchView() {
+        urlLL.setVisibility(View.GONE);
+        TransitionManager.beginDelayedTransition(viewGroup, autoTransition);
+        mainLL.setVisibility(View.VISIBLE);
+        urlSearch.setText("");
+
+        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+        if (imm.isActive())
+            imm.hideSoftInputFromWindow(urlSearch.getWindowToken(), 0);
+
+        if (data.isEmptyPath()) {
+            backBtn.setVisibility(View.GONE);
+        }
+
+    }
+
 
     private void LoadData(String Data) {
 
-        loadingStarted("loading json");
+        loadingStarted(getString(R.string.loading_json));
         emptyListTxt.setVisibility(View.GONE);
 
         readFileThread = new Thread(() -> {
@@ -455,7 +574,7 @@ public class MainActivity extends AppCompatActivity {
                 return;
             }
             readFileThread.setName("readFileThread");
-            handler.post(()-> loadingStarted("creating list"));
+            handler.post(()-> loadingStarted(getString(R.string.creating_list)));
             try {
                 data.setRootList(null);
                 if (element instanceof JsonObject) {
@@ -481,14 +600,21 @@ public class MainActivity extends AppCompatActivity {
             if (!data.isRootListNull()) {
                 handler.post(() -> {
                     TransitionManager.beginDelayedTransition(viewGroup, autoTransition);
+
+                    if (urlLL.getVisibility() == View.VISIBLE)
+                        hideUrlSearchView();
+
                     data.setCurrentList(data.getRootList());
                     updateFilterList(data.getRootList());
                     adapter = new ListAdapter(data.getRootList(), MainActivity.this, "");
+                    pathAdapter = new PathListAdapter(this,data.getPath());
                     list.setAdapter(adapter);
+                    pathList.setAdapter(pathAdapter);
                     fileImg.clearAnimation();
                     openFileBtn.clearAnimation();
                     fileImg.setVisibility(View.GONE);
                     openFileBtn.setVisibility(View.GONE);
+                    openUrlBtn.setVisibility(View.GONE);
                     functions.setAnimation(MainActivity.this,list,R.anim.scale_in2,new DecelerateInterpolator());
                     list.setVisibility(View.VISIBLE);
                     backBtn.setVisibility(View.GONE);
@@ -523,6 +649,8 @@ public class MainActivity extends AppCompatActivity {
         if (emptyListTxt.getVisibility() == View.VISIBLE)
             emptyListTxt.setVisibility(View.GONE);
 
+        pathAdapter = new PathListAdapter(this,path);
+        pathList.setAdapter(pathAdapter);
         data.setPath(path);
         titleTxt.setText(Title);
         ArrayList<ListItem> arrayList = getListFromPath(path,data.getRootList());
@@ -546,16 +674,25 @@ public class MainActivity extends AppCompatActivity {
             emptyListTxt.setVisibility(View.VISIBLE);
         }
         System.out.println("path = " + path);
-        if (!path.equals("")) {
+        if (!path.isEmpty()) {
             backBtn.setVisibility(View.VISIBLE);
-        }
+        } else backBtn.setVisibility(View.GONE);
+
+    }
+
+    public void goBack(int n){
+        if (pathListView.getVisibility() == View.VISIBLE)
+            showHidePathList();
+        for (int i = 0; i<n; i++)
+            data.goBack();
+        open(JsonData.getPathFormat(data.getPath()), data.getPath(),-1);
 
     }
 
     private void filter(){
         ListDialog dialog = new ListDialog();
         dialog.Builder(this,true)
-                .setTitle("Filter...")
+                .setTitle(getString(R.string.filter))
                 .dialogWithTwoButtons()
                 .setSelectableList()
                 .setItems(filterList,val -> val)
@@ -617,6 +754,16 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    public void showHidePathList() {
+
+        if (pathListView.getVisibility() == View.VISIBLE) {
+            pathListView.setVisibility(View.GONE);
+            return;
+        }
+
+        pathListView.setVisibility(View.VISIBLE);
+    }
+
     public void FullRaw(View view) {
         TransitionManager.endTransitions(viewGroup);
         TransitionManager.beginDelayedTransition(viewGroup, autoTransition);
@@ -659,7 +806,7 @@ public class MainActivity extends AppCompatActivity {
     private void ShowJSON(){
 
         if (data.getRawData().equals("-1")) {
-            Snackbar.make(getWindow().getDecorView(),"File is to large to be shown in a split screen!", BaseTransientBottomBar.LENGTH_SHORT).show();
+            Snackbar.make(getWindow().getDecorView(), R.string.file_is_to_large_to_be_shown_in_a_split_screen, BaseTransientBottomBar.LENGTH_SHORT).show();
             if (progressView.getVisibility() == View.VISIBLE)
                 loadingFinished(true);
             if (showJson)
@@ -669,15 +816,12 @@ public class MainActivity extends AppCompatActivity {
         if (data.getRawData().equals(""))
             return;
 
-        loadingStarted("Displaying json...");
+        loadingStarted(getString(R.string.displaying_json));
 
         Thread thread = new Thread(() -> {
             String dataStr = JsonFunctions.getAsPrettyPrint(data.getRawData());
             handler.post(()-> {
-                if (state.isSyntaxHighlighting()) {
-                    SpannableStringBuilder builder = highlightJsonSyntax(dataStr);
-                    jsonTxt.setText(builder);
-                }else jsonTxt.setText(dataStr);
+                updateRawJson(dataStr);
                 loadingFinished(true);
                 isRawJsonLoaded = true;
             });
@@ -687,43 +831,63 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    private SpannableStringBuilder highlightJsonSyntax(String json) {
+    private void updateRawJson(String json) {
+        String htmlData = generateHtml(json);
+        rawJsonWV.loadDataWithBaseURL(null, htmlData, "text/html", "UTF-8", null);
+    }
 
-        SpannableStringBuilder spannable = new SpannableStringBuilder(json);
+    private String generateHtml(String jsonStr) {
 
+        int textColor = functions.setColor(this,R.attr.colorOnSecondaryContainer);
         int keyColor = functions.setColor(this,R.attr.colorPrimary);
         int numberColor = functions.setColor(this,R.attr.colorTertiary);
         int booleanAndNullColor = functions.setColor(this,R.attr.colorError);
+        int bgColor = functions.setColor(this,R.attr.colorSecondaryContainer);
 
-        Pattern keyPattern = Pattern.compile("(\"\\w+\")\\s*:");
-        Pattern numberPattern = Pattern.compile(":\\s(-?\\d+(\\.\\d+)?([eE][+-]?\\d+)?)");
-        Pattern booleanAndNullPattern = Pattern.compile(":\\s*(true|false|null)");
+        String textColorHex = String.format("#%06X", (0xFFFFFF & textColor));
+        String keyColorHex = String.format("#%06X", (0xFFFFFF & keyColor));
+        String numberColorHex = String.format("#%06X", (0xFFFFFF & numberColor));
+        String booleanAndNullColorHex = String.format("#%06X", (0xFFFFFF & booleanAndNullColor));
+        String bgColorHex = String.format("#%06X", (0xFFFFFF & bgColor));
 
-        Pattern[] patterns = {keyPattern, numberPattern, booleanAndNullPattern};
-        int[] colors = {keyColor, numberColor, booleanAndNullColor};
+        if (state != null && state.isSyntaxHighlighting())
+            jsonStr = highlightJsonSyntax(jsonStr);
 
-        for (int i = 0; i < patterns.length; i++) {
-            applyPatternHighlighting(spannable, json, patterns[i], colors[i]);
-        }
+        String style =
+                ".key { color: " + keyColorHex + "; }" +
+                ".string { color: " + textColorHex + "; }" +
+                ".number { color: " + numberColorHex + "; }" +
+                ".boolean { color: " + booleanAndNullColorHex + "; }" +
+                ".null { color: " + booleanAndNullColorHex + "; }";
 
-        return spannable;
+        return "<html>" +
+                "<head>" +
+                "<style>" +
+                "body { background-color: " + bgColorHex + "; color: " + textColorHex + "; padding: 10px; }" +
+                style +
+                "</style>" +
+                "</head>" +
+                "<body>" +
+                "<pre>" + jsonStr + "</pre>" +
+                "</body>" +
+                "</html>";
     }
 
-    private void applyPatternHighlighting(SpannableStringBuilder spannable, String json, Pattern pattern, int color) {
-        Matcher matcher = pattern.matcher(json);
-        while (matcher.find()) {
-            spannable.setSpan(
-                    new ForegroundColorSpan(color),
-                    matcher.start(1),
-                    matcher.end(1),
-                    Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
-            );
-        }
+    private String highlightJsonSyntax(String json) {
+        json = json.replaceAll("&", "&amp;")
+                .replaceAll("<", "&lt;")
+                .replaceAll(">", "&gt;")
+                .replaceAll("\"(.*?)\"(?=\\s*:)", "<span class='key'>\"$1\"</span>") // Keys
+                .replaceAll(":\\s*\"(.*?)\"", ": <span class='string'>\"$1\"</span>") // Strings
+                .replaceAll(":\\s*(-?\\d+(\\.\\d+)?)", ": <span class='number'>$1</span>") // Numbers
+                .replaceAll(":\\s*(true|false)", ": <span class='boolean'>$1</span>") // Booleans
+                .replaceAll(":\\s*(null)", ": <span class='null'>$1</span>"); // Null
+        return json;
     }
 
     private void ImportFromFile() {
-        if (readFileThread != null && readFileThread.isAlive()) {
-            Snackbar.make(getWindow().getDecorView(),"Loading file in progress, try again later", BaseTransientBottomBar.LENGTH_SHORT).show();
+        if ((readFileThread != null && readFileThread.isAlive()) || isUrlSearching) {
+            Snackbar.make(getWindow().getDecorView(), R.string.loading_file_in_progress, BaseTransientBottomBar.LENGTH_SHORT).show();
             return;
         }
 
@@ -739,12 +903,12 @@ public class MainActivity extends AppCompatActivity {
             result -> {
                 if (result.getResultCode() != Activity.RESULT_OK) {
                     if(result.getResultCode() == Activity.RESULT_CANCELED){
-                        Toast.makeText(MainActivity.this,"Import data canceled",Toast.LENGTH_SHORT).show();
+                        Toast.makeText(MainActivity.this, R.string.import_data_canceled,Toast.LENGTH_SHORT).show();
                     }
                     return;
                 }
                 if (result.getData() == null || result.getData().getData() == null){
-                    Toast.makeText(MainActivity.this, "Fail to load data", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(MainActivity.this, R.string.fail_to_load_data, Toast.LENGTH_SHORT).show();
                     return;
                 }
                 //File
@@ -752,10 +916,10 @@ public class MainActivity extends AppCompatActivity {
             });
 
     void ReadFile(Uri uri){
-        if (readFileThread != null && readFileThread.isAlive()){
+        if ((readFileThread != null && readFileThread.isAlive()) || isUrlSearching){
             return;
         }
-        loadingStarted("Reading file");
+        loadingStarted(getString(R.string.reading_file));
 
         try {
             InputStream inputStream = getContentResolver().openInputStream(uri);
@@ -781,8 +945,61 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    public void SearchUrl(View view) {
+        SearchUrl();
+    }
+
+    private void SearchUrl() {
+        getFromUrl(urlSearch.getText().toString());
+        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm.hideSoftInputFromWindow(urlSearch.getWindowToken(), 0);
+    }
+
+    void getFromUrl(String url){
+        if (url.trim().isEmpty())
+            return;
+
+        if (!url.startsWith("http"))
+            url = "https://" + url;
+
+        OkHttpClient client = new OkHttpClient();
+        Request request;
+        try {
+             request = new Request.Builder()
+                    .url(url)
+                    .build();
+
+        }catch (IllegalArgumentException e){
+            Toast.makeText(this, getString(R.string.invalid_url), Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        hideUrlSearchView();
+
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(@NonNull Call call, @NonNull IOException e) {
+                handler.post(()-> loadingFinished(false));
+                isUrlSearching = false;
+                handler.post(()-> Toast.makeText(MainActivity.this,"Fail",Toast.LENGTH_SHORT).show());
+            }
+
+            @Override
+            public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
+                handler.post(()-> loadingFinished(false));
+                isUrlSearching = false;
+                if (response.body() != null)
+                    LoadData(response.body().string());
+                else handler.post(()->Toast.makeText(MainActivity.this, "Fail, Code:" + response.code(), Toast.LENGTH_SHORT).show());
+            }
+        });
+        loadingStarted();
+        isUrlSearching = true;
+
+    }
+
     void loadingStarted(){
-        loadingStarted("loading...");
+        loadingStarted(getString(R.string.loading));
 
     }
 
@@ -820,7 +1037,7 @@ public class MainActivity extends AppCompatActivity {
         progressBar.setProgressCompat(100,true);
 
         TextView text =  progressView.findViewById(R.id.loadingTxt);
-        handler.postDelayed(() -> text.setText( "finished"),500);
+        handler.postDelayed(() -> text.setText( R.string.finished),500);
         handler.postDelayed(() -> {
         },700);
         handler.postDelayed(() -> text.setVisibility(View.INVISIBLE),900);
@@ -831,13 +1048,13 @@ public class MainActivity extends AppCompatActivity {
     }
 
     void fileTooLargeException(){
-        postMessageException("File is too large");
+        postMessageException(getString(R.string.file_is_too_large));
     }
     void fileNotLoadedException(){
-        postMessageException("Fail to load file!");
+        postMessageException(getString(R.string.fail_to_load_file));
     }
     void creatingListException(){
-        postMessageException("Fail to create list!");
+        postMessageException(getString(R.string.fail_to_create_list));
     }
     void postMessageException(String msg){
         handler.post(() -> {

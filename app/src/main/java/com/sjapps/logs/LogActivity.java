@@ -10,11 +10,16 @@ import android.os.Build;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.FileProvider;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 
 import com.google.gson.Gson;
 import com.sjapps.jsonlist.AppState;
@@ -38,8 +43,9 @@ public class LogActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_log);
-
+        EdgeToEdge.enable(this);
         logTxt = findViewById(R.id.logTxt);
+        setLayoutBounds();
         update();
 
         AppState state = FileSystem.loadStateData(this);
@@ -49,6 +55,22 @@ public class LogActivity extends AppCompatActivity {
             FileSystem.SaveState(this,new Gson().toJson(state));
         }
 
+    }
+
+    private void setLayoutBounds() {
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.rootView), (v, windowInsets) -> {
+            Insets insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars());
+            Insets insetsN = windowInsets.getInsets(WindowInsetsCompat.Type.displayCutout());
+
+            ViewGroup.MarginLayoutParams layoutParams = (ViewGroup.MarginLayoutParams) v.getLayoutParams();
+
+            layoutParams.leftMargin = insets.left + insetsN.left;
+            layoutParams.topMargin = insets.top;
+            layoutParams.rightMargin = insets.right + insetsN.right;
+            logTxt.setPadding(logTxt.getPaddingLeft(),logTxt.getPaddingTop(),logTxt.getPaddingRight(),insets.bottom + insetsN.bottom);
+            v.setLayoutParams(layoutParams);
+            return WindowInsetsCompat.CONSUMED;
+        });
     }
 
     @Override
@@ -72,7 +94,7 @@ public class LogActivity extends AppCompatActivity {
     public void deleteLog(View view) {
         BasicDialog dialog = new BasicDialog();
         dialog.Delete(this,true)
-                .setTitle("Delete logs?")
+                .setTitle(getString(R.string.delete_logs))
                 .onButtonClick(() ->{
                     dialog.dismiss();
                     FileSystem.SaveLog(this,new Gson().toJson(new CrashLogs()));
@@ -138,15 +160,15 @@ public class LogActivity extends AppCompatActivity {
     public void shareLog(View view) {
 
         if (logTxt.getText().toString().equals("")) {
-            Toast.makeText(this, "File is empty", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, R.string.file_is_empty, Toast.LENGTH_SHORT).show();
             return;
         }
 
-        String[] options = {"Copy logs to clipboard","Share logs"};
+        String[] options = {getString(R.string.copy_logs_to_clipboard), getString(R.string.share_logs)};
 
         ListDialog dialog = new ListDialog();
         dialog.Builder(this,true)
-                .setTitle("Chose action")
+                .setTitle(getString(R.string.chose_action))
                 .setItems(options,(position, value) -> {
                     dialog.dismiss();
                     switch (position){
@@ -159,8 +181,8 @@ public class LogActivity extends AppCompatActivity {
 
         MessageDialog warningDialog = new MessageDialog();
         warningDialog.ErrorDialogBuilder(this,true)
-                .setTitle("Warning!")
-                .setMessage("This reports may include personal information. Check before sharing to anyone")
+                .setTitle(getString(R.string.warning))
+                .setMessage(getString(R.string.reports_may_include_personal_info))
                 .show();
         warningDialog.dialog.setOnDismissListener(dialogInterface -> {
             warningDialog.dismiss();
@@ -189,6 +211,6 @@ public class LogActivity extends AppCompatActivity {
         ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
         ClipData clipData = ClipData.newPlainText("log",logTxt.getText().toString());
         clipboard.setPrimaryClip(clipData);
-        Toast.makeText(this, "logs is copied to clipboard", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, getString(R.string.logs_copied_to_clipboard), Toast.LENGTH_SHORT).show();
     }
 }

@@ -1,4 +1,4 @@
-![repo preview](https://repository-images.githubusercontent.com/507594462/8b9d54af-1231-43e3-a84a-5d19da2e5e38)
+![repo preview](https://repository-images.githubusercontent.com/507594462/e7b2ef28-e03a-45ad-bacb-97fdaf7c5b07)
 # JsonList
 Introducing a Material You Android application for previewing JSON files in a user-friendly list format.
 

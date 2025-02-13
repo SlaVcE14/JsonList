@@ -4,41 +4,53 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.sjapps.about.AboutActivity">
+    tools:context="com.sjapps.about.AboutActivity"
+    android:id="@+id/rootView"
+    >
 
-    <ImageButton
-        android:id="@+id/BackBtn"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:layout_marginStart="20dp"
-        android:layout_marginTop="20dp"
-        android:contentDescription="@string/back"
-        android:background="@drawable/ripple"
-        android:onClick="Back"
-        android:src="@drawable/ic_back"
-        android:text="Back" />
-
-    <TextView
-        android:id="@+id/TitleText"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:id="@+id/topBar"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:layout_marginStart="20dp"
-        android:layout_marginTop="20dp"
-        android:layout_toEndOf="@+id/BackBtn"
-        android:text="About"
-        android:textColor="?colorOnBackground"
-        android:textSize="30sp" />
+        android:layout_marginTop="10dp"
+        android:gravity="center_vertical"
+        >
+
+        <ImageButton
+            android:id="@+id/BackBtn"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="10dp"
+            android:contentDescription="@string/back"
+            android:background="@drawable/ripple"
+            android:onClick="Back"
+            android:src="@drawable/ic_back"
+
+            android:text="@string/back" />
+
+        <TextView
+            android:id="@+id/TitleText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:text="@string/about"
+            android:textStyle="bold"
+            android:textColor="?colorOnBackground"
+            android:textSize="30sp" />
+
+    </LinearLayout>
+
     <androidx.core.widget.NestedScrollView
         android:id="@+id/nestedList"
         android:layout_width="600dp"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/BackBtn"
+        android:layout_below="@+id/topBar"
         android:layout_marginTop="10dp"
         android:layout_centerHorizontal="true"
 
         >
         <RelativeLayout
+            android:id="@+id/scrollRL"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
@@ -72,7 +84,7 @@
                     android:layout_marginTop="20dp"
 
                     android:layout_marginBottom="5dp"
-                    android:text="Open source libraries"
+                    android:text="@string/open_source_libraries"
                     android:textSize="25sp" />
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/LibrariesList"
@@ -94,7 +106,7 @@
                 android:layout_centerHorizontal="true"
                 android:layout_marginTop="20dp"
                 android:onClick="CheckForUpdate"
-                android:text="Check for update"
+                android:text="@string/check_for_update"
                 />
 
             <Button
@@ -105,7 +117,7 @@
                 android:layout_centerHorizontal="true"
                 android:layout_marginVertical="10dp"
                 android:onClick="SendFeedback"
-                android:text="Send Feedback"
+                android:text="@string/send_feedback"
                 android:background="@drawable/ripple"
                 android:textColor="?colorOnBackground"
                 />

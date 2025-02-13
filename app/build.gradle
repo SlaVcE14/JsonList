@@ -3,14 +3,14 @@ plugins {
 }
 
 android {
-    compileSdk 34
+    compileSdk 35
 
     defaultConfig {
         applicationId "com.sjapps.jsonlist"
         minSdk 23
-        targetSdk 34
-        versionCode 20
-        versionName "1.5"
+        targetSdk 35
+        versionCode 30
+        versionName "1.6"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.generatedDensities = []
@@ -51,4 +51,5 @@ dependencies {
     implementation 'com.google.code.gson:gson:2.11.0'
     implementation 'com.github.slavce14:sj-dialog:1.7'
     implementation "androidx.core:core-splashscreen:1.0.1"
+    implementation "com.squareup.okhttp3:okhttp:4.12.0"
 }
