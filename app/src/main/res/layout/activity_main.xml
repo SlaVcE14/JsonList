@@ -313,6 +313,26 @@
                 />
         </LinearLayout>
     </RelativeLayout>
+    <RelativeLayout
+        android:id="@+id/pathListBG"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/background_transparent"
+        android:visibility="gone"
+        >
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/pathList"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:listSelector="@drawable/transparent_drawable"
+            android:layout_marginTop="60dp"
+            android:background="@drawable/background3"
+            android:layout_marginHorizontal="15dp"
+            />
+
+    </RelativeLayout>
+
 
 
     <RelativeLayout
