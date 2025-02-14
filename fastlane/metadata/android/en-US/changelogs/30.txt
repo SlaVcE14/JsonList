@@ -1,0 +1,11 @@
+New features
+- Added support for loading JSON from a URL
+- Clicking on the path now displays the full path
+
+Updates
+- Update UI 
+- Update raw JSON view
+  - Enhanced performance for raw JSON rendering and syntax highlighting
+  - Added pinch-to-zoom support 
+- Android 15 support
+  - Implemented edge-to-edge support
