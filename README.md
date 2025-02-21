@@ -1,6 +1,6 @@
 ![repo preview](https://repository-images.githubusercontent.com/507594462/e7b2ef28-e03a-45ad-bacb-97fdaf7c5b07)
 # JsonList
-Introducing a Material You Android application for previewing JSON files in a user-friendly list format.
+Introducing a Material You Android application for previewing JSON from a file or URL in a user-friendly list format.
 
 [<img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png"
      alt="Get it on F-Droid"
