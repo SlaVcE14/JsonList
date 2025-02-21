@@ -1,1 +1,1 @@
-<p><i>Json List</i> is a lightweight, easy to use app that lets you open any JSON file and displays it in user-friendly list format. It supports Material You dynamic color.</p>
+<p><i>Json List</i> is a lightweight, easy to use app that lets you open any JSON file or enter a url to a JSON and display it in user-friendly list format. It supports Material You dynamic color, Split screen for viewing raw JSON and list view at the same time and filters.</p>
