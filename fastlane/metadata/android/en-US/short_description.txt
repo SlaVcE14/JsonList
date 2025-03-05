@@ -1,1 +1,1 @@
-previewing JSON files in a user-friendly list format
+previewing JSON from file or url in a user-friendly list format
