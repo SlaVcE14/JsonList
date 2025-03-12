@@ -1,4 +1,4 @@
-package com.sjapps.jsonlist.java;
+package com.sjapps.jsonlist.core;
 
 import static org.junit.Assert.*;
 
@@ -9,9 +9,6 @@ import com.google.gson.JsonParser;
 import com.sjapps.jsonlist.FileSystem;
 
 import org.junit.Test;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class IsArrayOfObjectsTest {
 

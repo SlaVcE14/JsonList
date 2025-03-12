@@ -1,4 +1,4 @@
-package com.sjapps.jsonlist;
+package com.sjapps.jsonlist.core;
 
 public class AppState {
     boolean hasNewCrash;

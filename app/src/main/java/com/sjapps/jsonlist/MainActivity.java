@@ -1,6 +1,6 @@
 package com.sjapps.jsonlist;
 
-import static com.sjapps.jsonlist.java.JsonFunctions.*;
+import static com.sjapps.jsonlist.core.JsonFunctions.*;
 
 import androidx.activity.OnBackPressedCallback;
 import androidx.activity.result.ActivityResultLauncher;
@@ -39,7 +39,6 @@ import android.view.animation.DecelerateInterpolator;
 import android.view.animation.OvershootInterpolator;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
-import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.widget.Button;
 import android.widget.EditText;
@@ -61,9 +60,13 @@ import com.google.gson.JsonParser;
 import com.sjapps.about.AboutActivity;
 import com.sjapps.adapters.ListAdapter;
 import com.sjapps.adapters.PathListAdapter;
-import com.sjapps.jsonlist.java.JsonData;
-import com.sjapps.jsonlist.java.JsonFunctions;
-import com.sjapps.jsonlist.java.ListItem;
+import com.sjapps.jsonlist.core.AppState;
+import com.sjapps.jsonlist.core.FileManager;
+import com.sjapps.jsonlist.core.JsonData;
+import com.sjapps.jsonlist.core.JsonFunctions;
+import com.sjapps.jsonlist.core.ListItem;
+import com.sjapps.jsonlist.core.RawJsonView;
+import com.sjapps.jsonlist.core.WebManager;
 import com.sjapps.library.customdialog.BasicDialog;
 import com.sjapps.library.customdialog.ListDialog;
 import com.sjapps.logs.CustomExceptionHandler;
@@ -72,12 +75,6 @@ import com.sjapps.logs.LogActivity;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-
-import okhttp3.Call;
-import okhttp3.Callback;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -94,7 +91,7 @@ public class MainActivity extends AppCompatActivity {
     JsonData data = new JsonData();
     LinearLayout progressView, mainLL;
     LinearProgressIndicator progressBar;
-    boolean isMenuOpen, showJson, isRawJsonLoaded, isTopMenuVisible, isUrlSearching, isVertical = true;
+    boolean isMenuOpen, isRawJsonLoaded, isTopMenuVisible, isUrlSearching, isVertical = true;
     ListAdapter adapter;
     PathListAdapter pathAdapter;
     View menu, dim_bg, pathListView;
@@ -110,6 +107,9 @@ public class MainActivity extends AppCompatActivity {
     View fullRawBtn;
     LinearLayout topMenu;
     int listPrevDx = 0;
+    RawJsonView rawJsonView;
+    FileManager fileManager;
+    WebManager webController;
 
     ArrayList<String> filterList = new ArrayList<>();
 
@@ -131,6 +131,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         initialize();
         setLayoutBounds();
+        setEvents();
 
         if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE){
             isVertical = false;
@@ -138,16 +139,120 @@ public class MainActivity extends AppCompatActivity {
             updateFullRawBtn();
         }
 
+        Intent intent = getIntent();
+        Log.d(TAG, "onCreate: " + intent);
+        if (Intent.ACTION_VIEW.equals(intent.getAction())) {
+            ReadFile(intent.getData());
+        }
+        if (intent.getAction().equals("android.intent.action.OPEN_FILE")){
+            fileManager.importFromFile();
+        }
+        if (intent.getAction().equals("android.intent.action.OPEN_URL")){
+            showUrlSearchView();
+        }
+
         functions.setAnimation(this,fileImg,R.anim.scale_in_file_img, new DecelerateInterpolator());
         functions.setAnimation(this,openFileBtn,R.anim.button_pop, new OvershootInterpolator());
 
         autoTransition.setDuration(150);
+    }
+
+    private void initialize() {
+        getOnBackPressedDispatcher().addCallback(this, backPressedCallback);
+        backBtn = findViewById(R.id.backBtn);
+        menuBtn = findViewById(R.id.menuBtn);
+        mainLL = findViewById(R.id.mainLL);
+        splitViewBtn = findViewById(R.id.splitViewBtn);
+        filterBtn = findViewById(R.id.filterBtn);
+        titleTxt = findViewById(R.id.titleTxt);
+        emptyListTxt = findViewById(R.id.emptyListTxt);
+        list = findViewById(R.id.list);
+        pathListView = findViewById(R.id.pathListBG);
+        pathList = findViewById(R.id.pathList);
+        listRL = findViewById(R.id.listRL);
+        openFileBtn = findViewById(R.id.openFileBtn);
+        openUrlBtn = findViewById(R.id.openUrlBtn);
+        urlSearch = findViewById(R.id.urlSearch);
+        urlLL = findViewById(R.id.searchUrlView);
+        viewGroup = findViewById(R.id.content);
+        menu = findViewById(R.id.menu);
+        dim_bg = findViewById(R.id.dim_layout);
+        progressView = findViewById(R.id.loadingView);
+        progressBar = findViewById(R.id.progressBar);
+        fileImg = findViewById(R.id.fileImg);
+        dim_bg.bringToFront();
+        menu.bringToFront();
+        rawJsonRL = findViewById(R.id.rawJsonRL);
+        rawJsonWV = findViewById(R.id.rawJsonWV);
+        menuBtn.bringToFront();
+        dropTarget = findViewById(R.id.dropTarget);
+        fullRawBtn = findViewById(R.id.fullRawBtn);
+        topMenu = findViewById(R.id.topMenu);
+
+        LinearLayoutManager pathLM = new LinearLayoutManager(this);
+        LinearLayoutManager layoutManager = new LinearLayoutManager(this){
+            @Override
+            public int scrollVerticallyBy(int dx, RecyclerView.Recycler recycler, RecyclerView.State state) {
+                int scrollRange = super.scrollVerticallyBy(dx, recycler, state);
+                int overScroll = dx - scrollRange;
+
+                if ((dx < -40 || overScroll < -10) && !isTopMenuVisible && Math.abs(listPrevDx - dx) < 100) {
+                    showTopMenu();
+                    listPrevDx = dx;
+                    return scrollRange;
+                }
+
+                if (dx > 40 && isTopMenuVisible && Math.abs(listPrevDx - dx) < 100){
+                    listPrevDx = dx;
+                    hideTopMenu();
+                }
+                listPrevDx = dx;
+                return scrollRange;
+            }
+        };
+
+        int textColor = functions.setColor(this,R.attr.colorOnSecondaryContainer);
+        int keyColor = functions.setColor(this,R.attr.colorPrimary);
+        int numberColor = functions.setColor(this,R.attr.colorTertiary);
+        int booleanAndNullColor = functions.setColor(this,R.attr.colorError);
+        int bgColor = functions.setColor(this,R.attr.colorSecondaryContainer);
+
+        rawJsonView = new AndroidRawJsonView(this,textColor,keyColor,numberColor,booleanAndNullColor,bgColor);
+
+        webController =  new AndroidWebManager(this);
+
+        rawJsonView.updateRawJson("");
+
+        list.setLayoutManager(layoutManager);
+        pathList.setLayoutManager(pathLM);
+
+        fileManager = new AndroidFileManager(this,handler);
+
+    }
+
+    private void setLayoutBounds() {
+        ViewCompat.setOnApplyWindowInsetsListener(viewGroup, (v, windowInsets) -> {
+            Insets insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars());
+            Insets insetsN = windowInsets.getInsets(WindowInsetsCompat.Type.displayCutout());
+
+            ViewGroup.MarginLayoutParams layoutParams = (ViewGroup.MarginLayoutParams) v.getLayoutParams();
+
+            layoutParams.leftMargin = insets.left + insetsN.left;
+            layoutParams.topMargin = insets.top;
+            layoutParams.rightMargin = insets.right + insetsN.right;
+            layoutParams.bottomMargin = insets.bottom;
+            v.setLayoutParams(layoutParams);
+            return WindowInsetsCompat.CONSUMED;
+        });
+    }
+
+    private void setEvents(){
         menuBtn.setOnClickListener(view -> open_closeMenu());
 
         backBtn.setOnClickListener(view -> {
             if(!data.isEmptyPath() || urlLL.getVisibility() == View.VISIBLE) getOnBackPressedDispatcher().onBackPressed();
         });
-        openFileBtn.setOnClickListener(view -> ImportFromFile());
+        openFileBtn.setOnClickListener(view -> fileManager.importFromFile());
         openUrlBtn.setOnClickListener(view -> {
             showUrlSearchView();
         });
@@ -159,12 +264,13 @@ public class MainActivity extends AppCompatActivity {
 
         pathListView.setOnClickListener(v -> showHidePathList());
 
+        //TODO Web
         urlSearch.setOnEditorActionListener((v, actionId, event) -> {
             if (actionId == EditorInfo.IME_ACTION_DONE ||
                     actionId == EditorInfo.IME_ACTION_SEARCH ||
                     event != null &&
-                    event.getAction() == KeyEvent.ACTION_DOWN &&
-                    event.getKeyCode() == KeyEvent.KEYCODE_ENTER){
+                            event.getAction() == KeyEvent.ACTION_DOWN &&
+                            event.getKeyCode() == KeyEvent.KEYCODE_ENTER){
 
                 SearchUrl();
                 return true;
@@ -173,7 +279,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
         menu.findViewById(R.id.openFileBtn2).setOnClickListener(view -> {
-            ImportFromFile();
+            fileManager.importFromFile();
             open_closeMenu();
         });
         menu.findViewById(R.id.searchUrlBtn).setOnClickListener(view -> {
@@ -195,14 +301,6 @@ public class MainActivity extends AppCompatActivity {
         dim_bg.setOnClickListener(view -> open_closeMenu());
         splitViewBtn.setOnClickListener(view -> open_closeSplitView());
         filterBtn.setOnClickListener(view -> filter());
-        Intent intent = getIntent();
-        Log.d(TAG, "onCreate: " + intent);
-        if (Intent.ACTION_VIEW.equals(intent.getAction())) {
-            ReadFile(intent.getData());
-        }
-        if (intent.getAction().equals("android.intent.action.OPEN_FILE")){
-            ImportFromFile();
-        }
 
         dropTarget.setOnDragListener((v, event) -> {
 
@@ -275,34 +373,6 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private void setLayoutBounds() {
-        ViewCompat.setOnApplyWindowInsetsListener(viewGroup, (v, windowInsets) -> {
-            Insets insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars());
-            Insets insetsN = windowInsets.getInsets(WindowInsetsCompat.Type.displayCutout());
-
-            ViewGroup.MarginLayoutParams layoutParams = (ViewGroup.MarginLayoutParams) v.getLayoutParams();
-
-            layoutParams.leftMargin = insets.left + insetsN.left;
-            layoutParams.topMargin = insets.top;
-            layoutParams.rightMargin = insets.right + insetsN.right;
-            layoutParams.bottomMargin = insets.bottom;
-            v.setLayoutParams(layoutParams);
-            return WindowInsetsCompat.CONSUMED;
-        });
-    }
-
-    private void LoadStateData() {
-        boolean prevSH = state != null && state.isSyntaxHighlighting();
-
-        state = FileSystem.loadStateData(this);
-
-        if (isRawJsonLoaded && prevSH != state.isSyntaxHighlighting()) {
-            isRawJsonLoaded = false;
-            if (showJson)
-                ShowJSON();
-        }
-    }
-
     @Override
     public void onConfigurationChanged(@NonNull Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
@@ -319,6 +389,67 @@ public class MainActivity extends AppCompatActivity {
         }else {
             mainLL.setOrientation(LinearLayout.VERTICAL);
             updateFullRawBtn();
+        }
+    }
+
+    OnBackPressedCallback backPressedCallback = new OnBackPressedCallback(true) {
+        @Override
+        public void handleOnBackPressed() {
+            if (pathListView.getVisibility() == View.VISIBLE){
+                showHidePathList();
+                return;
+            }
+
+            if (isMenuOpen) {
+                open_closeMenu();
+                return;
+            }
+
+            if (urlLL.getVisibility() == View.VISIBLE){
+                hideUrlSearchView();
+                return;
+            }
+
+            if (listRL.getVisibility() == View.GONE){
+                FullRaw(null);
+                return;
+            }
+
+            if (adapter!= null && adapter.selectedItem != -1){
+                adapter.selectedItem = -1;
+                adapter.notifyItemRangeChanged(0,adapter.getItemCount());
+                return;
+            }
+
+            if (data.isEmptyPath()){
+                BasicDialog dialog = new BasicDialog();
+                dialog.Builder(MainActivity.this, true)
+                        .setTitle(getString(R.string.exit))
+                        .setLeftButtonText(getString(R.string.no))
+                        .setRightButtonText(getString(R.string.yes))
+                        .onButtonClick(() ->{
+                            dialog.dismiss();
+                            MainActivity.this.finish();
+                        })
+                        .show();
+                return;
+            }
+            TransitionManager.endTransitions(viewGroup);
+            TransitionManager.beginDelayedTransition(viewGroup, autoTransition);
+            data.goBack();
+            open(JsonData.getPathFormat(data.getPath()), data.getPath(),-1);
+        }
+    };
+
+    public void LoadStateData() {
+        boolean prevSH = state != null && state.isSyntaxHighlighting();
+
+        state = FileSystem.loadStateData(this);
+
+        if (isRawJsonLoaded && prevSH != state.isSyntaxHighlighting()) {
+            isRawJsonLoaded = false;
+            if (rawJsonView.showJson)
+                ShowJSON();
         }
     }
 
@@ -359,120 +490,6 @@ public class MainActivity extends AppCompatActivity {
         startActivity(new Intent(MainActivity.this, LogActivity.class));
     }
 
-    OnBackPressedCallback backPressedCallback = new OnBackPressedCallback(true) {
-        @Override
-        public void handleOnBackPressed() {
-            if (pathListView.getVisibility() == View.VISIBLE){
-                showHidePathList();
-                return;
-            }
-
-            if (isMenuOpen) {
-                open_closeMenu();
-                return;
-            }
-
-            if (urlLL.getVisibility() == View.VISIBLE){
-                hideUrlSearchView();
-                return;
-            }
-
-            if (listRL.getVisibility() == View.GONE){
-                FullRaw(null);
-                return;
-            }
-
-            if (adapter!= null && adapter.selectedItem != -1){
-                adapter.selectedItem = -1;
-                adapter.notifyItemRangeChanged(0,adapter.getItemCount());
-                return;
-            }
-
-            if (data.isEmptyPath()){
-                BasicDialog dialog = new BasicDialog();
-                dialog.Builder(MainActivity.this, true)
-                        .setTitle(getString(R.string.exit))
-                        .setLeftButtonText(getString(R.string.no))
-                        .setRightButtonText(getString(R.string.yes))
-                        .onButtonClick(() ->{
-                                dialog.dismiss();
-                                MainActivity.this.finish();
-                        })
-                        .show();
-                return;
-            }
-            TransitionManager.endTransitions(viewGroup);
-            TransitionManager.beginDelayedTransition(viewGroup, autoTransition);
-            data.goBack();
-            open(JsonData.getPathFormat(data.getPath()), data.getPath(),-1);
-        }
-    };
-
-    private void initialize() {
-        getOnBackPressedDispatcher().addCallback(this, backPressedCallback);
-        backBtn = findViewById(R.id.backBtn);
-        menuBtn = findViewById(R.id.menuBtn);
-        mainLL = findViewById(R.id.mainLL);
-        splitViewBtn = findViewById(R.id.splitViewBtn);
-        filterBtn = findViewById(R.id.filterBtn);
-        titleTxt = findViewById(R.id.titleTxt);
-        emptyListTxt = findViewById(R.id.emptyListTxt);
-        list = findViewById(R.id.list);
-        pathListView = findViewById(R.id.pathListBG);
-        pathList = findViewById(R.id.pathList);
-        listRL = findViewById(R.id.listRL);
-        openFileBtn = findViewById(R.id.openFileBtn);
-        openUrlBtn = findViewById(R.id.openUrlBtn);
-        urlSearch = findViewById(R.id.urlSearch);
-        urlLL = findViewById(R.id.searchUrlView);
-        viewGroup = findViewById(R.id.content);
-        menu = findViewById(R.id.menu);
-        dim_bg = findViewById(R.id.dim_layout);
-        progressView = findViewById(R.id.loadingView);
-        progressBar = findViewById(R.id.progressBar);
-        fileImg = findViewById(R.id.fileImg);
-        dim_bg.bringToFront();
-        menu.bringToFront();
-        rawJsonRL = findViewById(R.id.rawJsonRL);
-        rawJsonWV = findViewById(R.id.rawJsonWV);
-        menuBtn.bringToFront();
-        dropTarget = findViewById(R.id.dropTarget);
-        fullRawBtn = findViewById(R.id.fullRawBtn);
-        topMenu = findViewById(R.id.topMenu);
-
-        LinearLayoutManager pathLM = new LinearLayoutManager(this);
-        LinearLayoutManager layoutManager = new LinearLayoutManager(this){
-            @Override
-            public int scrollVerticallyBy(int dx, RecyclerView.Recycler recycler, RecyclerView.State state) {
-                int scrollRange = super.scrollVerticallyBy(dx, recycler, state);
-                int overScroll = dx - scrollRange;
-
-                if ((dx < -40 || overScroll < -10) && !isTopMenuVisible && Math.abs(listPrevDx - dx) < 100) {
-                    showTopMenu();
-                    listPrevDx = dx;
-                    return scrollRange;
-                }
-
-                if (dx > 40 && isTopMenuVisible && Math.abs(listPrevDx - dx) < 100){
-                    listPrevDx = dx;
-                    hideTopMenu();
-                }
-                listPrevDx = dx;
-                return scrollRange;
-            }
-        };
-
-        WebSettings webSettings = rawJsonWV.getSettings();
-        webSettings.setBuiltInZoomControls(true);
-        webSettings.setDisplayZoomControls(false);
-        webSettings.setSupportZoom(true);
-
-        updateRawJson("");
-
-        list.setLayoutManager(layoutManager);
-        pathList.setLayoutManager(pathLM);
-
-    }
     private void showTopMenu() {
         topMenu.animate().cancel();
 
@@ -508,8 +525,6 @@ public class MainActivity extends AppCompatActivity {
             menuBtn.setImageResource(R.drawable.ic_menu);
             isMenuOpen = false;
         }
-
-
     }
 
     private void showUrlSearchView() {
@@ -531,7 +546,7 @@ public class MainActivity extends AppCompatActivity {
         imm.showSoftInput(urlSearch, InputMethodManager.SHOW_IMPLICIT);
     }
 
-    private void hideUrlSearchView() {
+    public void hideUrlSearchView() {
         urlLL.setVisibility(View.GONE);
         TransitionManager.beginDelayedTransition(viewGroup, autoTransition);
         mainLL.setVisibility(View.VISIBLE);
@@ -631,7 +646,7 @@ public class MainActivity extends AppCompatActivity {
             }
 
             isRawJsonLoaded = false;
-            if (showJson)
+            if (rawJsonView.showJson)
                 handler.post(this::ShowJSON);
             else handler.post(() -> loadingFinished(true));
 
@@ -670,7 +685,7 @@ public class MainActivity extends AppCompatActivity {
         }
         else data.addPreviousPos(previousPosition);
 
-        if (arrayList.size() == 0) {
+        if (arrayList.isEmpty()) {
             emptyListTxt.setVisibility(View.VISIBLE);
         }
         System.out.println("path = " + path);
@@ -738,15 +753,15 @@ public class MainActivity extends AppCompatActivity {
         TransitionManager.endTransitions(viewGroup);
         TransitionManager.beginDelayedTransition(viewGroup, autoTransition);
 
-        if (showJson){
+        if (rawJsonView.showJson){
             functions.setAnimation(this,rawJsonRL,isVertical?R.anim.slide_bottom_out:R.anim.slide_right_out,new AccelerateDecelerateInterpolator());
             handler.postDelayed(()-> rawJsonRL.setVisibility(View.GONE),400);
-            showJson = false;
+            rawJsonView.showJson = false;
             if (listRL.getVisibility() == View.GONE)
                 listRL.setVisibility(View.VISIBLE);
             return;
         }
-        showJson = true;
+        rawJsonView.showJson = true;
         rawJsonRL.setVisibility(View.VISIBLE);
         functions.setAnimation(this,rawJsonRL,isVertical?R.anim.slide_bottom_in:R.anim.slide_right_in,new DecelerateInterpolator());
         if (!isRawJsonLoaded)
@@ -809,11 +824,11 @@ public class MainActivity extends AppCompatActivity {
             Snackbar.make(getWindow().getDecorView(), R.string.file_is_to_large_to_be_shown_in_a_split_screen, BaseTransientBottomBar.LENGTH_SHORT).show();
             if (progressView.getVisibility() == View.VISIBLE)
                 loadingFinished(true);
-            if (showJson)
+            if (rawJsonView.showJson)
                 open_closeSplitView();
             return;
         }
-        if (data.getRawData().equals(""))
+        if (data.getRawData().isEmpty())
             return;
 
         loadingStarted(getString(R.string.displaying_json));
@@ -821,7 +836,7 @@ public class MainActivity extends AppCompatActivity {
         Thread thread = new Thread(() -> {
             String dataStr = JsonFunctions.getAsPrettyPrint(data.getRawData());
             handler.post(()-> {
-                updateRawJson(dataStr);
+                rawJsonView.updateRawJson(dataStr);
                 loadingFinished(true);
                 isRawJsonLoaded = true;
             });
@@ -831,114 +846,75 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    private void updateRawJson(String json) {
-        String htmlData = generateHtml(json);
-        rawJsonWV.loadDataWithBaseURL(null, htmlData, "text/html", "UTF-8", null);
-    }
-
-    private String generateHtml(String jsonStr) {
-
-        int textColor = functions.setColor(this,R.attr.colorOnSecondaryContainer);
-        int keyColor = functions.setColor(this,R.attr.colorPrimary);
-        int numberColor = functions.setColor(this,R.attr.colorTertiary);
-        int booleanAndNullColor = functions.setColor(this,R.attr.colorError);
-        int bgColor = functions.setColor(this,R.attr.colorSecondaryContainer);
-
-        String textColorHex = String.format("#%06X", (0xFFFFFF & textColor));
-        String keyColorHex = String.format("#%06X", (0xFFFFFF & keyColor));
-        String numberColorHex = String.format("#%06X", (0xFFFFFF & numberColor));
-        String booleanAndNullColorHex = String.format("#%06X", (0xFFFFFF & booleanAndNullColor));
-        String bgColorHex = String.format("#%06X", (0xFFFFFF & bgColor));
-
-        if (state != null && state.isSyntaxHighlighting())
-            jsonStr = highlightJsonSyntax(jsonStr);
-
-        String style =
-                ".key { color: " + keyColorHex + "; }" +
-                ".string { color: " + textColorHex + "; }" +
-                ".number { color: " + numberColorHex + "; }" +
-                ".boolean { color: " + booleanAndNullColorHex + "; }" +
-                ".null { color: " + booleanAndNullColorHex + "; }";
-
-        return "<html>" +
-                "<head>" +
-                "<style>" +
-                "body { background-color: " + bgColorHex + "; color: " + textColorHex + "; padding: 10px; }" +
-                style +
-                "</style>" +
-                "</head>" +
-                "<body>" +
-                "<pre>" + jsonStr + "</pre>" +
-                "</body>" +
-                "</html>";
-    }
-
-    private String highlightJsonSyntax(String json) {
-        json = json.replaceAll("&", "&amp;")
-                .replaceAll("<", "&lt;")
-                .replaceAll(">", "&gt;")
-                .replaceAll("\"(.*?)\"(?=\\s*:)", "<span class='key'>\"$1\"</span>") // Keys
-                .replaceAll(":\\s*\"(.*?)\"", ": <span class='string'>\"$1\"</span>") // Strings
-                .replaceAll(":\\s*(-?\\d+(\\.\\d+)?)", ": <span class='number'>$1</span>") // Numbers
-                .replaceAll(":\\s*(true|false)", ": <span class='boolean'>$1</span>") // Booleans
-                .replaceAll(":\\s*(null)", ": <span class='null'>$1</span>"); // Null
-        return json;
-    }
-
-    private void ImportFromFile() {
-        if ((readFileThread != null && readFileThread.isAlive()) || isUrlSearching) {
-            Snackbar.make(getWindow().getDecorView(), R.string.loading_file_in_progress, BaseTransientBottomBar.LENGTH_SHORT).show();
-            return;
-        }
-        if (state == null)
-            LoadStateData();
-
-        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-        intent.addCategory(Intent.CATEGORY_OPENABLE);
-        intent.setType(state.isMIMEFilterDisabled()?"*/*" : Build.VERSION.SDK_INT > Build.VERSION_CODES.P?"application/json":"application/*");
-        ActivityResultData.launch(intent);
-    }
-
-
-    ActivityResultLauncher<Intent> ActivityResultData = registerForActivityResult(
-            new ActivityResultContracts.StartActivityForResult(),
-            result -> {
-                if (result.getResultCode() != Activity.RESULT_OK) {
-                    if(result.getResultCode() == Activity.RESULT_CANCELED){
-                        Toast.makeText(MainActivity.this, R.string.import_data_canceled,Toast.LENGTH_SHORT).show();
-                    }
-                    return;
-                }
-                if (result.getData() == null || result.getData().getData() == null){
-                    Toast.makeText(MainActivity.this, R.string.fail_to_load_data, Toast.LENGTH_SHORT).show();
-                    return;
-                }
-                //File
-                ReadFile(result.getData().getData());
+    private final FileManager.FileCallback fileCallback = new FileManager.FileCallback() {
+        @Override
+        public void onFileLoaded(String data) {
+            if (data == null) {
+                Log.d(TAG, "ReadFile: null data");
+                return;
+            }
+            handler.post(() -> {
+                LoadData(data);
             });
+
+        }
+
+        @Override
+        public void onFileLoadFailed() {
+            Toast.makeText(MainActivity.this, R.string.fail_to_load_file, Toast.LENGTH_SHORT).show();
+        }
+
+        @Override
+        public void onProgressUpdate(int progress) {
+            handler.post(()->{
+                progressBar.setProgressCompat(progress,true);
+            });
+        }
+    };
+
+    private final WebManager.WebCallback webCallback = new WebManager.WebCallback() {
+        @Override
+        public void onResponse(String data) {
+            handler.post(()-> loadingFinished(false));
+            isUrlSearching = false;
+            LoadData(data);
+        }
+
+        @Override
+        public void onFailure() {
+            handler.post(()-> loadingFinished(false));
+            isUrlSearching = false;
+            handler.post(()-> Toast.makeText(MainActivity.this,"Fail",Toast.LENGTH_SHORT).show());
+        }
+
+        @Override
+        public void onFailure(int code) {
+            handler.post(()-> loadingFinished(false));
+            isUrlSearching = false;
+            handler.post(()->Toast.makeText(MainActivity.this, "Fail, Code:" + code, Toast.LENGTH_SHORT).show());
+        }
+    };
 
     void ReadFile(Uri uri){
         if ((readFileThread != null && readFileThread.isAlive()) || isUrlSearching){
             return;
         }
+        ((AndroidFileManager) fileManager).validatePath(uri);
+
         loadingStarted(getString(R.string.reading_file));
 
         try {
             InputStream inputStream = getContentResolver().openInputStream(uri);
-            AssetFileDescriptor fileDescriptor = getContentResolver().openAssetFileDescriptor(uri , "r");
+            AssetFileDescriptor fileDescriptor = getContentResolver().openAssetFileDescriptor(uri, "r");
+            if (fileDescriptor == null) {
+                fileCallback.onFileLoadFailed();
+                return;
+            }
+            long fileSize = fileDescriptor.getLength();
 
+            fileDescriptor.close();
             readFileThread = new Thread(() -> {
-
-                String Data = FileSystem.LoadDataFromFile(MainActivity.this, uri, inputStream, fileDescriptor);
-
-                if (Data == null) {
-                    Log.d(TAG, "ReadFile: null data");
-                    return;
-                }
-                handler.post(() -> {
-                    LoadData(Data);
-                });
-
+                fileManager.readFile(inputStream, fileSize, fileCallback);
             });
             readFileThread.setName("readFileThread");
             readFileThread.start();
@@ -952,52 +928,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void SearchUrl() {
-        getFromUrl(urlSearch.getText().toString());
+        webController.getFromUrl(urlSearch.getText().toString(),webCallback);
         InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
         imm.hideSoftInputFromWindow(urlSearch.getWindowToken(), 0);
-    }
-
-    void getFromUrl(String url){
-        if (url.trim().isEmpty())
-            return;
-
-        if (!url.startsWith("http"))
-            url = "https://" + url;
-
-        OkHttpClient client = new OkHttpClient();
-        Request request;
-        try {
-             request = new Request.Builder()
-                    .url(url)
-                    .build();
-
-        }catch (IllegalArgumentException e){
-            Toast.makeText(this, getString(R.string.invalid_url), Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        hideUrlSearchView();
-
-        client.newCall(request).enqueue(new Callback() {
-            @Override
-            public void onFailure(@NonNull Call call, @NonNull IOException e) {
-                handler.post(()-> loadingFinished(false));
-                isUrlSearching = false;
-                handler.post(()-> Toast.makeText(MainActivity.this,"Fail",Toast.LENGTH_SHORT).show());
-            }
-
-            @Override
-            public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
-                handler.post(()-> loadingFinished(false));
-                isUrlSearching = false;
-                if (response.body() != null)
-                    LoadData(response.body().string());
-                else handler.post(()->Toast.makeText(MainActivity.this, "Fail, Code:" + response.code(), Toast.LENGTH_SHORT).show());
-            }
-        });
-        loadingStarted();
-        isUrlSearching = true;
-
     }
 
     void loadingStarted(){
@@ -1016,12 +949,6 @@ public class MainActivity extends AppCompatActivity {
                 progressView.setVisibility(View.VISIBLE);
             }
         },300);
-
-    }
-    public void updateProgress(int val){
-        handler.post(()->{
-            progressBar.setProgressCompat(val,true);
-        });
 
     }
 
@@ -1048,6 +975,23 @@ public class MainActivity extends AppCompatActivity {
             progressView.setVisibility(View.INVISIBLE);
         },1000);
     }
+
+    ActivityResultLauncher<Intent> ActivityResultData = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                if (result.getResultCode() != Activity.RESULT_OK) {
+                    if(result.getResultCode() == Activity.RESULT_CANCELED){
+                        Toast.makeText(MainActivity.this, R.string.import_data_canceled,Toast.LENGTH_SHORT).show();
+                    }
+                    return;
+                }
+                if (result.getData() == null || result.getData().getData() == null){
+                    fileCallback.onFileLoadFailed();
+                    return;
+                }
+                //File
+                ReadFile(result.getData().getData());
+            });
 
     void fileTooLargeException(){
         postMessageException(getString(R.string.file_is_too_large));
