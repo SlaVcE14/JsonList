@@ -19,7 +19,7 @@ public class GetJsonArrayRootTest {
         String data = "[ {data2:\"123\"} ]";
         JsonElement element = JsonParser.parseString(data);
 
-        JsonArray array = JsonFunctions.loadDataToJsonArray(element);
+        JsonArray array = element.getAsJsonArray();
 
         ArrayList<ListItem> itemsArr = JsonFunctions.getJsonArrayRoot(array);
         ArrayList<ListItem> expectedArr = new ArrayList<>();
@@ -48,7 +48,7 @@ public class GetJsonArrayRootTest {
         String data = "[{\"data2\":123},1242,true,null]";
         JsonElement element = JsonParser.parseString(data);
 
-        JsonArray array = JsonFunctions.loadDataToJsonArray(element);
+        JsonArray array = element.getAsJsonArray();
 
         ArrayList<ListItem> itemsArr = JsonFunctions.getJsonArrayRoot(array);
 

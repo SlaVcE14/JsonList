@@ -175,11 +175,4 @@ public class JsonFunctions {
         Gson gson = new Gson().newBuilder().setPrettyPrinting().serializeNulls().create();
         return gson.toJson(json);
     }
-
-    public static JsonObject loadDataToJsonObj(JsonElement data){
-        return data.getAsJsonObject();
-    }
-    public static JsonArray loadDataToJsonArray(JsonElement data) {
-        return data.getAsJsonArray();
-    }
 }

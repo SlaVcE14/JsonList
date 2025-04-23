@@ -57,11 +57,11 @@ public class AndroidJsonLoader implements JsonLoader {
             try {
                 data.setRootList(null);
                 if (element instanceof JsonObject) {
-                    JsonObject object = JsonFunctions.loadDataToJsonObj(element);
+                    JsonObject object = element.getAsJsonObject();
                     data.setRootList(getJsonObject(object));
                 }
                 if (element instanceof JsonArray) {
-                    JsonArray array = JsonFunctions.loadDataToJsonArray(element);
+                    JsonArray array = element.getAsJsonArray();
                     data.setRootList(getJsonArrayRoot(array));
                 }
                 if (Data.length()<500000)

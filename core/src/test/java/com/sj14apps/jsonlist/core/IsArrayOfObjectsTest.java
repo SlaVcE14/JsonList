@@ -63,10 +63,10 @@ public class IsArrayOfObjectsTest {
         String data2 = "[{'test':'val'},{'test2':true}]";
 
         JsonElement element = JsonParser.parseString(data);
-        JsonArray array = JsonFunctions.loadDataToJsonArray(element);
+        JsonArray array = element.getAsJsonArray();
 
         JsonElement element2 = JsonParser.parseString(data2);
-        JsonArray array2 = JsonFunctions.loadDataToJsonArray(element2);
+        JsonArray array2 = element2.getAsJsonArray();
 
         assertTrue(JsonFunctions.isArrayOfObjects(array));
         assertTrue(JsonFunctions.isArrayOfObjects(array2));
@@ -105,10 +105,10 @@ public class IsArrayOfObjectsTest {
         String data2 = "[false,{'test':'val'},{'test2':true}]";
 
         JsonElement element = JsonParser.parseString(data);
-        JsonArray array = JsonFunctions.loadDataToJsonArray(element);
+        JsonArray array = element.getAsJsonArray();
 
         JsonElement element2 = JsonParser.parseString(data2);
-        JsonArray array2 = JsonFunctions.loadDataToJsonArray(element2);
+        JsonArray array2 = element2.getAsJsonArray();
 
         assertFalse(JsonFunctions.isArrayOfObjects(array));
         assertFalse(JsonFunctions.isArrayOfObjects(array2));
