@@ -1,4 +1,4 @@
-package com.sjapps.jsonlist;
+package com.sjapps.jsonlist.controllers;
 
 import android.transition.TransitionManager;
 import android.view.View;
@@ -7,8 +7,11 @@ import android.view.animation.DecelerateInterpolator;
 
 import com.google.android.material.snackbar.BaseTransientBottomBar;
 import com.google.android.material.snackbar.Snackbar;
+import com.sjapps.jsonlist.MainActivity;
+import com.sjapps.jsonlist.R;
 import com.sjapps.jsonlist.core.JsonFunctions;
-import com.sjapps.jsonlist.core.RawJsonView;
+import com.sjapps.jsonlist.core.controllers.RawJsonView;
+import com.sjapps.jsonlist.functions;
 
 public class AndroidRawJsonView extends RawJsonView {
 
@@ -21,12 +24,12 @@ public class AndroidRawJsonView extends RawJsonView {
     }
 
     @Override
-    public void open_closeSplitView() {
+    public void toggleSplitView() {
         TransitionManager.endTransitions(mainActivity.viewGroup);
         TransitionManager.beginDelayedTransition(mainActivity.viewGroup, mainActivity.autoTransition);
 
         if (showJson){
-            functions.setAnimation(mainActivity,mainActivity.rawJsonRL,mainActivity.isVertical?R.anim.slide_bottom_out:R.anim.slide_right_out,new AccelerateDecelerateInterpolator());
+            functions.setAnimation(mainActivity,mainActivity.rawJsonRL,mainActivity.isVertical? R.anim.slide_bottom_out:R.anim.slide_right_out,new AccelerateDecelerateInterpolator());
             mainActivity.handler.postDelayed(()-> mainActivity.rawJsonRL.setVisibility(View.GONE),400);
             showJson = false;
             if (mainActivity.listRL.getVisibility() == View.GONE)
@@ -36,7 +39,7 @@ public class AndroidRawJsonView extends RawJsonView {
         showJson = true;
         mainActivity.rawJsonRL.setVisibility(View.VISIBLE);
         functions.setAnimation(mainActivity,mainActivity.rawJsonRL,mainActivity.isVertical?R.anim.slide_bottom_in:R.anim.slide_right_in,new DecelerateInterpolator());
-        if (!mainActivity.isRawJsonLoaded)
+        if (!isRawJsonLoaded)
             ShowJSON();
     }
 
@@ -47,7 +50,7 @@ public class AndroidRawJsonView extends RawJsonView {
             if (mainActivity.progressView.getVisibility() == View.VISIBLE)
                 mainActivity.loadingFinished(true);
             if (showJson)
-                open_closeSplitView();
+                toggleSplitView();
             return;
         }
         if (mainActivity.data.getRawData().equals(""))
@@ -60,7 +63,7 @@ public class AndroidRawJsonView extends RawJsonView {
             mainActivity.handler.post(()-> {
                 updateRawJson(dataStr);
                 mainActivity.loadingFinished(true);
-                mainActivity.isRawJsonLoaded = true;
+                isRawJsonLoaded = true;
             });
         });
         thread.setName("loadingJson");
@@ -68,7 +71,7 @@ public class AndroidRawJsonView extends RawJsonView {
     }
 
     public void updateRawJson(String json) {
-        String htmlData = mainActivity.rawJsonView.generateHtml(json,mainActivity.state);
+        String htmlData = generateHtml(json,mainActivity.state);
         mainActivity.rawJsonWV.loadDataWithBaseURL(null, htmlData, "text/html", "UTF-8", null);
     }
 

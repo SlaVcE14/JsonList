@@ -1,4 +1,6 @@
-package com.sjapps.jsonlist.core;
+package com.sjapps.jsonlist.core.controllers;
+
+import com.sjapps.jsonlist.core.AppState;
 
 public abstract class RawJsonView{
 
@@ -9,6 +11,7 @@ public abstract class RawJsonView{
     int booleanAndNullColor;
     int bgColor;
     public boolean showJson;
+    public boolean isRawJsonLoaded;
 
     public RawJsonView(int textColor, int keyColor, int numberColor, int booleanAndNullColor, int bgColor) {
         this.textColor = textColor;
@@ -61,7 +64,7 @@ public abstract class RawJsonView{
         return json;
     }
 
-    public abstract void open_closeSplitView();
+    public abstract void toggleSplitView();
     public abstract void ShowJSON();
     public abstract void updateRawJson(String string);
 }

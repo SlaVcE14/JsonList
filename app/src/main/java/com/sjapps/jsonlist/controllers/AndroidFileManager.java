@@ -1,8 +1,10 @@
-package com.sjapps.jsonlist;
+package com.sjapps.jsonlist.controllers;
 
 import com.google.android.material.snackbar.BaseTransientBottomBar;
 import com.google.android.material.snackbar.Snackbar;
-import com.sjapps.jsonlist.core.FileManager;
+import com.sjapps.jsonlist.MainActivity;
+import com.sjapps.jsonlist.R;
+import com.sjapps.jsonlist.core.controllers.FileManager;
 
 import java.io.IOException;
 import java.io.InputStream;

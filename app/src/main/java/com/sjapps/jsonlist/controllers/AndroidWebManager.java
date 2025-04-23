@@ -1,11 +1,13 @@
-package com.sjapps.jsonlist;
+package com.sjapps.jsonlist.controllers;
 
 import android.webkit.WebSettings;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 
-import com.sjapps.jsonlist.core.WebManager;
+import com.sjapps.jsonlist.MainActivity;
+import com.sjapps.jsonlist.R;
+import com.sjapps.jsonlist.core.controllers.WebManager;
 
 import java.io.IOException;
 

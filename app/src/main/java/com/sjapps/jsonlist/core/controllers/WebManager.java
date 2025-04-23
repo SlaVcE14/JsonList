@@ -1,4 +1,4 @@
-package com.sjapps.jsonlist.core;
+package com.sjapps.jsonlist.core.controllers;
 
 public interface WebManager {
 

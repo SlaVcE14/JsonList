@@ -15,26 +15,21 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.app.Activity;
-import android.content.ClipData;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.AssetFileDescriptor;
 import android.content.res.Configuration;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.transition.AutoTransition;
 import android.transition.TransitionManager;
 import android.util.Log;
 import android.util.TypedValue;
-import android.view.DragAndDropPermissions;
-import android.view.DragEvent;
 import android.view.HapticFeedbackConstants;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.AccelerateDecelerateInterpolator;
 import android.view.animation.DecelerateInterpolator;
 import android.view.animation.OvershootInterpolator;
 import android.view.inputmethod.EditorInfo;
@@ -52,21 +47,22 @@ import android.widget.Toast;
 import com.google.android.material.progressindicator.LinearProgressIndicator;
 import com.google.android.material.snackbar.BaseTransientBottomBar;
 import com.google.android.material.snackbar.Snackbar;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 
 import com.sjapps.about.AboutActivity;
 import com.sjapps.adapters.ListAdapter;
 import com.sjapps.adapters.PathListAdapter;
+import com.sjapps.jsonlist.controllers.AndroidDragAndDrop;
+import com.sjapps.jsonlist.controllers.AndroidFileManager;
+import com.sjapps.jsonlist.controllers.AndroidJsonLoader;
+import com.sjapps.jsonlist.controllers.AndroidRawJsonView;
+import com.sjapps.jsonlist.controllers.AndroidWebManager;
+import com.sjapps.jsonlist.core.controllers.FileManager;
+import com.sjapps.jsonlist.core.controllers.JsonLoader;
+import com.sjapps.jsonlist.core.controllers.RawJsonView;
+import com.sjapps.jsonlist.core.controllers.WebManager;
 import com.sjapps.jsonlist.core.AppState;
-import com.sjapps.jsonlist.core.FileManager;
 import com.sjapps.jsonlist.core.JsonData;
-import com.sjapps.jsonlist.core.JsonFunctions;
 import com.sjapps.jsonlist.core.ListItem;
-import com.sjapps.jsonlist.core.RawJsonView;
-import com.sjapps.jsonlist.core.WebManager;
 import com.sjapps.library.customdialog.BasicDialog;
 import com.sjapps.library.customdialog.ListDialog;
 import com.sjapps.logs.CustomExceptionHandler;
@@ -88,28 +84,32 @@ public class MainActivity extends AppCompatActivity {
     TextView titleTxt, emptyListTxt;
     RecyclerView list;
     RecyclerView pathList;
-    JsonData data = new JsonData();
-    LinearLayout progressView, mainLL;
+    public JsonData data = new JsonData();
+    public LinearLayout progressView;
+    LinearLayout mainLL;
     LinearProgressIndicator progressBar;
-    boolean isMenuOpen, isRawJsonLoaded, isTopMenuVisible, isUrlSearching, isVertical = true;
+    boolean isMenuOpen;
+    boolean isTopMenuVisible;
+    public boolean isUrlSearching;
+    public boolean isVertical = true;
     ListAdapter adapter;
     PathListAdapter pathAdapter;
     View menu, dim_bg, pathListView;
-    WebView rawJsonWV;
-    ViewGroup viewGroup;
-    AutoTransition autoTransition = new AutoTransition();
-    Handler handler = new Handler();
-    Thread readFileThread;
-    RelativeLayout dropTarget;
-    RelativeLayout listRL;
-    RelativeLayout rawJsonRL;
-    AppState state;
+    public WebView rawJsonWV;
+    public ViewGroup viewGroup;
+    public AutoTransition autoTransition = new AutoTransition();
+    public Handler handler = new Handler();
+    public Thread readFileThread;
+    public RelativeLayout listRL;
+    public RelativeLayout rawJsonRL;
+    public AppState state;
     View fullRawBtn;
     LinearLayout topMenu;
     int listPrevDx = 0;
     RawJsonView rawJsonView;
     FileManager fileManager;
     WebManager webController;
+    JsonLoader jsonLoader;
 
     ArrayList<String> filterList = new ArrayList<>();
 
@@ -185,7 +185,6 @@ public class MainActivity extends AppCompatActivity {
         rawJsonRL = findViewById(R.id.rawJsonRL);
         rawJsonWV = findViewById(R.id.rawJsonWV);
         menuBtn.bringToFront();
-        dropTarget = findViewById(R.id.dropTarget);
         fullRawBtn = findViewById(R.id.fullRawBtn);
         topMenu = findViewById(R.id.topMenu);
 
@@ -227,6 +226,9 @@ public class MainActivity extends AppCompatActivity {
         pathList.setLayoutManager(pathLM);
 
         fileManager = new AndroidFileManager(this,handler);
+        jsonLoader = new AndroidJsonLoader(this);
+
+        new AndroidDragAndDrop(this, dragAndDropCallback);
 
     }
 
@@ -299,78 +301,9 @@ public class MainActivity extends AppCompatActivity {
             open_closeMenu();
         });
         dim_bg.setOnClickListener(view -> open_closeMenu());
-        splitViewBtn.setOnClickListener(view -> open_closeSplitView());
+        splitViewBtn.setOnClickListener(view -> rawJsonView.toggleSplitView());
         filterBtn.setOnClickListener(view -> filter());
 
-        dropTarget.setOnDragListener((v, event) -> {
-
-            TextView dropTargetTxt = v.findViewById(R.id.dropTargetText);
-            View dropTargetBackground = v.findViewById(R.id.dropTargetBackground);
-
-            String MIMEType = state.isMIMEFilterDisabled()?"*/*": Build.VERSION.SDK_INT > Build.VERSION_CODES.P?"application/json":"application/*";
-
-            switch (event.getAction()) {
-                case DragEvent.ACTION_DRAG_STARTED:
-                    dropTarget.setAlpha(1);
-                    return true;
-
-                case DragEvent.ACTION_DRAG_ENTERED:
-                    dropTarget.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK);
-                    if(event.getClipDescription().getMimeTypeCount() > 1){
-                        dropTargetTxt.setText(R.string.only_one_file_is_allowed);
-                        dropTargetBackground.getBackground().mutate().setTint(functions.setColor(this, R.attr.colorError));
-                        dropTargetBackground.setAlpha(.8f);
-                        return false;
-                    }
-                    if (!event.getClipDescription().hasMimeType(MIMEType)) {
-                        dropTargetTxt.setText(R.string.this_is_not_json_file);
-                        dropTargetBackground.getBackground().mutate().setTint(functions.setColor(this, R.attr.colorError));
-                        dropTargetBackground.setAlpha(.8f);
-                        return false;
-                    }
-
-                    dropTargetBackground.getBackground().mutate().setTint(functions.setColor(this, R.attr.colorPrimary));
-                    dropTargetBackground.setAlpha(.8f);
-                    return true;
-
-                case DragEvent.ACTION_DRAG_EXITED:
-                    dropTargetTxt.setText(R.string.drop_json_file_here);
-                    dropTargetBackground.getBackground().mutate().setTint(functions.setColor(this, R.attr.colorOnBackground));
-                    dropTargetBackground.setAlpha(.5f);
-                    return true;
-
-                case DragEvent.ACTION_DRAG_ENDED:
-                    dropTargetTxt.setText(R.string.drop_json_file_here);
-                    dropTargetBackground.getBackground().mutate().setTint(functions.setColor(this, R.attr.colorOnBackground));
-                    dropTarget.setAlpha(0);
-                    return true;
-
-                case DragEvent.ACTION_DROP:
-                    if (event.getClipData().getItemCount() > 1){
-                        return false;
-                    }
-                    if (!event.getClipDescription().hasMimeType(MIMEType))
-                        return false;
-                    if ((readFileThread != null && readFileThread.isAlive()) || isUrlSearching) {
-                        Snackbar.make(getWindow().getDecorView(), R.string.loading_file_in_progress, BaseTransientBottomBar.LENGTH_SHORT).show();
-                        return false;
-                    }
-
-                    ClipData.Item item = event.getClipData().getItemAt(0);
-
-                    DragAndDropPermissions dropPermissions = null;
-                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N)
-                        dropPermissions = requestDragAndDropPermissions(event);
-
-                    ReadFile(item.getUri());
-
-                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N && dropPermissions != null)
-                        dropPermissions.release();
-
-                    return true;
-            }
-            return false;
-        });
     }
 
     @Override
@@ -441,15 +374,16 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
+    //TODO FileManager??
     public void LoadStateData() {
         boolean prevSH = state != null && state.isSyntaxHighlighting();
 
         state = FileSystem.loadStateData(this);
 
-        if (isRawJsonLoaded && prevSH != state.isSyntaxHighlighting()) {
-            isRawJsonLoaded = false;
+        if (rawJsonView.isRawJsonLoaded && prevSH != state.isSyntaxHighlighting()) {
+            rawJsonView.isRawJsonLoaded = false;
             if (rawJsonView.showJson)
-                ShowJSON();
+                rawJsonView.ShowJSON();
         }
     }
 
@@ -563,97 +497,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    private void LoadData(String Data) {
-
-        loadingStarted(getString(R.string.loading_json));
-        emptyListTxt.setVisibility(View.GONE);
-
-        readFileThread = new Thread(() -> {
-            ArrayList<ListItem> temp = data.getRootList();
-            String tempRaw = data.getRawData();
-            JsonElement element;
-            try {
-                element = JsonParser.parseString(Data);
-
-            } catch (OutOfMemoryError e) {
-                e.printStackTrace();
-                fileTooLargeException();
-                return;
-            } catch (Exception e){
-                e.printStackTrace();
-                fileNotLoadedException();
-                return;
-            }
-            if (element == null) {
-                fileNotLoadedException();
-                return;
-            }
-            readFileThread.setName("readFileThread");
-            handler.post(()-> loadingStarted(getString(R.string.creating_list)));
-            try {
-                data.setRootList(null);
-                if (element instanceof JsonObject) {
-                    Log.d(TAG, "run: Json object");
-                    JsonObject object = FileSystem.loadDataToJsonObj(element);
-                    data.setRootList(getJsonObject(object));
-                }
-                if (element instanceof JsonArray) {
-                    Log.d(TAG, "run: Json array");
-                    JsonArray array = FileSystem.loadDataToJsonArray(element);
-                    data.setRootList(getJsonArrayRoot(array));
-                }
-                if (Data.length()<500000)
-                    data.setRawData(Data);
-                else data.setRawData("-1");
-                data.clearPreviousPos();
-            } catch (Exception e){
-                e.printStackTrace();
-                creatingListException();
-                data.setRootList(null);
-            }
-
-            if (!data.isRootListNull()) {
-                handler.post(() -> {
-                    TransitionManager.beginDelayedTransition(viewGroup, autoTransition);
-
-                    if (urlLL.getVisibility() == View.VISIBLE)
-                        hideUrlSearchView();
-
-                    data.setCurrentList(data.getRootList());
-                    updateFilterList(data.getRootList());
-                    adapter = new ListAdapter(data.getRootList(), MainActivity.this, "");
-                    pathAdapter = new PathListAdapter(this,data.getPath());
-                    list.setAdapter(adapter);
-                    pathList.setAdapter(pathAdapter);
-                    fileImg.clearAnimation();
-                    openFileBtn.clearAnimation();
-                    fileImg.setVisibility(View.GONE);
-                    openFileBtn.setVisibility(View.GONE);
-                    openUrlBtn.setVisibility(View.GONE);
-                    functions.setAnimation(MainActivity.this,list,R.anim.scale_in2,new DecelerateInterpolator());
-                    list.setVisibility(View.VISIBLE);
-                    backBtn.setVisibility(View.GONE);
-                    titleTxt.setText("");
-                    data.clearPath();
-                });
-
-            } else {
-                data.setRootList(temp);
-                data.setRawData(tempRaw);
-                handler.post(() -> loadingFinished(false));
-                fileNotLoadedException();
-                return;
-            }
-
-            isRawJsonLoaded = false;
-            if (rawJsonView.showJson)
-                handler.post(this::ShowJSON);
-            else handler.post(() -> loadingFinished(true));
-
-        });
-        readFileThread.start();
-    }
-
     public void open(String Title, String path, int previousPosition) {
         TransitionManager.endTransitions(viewGroup);
         TransitionManager.beginDelayedTransition(viewGroup, autoTransition);
@@ -663,6 +506,8 @@ public class MainActivity extends AppCompatActivity {
 
         if (emptyListTxt.getVisibility() == View.VISIBLE)
             emptyListTxt.setVisibility(View.GONE);
+
+
 
         pathAdapter = new PathListAdapter(this,path);
         pathList.setAdapter(pathAdapter);
@@ -749,7 +594,7 @@ public class MainActivity extends AppCompatActivity {
             filterList.add(name);
     }
 
-    private void open_closeSplitView(){
+/*    private void open_closeSplitView(){
         TransitionManager.endTransitions(viewGroup);
         TransitionManager.beginDelayedTransition(viewGroup, autoTransition);
 
@@ -767,7 +612,7 @@ public class MainActivity extends AppCompatActivity {
         if (!isRawJsonLoaded)
             ShowJSON();
 
-    }
+    }*/
 
     public void showHidePathList() {
 
@@ -817,6 +662,7 @@ public class MainActivity extends AppCompatActivity {
 
         fullRawBtn.setLayoutParams(params);
     }
+/*
 
     private void ShowJSON(){
 
@@ -845,55 +691,7 @@ public class MainActivity extends AppCompatActivity {
         thread.start();
 
     }
-
-    private final FileManager.FileCallback fileCallback = new FileManager.FileCallback() {
-        @Override
-        public void onFileLoaded(String data) {
-            if (data == null) {
-                Log.d(TAG, "ReadFile: null data");
-                return;
-            }
-            handler.post(() -> {
-                LoadData(data);
-            });
-
-        }
-
-        @Override
-        public void onFileLoadFailed() {
-            Toast.makeText(MainActivity.this, R.string.fail_to_load_file, Toast.LENGTH_SHORT).show();
-        }
-
-        @Override
-        public void onProgressUpdate(int progress) {
-            handler.post(()->{
-                progressBar.setProgressCompat(progress,true);
-            });
-        }
-    };
-
-    private final WebManager.WebCallback webCallback = new WebManager.WebCallback() {
-        @Override
-        public void onResponse(String data) {
-            handler.post(()-> loadingFinished(false));
-            isUrlSearching = false;
-            LoadData(data);
-        }
-
-        @Override
-        public void onFailure() {
-            handler.post(()-> loadingFinished(false));
-            isUrlSearching = false;
-            handler.post(()-> Toast.makeText(MainActivity.this,"Fail",Toast.LENGTH_SHORT).show());
-        }
-
-        @Override
-        public void onFailure(int code) {
-            handler.post(()-> loadingFinished(false));
-            isUrlSearching = false;
-            handler.post(()->Toast.makeText(MainActivity.this, "Fail, Code:" + code, Toast.LENGTH_SHORT).show());
-        }
-    };
+*/
 
     void ReadFile(Uri uri){
         if ((readFileThread != null && readFileThread.isAlive()) || isUrlSearching){
@@ -933,12 +731,12 @@ public class MainActivity extends AppCompatActivity {
         imm.hideSoftInputFromWindow(urlSearch.getWindowToken(), 0);
     }
 
-    void loadingStarted(){
+    public void loadingStarted(){
         loadingStarted(getString(R.string.loading));
 
     }
 
-    void loadingStarted(String txt){
+    public void loadingStarted(String txt){
         TextView text =  progressView.findViewById(R.id.loadingTxt);
         progressBar.setIndeterminate(true);
         text.setText(txt);
@@ -952,7 +750,7 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    void loadingFinished(boolean isFinished){
+    public void loadingFinished(boolean isFinished){
 
         if (!isFinished){
             handler.postDelayed(()-> {
@@ -976,7 +774,127 @@ public class MainActivity extends AppCompatActivity {
         },1000);
     }
 
-    ActivityResultLauncher<Intent> ActivityResultData = registerForActivityResult(
+
+    private final FileManager.FileCallback fileCallback = new FileManager.FileCallback() {
+        @Override
+        public void onFileLoaded(String data) {
+            if (data == null) {
+                Log.d(TAG, "ReadFile: null data");
+                return;
+            }
+            handler.post(() -> {
+                jsonLoader.LoadData(data, jsonLoaderCallback);
+            });
+
+        }
+
+        @Override
+        public void onFileLoadFailed() {
+            Toast.makeText(MainActivity.this, R.string.fail_to_load_file, Toast.LENGTH_SHORT).show();
+        }
+
+        @Override
+        public void onProgressUpdate(int progress) {
+            handler.post(()->{
+                progressBar.setProgressCompat(progress,true);
+            });
+        }
+    };
+
+
+    JsonLoader.JsonLoaderCallback jsonLoaderCallback = new JsonLoader.JsonLoaderCallback() {
+        @Override
+        public void start() {
+            loadingStarted(getString(R.string.loading_json));
+            emptyListTxt.setVisibility(View.GONE);
+        }
+
+        @Override
+        public void started() {
+            handler.post(()-> loadingStarted(getString(R.string.creating_list)));
+        }
+
+        @Override
+        public void failed() {
+            handler.post(() -> loadingFinished(false));
+        }
+
+        @Override
+        public void success() {
+            handler.post(() -> {
+                TransitionManager.beginDelayedTransition(viewGroup, autoTransition);
+
+                if (urlLL.getVisibility() == View.VISIBLE)
+                    hideUrlSearchView();
+
+                data.setCurrentList(data.getRootList());
+                updateFilterList(data.getRootList());
+                adapter = new ListAdapter(data.getRootList(), MainActivity.this, "");
+                pathAdapter = new PathListAdapter(MainActivity.this,data.getPath());
+                list.setAdapter(adapter);
+                pathList.setAdapter(pathAdapter);
+                fileImg.clearAnimation();
+                openFileBtn.clearAnimation();
+                fileImg.setVisibility(View.GONE);
+                openFileBtn.setVisibility(View.GONE);
+                openUrlBtn.setVisibility(View.GONE);
+                functions.setAnimation(MainActivity.this,list,R.anim.scale_in2,new DecelerateInterpolator());
+                list.setVisibility(View.VISIBLE);
+                backBtn.setVisibility(View.GONE);
+                titleTxt.setText("");
+                data.clearPath();
+            });
+        }
+
+        @Override
+        public void after() {
+            rawJsonView.isRawJsonLoaded = false;
+            if (rawJsonView.showJson)
+                handler.post(() -> rawJsonView.ShowJSON());
+            else handler.post(() -> loadingFinished(true));
+        }
+    };
+
+    private final WebManager.WebCallback webCallback = new WebManager.WebCallback() {
+        @Override
+        public void onResponse(String data) {
+            handler.post(()-> loadingFinished(false));
+            isUrlSearching = false;
+            jsonLoader.LoadData(data,jsonLoaderCallback);
+        }
+
+        @Override
+        public void onFailure() {
+            handler.post(()-> loadingFinished(false));
+            isUrlSearching = false;
+            handler.post(()-> Toast.makeText(MainActivity.this,"Fail",Toast.LENGTH_SHORT).show());
+        }
+
+        @Override
+        public void onFailure(int code) {
+            handler.post(()-> loadingFinished(false));
+            isUrlSearching = false;
+            handler.post(()->Toast.makeText(MainActivity.this, "Fail, Code:" + code, Toast.LENGTH_SHORT).show());
+        }
+    };
+
+    private final AndroidDragAndDrop.DragAndDropCallback dragAndDropCallback = new AndroidDragAndDrop.DragAndDropCallback() {
+        @Override
+        public boolean checkIfFileIsLoading() {
+            if ((readFileThread != null && readFileThread.isAlive()) || isUrlSearching) {
+                Snackbar.make(getWindow().getDecorView(), R.string.loading_file_in_progress, BaseTransientBottomBar.LENGTH_SHORT).show();
+                return true;
+            }
+            return false;
+        }
+
+        @Override
+        public void onDrop(Uri uri) {
+            ReadFile(uri);
+        }
+    };
+
+    public ActivityResultLauncher<Intent> ActivityResultData = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             result -> {
                 if (result.getResultCode() != Activity.RESULT_OK) {
@@ -993,19 +911,4 @@ public class MainActivity extends AppCompatActivity {
                 ReadFile(result.getData().getData());
             });
 
-    void fileTooLargeException(){
-        postMessageException(getString(R.string.file_is_too_large));
-    }
-    void fileNotLoadedException(){
-        postMessageException(getString(R.string.fail_to_load_file));
-    }
-    void creatingListException(){
-        postMessageException(getString(R.string.fail_to_create_list));
-    }
-    void postMessageException(String msg){
-        handler.post(() -> {
-            Toast.makeText(MainActivity.this,msg, Toast.LENGTH_SHORT).show();
-            loadingFinished(false);
-        });
-    }
 }
