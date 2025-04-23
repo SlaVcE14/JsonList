@@ -1,6 +1,6 @@
 package com.sjapps.jsonlist;
 
-import static com.sjapps.jsonlist.core.JsonFunctions.*;
+import static com.sj14apps.jsonlist.core.JsonFunctions.*;
 
 import androidx.activity.OnBackPressedCallback;
 import androidx.activity.result.ActivityResultLauncher;
@@ -56,13 +56,13 @@ import com.sjapps.jsonlist.controllers.AndroidFileManager;
 import com.sjapps.jsonlist.controllers.AndroidJsonLoader;
 import com.sjapps.jsonlist.controllers.AndroidRawJsonView;
 import com.sjapps.jsonlist.controllers.AndroidWebManager;
-import com.sjapps.jsonlist.core.controllers.FileManager;
-import com.sjapps.jsonlist.core.controllers.JsonLoader;
-import com.sjapps.jsonlist.core.controllers.RawJsonView;
-import com.sjapps.jsonlist.core.controllers.WebManager;
-import com.sjapps.jsonlist.core.AppState;
-import com.sjapps.jsonlist.core.JsonData;
-import com.sjapps.jsonlist.core.ListItem;
+import com.sj14apps.jsonlist.core.controllers.FileManager;
+import com.sj14apps.jsonlist.core.controllers.JsonLoader;
+import com.sj14apps.jsonlist.core.controllers.RawJsonView;
+import com.sj14apps.jsonlist.core.controllers.WebManager;
+import com.sj14apps.jsonlist.core.AppState;
+import com.sj14apps.jsonlist.core.JsonData;
+import com.sj14apps.jsonlist.core.ListItem;
 import com.sjapps.library.customdialog.BasicDialog;
 import com.sjapps.library.customdialog.ListDialog;
 import com.sjapps.logs.CustomExceptionHandler;

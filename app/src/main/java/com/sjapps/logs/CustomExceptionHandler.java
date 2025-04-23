@@ -5,7 +5,7 @@ import android.content.Context;
 import androidx.annotation.NonNull;
 
 import com.google.gson.Gson;
-import com.sjapps.jsonlist.core.AppState;
+import com.sj14apps.jsonlist.core.AppState;
 import com.sjapps.jsonlist.FileSystem;
 import com.sjapps.jsonlist.functions;
 

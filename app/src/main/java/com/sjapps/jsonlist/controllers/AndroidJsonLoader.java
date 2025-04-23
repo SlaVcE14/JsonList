@@ -1,7 +1,7 @@
 package com.sjapps.jsonlist.controllers;
 
-import static com.sjapps.jsonlist.core.JsonFunctions.getJsonArrayRoot;
-import static com.sjapps.jsonlist.core.JsonFunctions.getJsonObject;
+import static com.sj14apps.jsonlist.core.JsonFunctions.getJsonArrayRoot;
+import static com.sj14apps.jsonlist.core.JsonFunctions.getJsonObject;
 
 import android.widget.Toast;
 
@@ -9,12 +9,12 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.sjapps.jsonlist.FileSystem;
+import com.sj14apps.jsonlist.core.JsonFunctions;
 import com.sjapps.jsonlist.MainActivity;
 import com.sjapps.jsonlist.R;
-import com.sjapps.jsonlist.core.JsonData;
-import com.sjapps.jsonlist.core.controllers.JsonLoader;
-import com.sjapps.jsonlist.core.ListItem;
+import com.sj14apps.jsonlist.core.JsonData;
+import com.sj14apps.jsonlist.core.controllers.JsonLoader;
+import com.sj14apps.jsonlist.core.ListItem;
 
 import java.util.ArrayList;
 
@@ -57,11 +57,11 @@ public class AndroidJsonLoader implements JsonLoader {
             try {
                 data.setRootList(null);
                 if (element instanceof JsonObject) {
-                    JsonObject object = FileSystem.loadDataToJsonObj(element);
+                    JsonObject object = JsonFunctions.loadDataToJsonObj(element);
                     data.setRootList(getJsonObject(object));
                 }
                 if (element instanceof JsonArray) {
-                    JsonArray array = FileSystem.loadDataToJsonArray(element);
+                    JsonArray array = JsonFunctions.loadDataToJsonArray(element);
                     data.setRootList(getJsonArrayRoot(array));
                 }
                 if (Data.length()<500000)

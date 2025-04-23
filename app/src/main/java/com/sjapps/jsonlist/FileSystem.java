@@ -1,14 +1,9 @@
 package com.sjapps.jsonlist;
 
 import android.content.Context;
-import android.content.res.AssetFileDescriptor;
-import android.net.Uri;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.sjapps.jsonlist.core.AppState;
+import com.sj14apps.jsonlist.core.AppState;
 import com.sjapps.logs.CrashLogs;
 
 import java.io.BufferedReader;
@@ -24,12 +19,7 @@ public class FileSystem {
     final static String LogFile = "Log.json";
     final static String StateFile = "CheckState.json";
 
-    public static JsonObject loadDataToJsonObj(JsonElement data){
-        return data.getAsJsonObject();
-    }
-    public static JsonArray loadDataToJsonArray(JsonElement data) {
-        return data.getAsJsonArray();
-    }
+
 
     static String LoadData(Context context,String FileName){
         File file = new File(context.getFilesDir(), FileName);

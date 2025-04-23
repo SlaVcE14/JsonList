@@ -7,7 +7,7 @@ import androidx.annotation.NonNull;
 
 import com.sjapps.jsonlist.MainActivity;
 import com.sjapps.jsonlist.R;
-import com.sjapps.jsonlist.core.controllers.WebManager;
+import com.sj14apps.jsonlist.core.controllers.WebManager;
 
 import java.io.IOException;
 

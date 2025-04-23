@@ -1,6 +1,6 @@
-package com.sjapps.jsonlist.core.controllers;
+package com.sj14apps.jsonlist.core.controllers;
 
-import com.sjapps.jsonlist.core.AppState;
+import com.sj14apps.jsonlist.core.AppState;
 
 public abstract class RawJsonView{
 

@@ -1,4 +1,4 @@
-package com.sjapps.jsonlist.core;
+package com.sj14apps.jsonlist.core;
 
 import static junit.framework.TestCase.assertFalse;
 import static junit.framework.TestCase.assertEquals;

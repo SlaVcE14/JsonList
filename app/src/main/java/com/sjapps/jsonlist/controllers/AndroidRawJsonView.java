@@ -9,8 +9,8 @@ import com.google.android.material.snackbar.BaseTransientBottomBar;
 import com.google.android.material.snackbar.Snackbar;
 import com.sjapps.jsonlist.MainActivity;
 import com.sjapps.jsonlist.R;
-import com.sjapps.jsonlist.core.JsonFunctions;
-import com.sjapps.jsonlist.core.controllers.RawJsonView;
+import com.sj14apps.jsonlist.core.JsonFunctions;
+import com.sj14apps.jsonlist.core.controllers.RawJsonView;
 import com.sjapps.jsonlist.functions;
 
 public class AndroidRawJsonView extends RawJsonView {

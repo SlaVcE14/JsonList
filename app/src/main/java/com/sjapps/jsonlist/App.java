@@ -5,7 +5,7 @@ import android.app.Application;
 import androidx.appcompat.app.AppCompatDelegate;
 
 import com.google.android.material.color.DynamicColors;
-import com.sjapps.jsonlist.core.AppState;
+import com.sj14apps.jsonlist.core.AppState;
 
 public class App extends Application {
     @Override

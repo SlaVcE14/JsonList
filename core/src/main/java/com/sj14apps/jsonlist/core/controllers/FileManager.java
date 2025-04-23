@@ -1,4 +1,4 @@
-package com.sjapps.jsonlist.core.controllers;
+package com.sj14apps.jsonlist.core.controllers;
 
 import java.io.InputStream;
 

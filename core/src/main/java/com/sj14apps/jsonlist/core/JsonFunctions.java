@@ -1,4 +1,4 @@
-package com.sjapps.jsonlist.core;
+package com.sj14apps.jsonlist.core;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -174,5 +174,12 @@ public class JsonFunctions {
         JsonElement json = JsonParser.parseString(data);
         Gson gson = new Gson().newBuilder().setPrettyPrinting().serializeNulls().create();
         return gson.toJson(json);
+    }
+
+    public static JsonObject loadDataToJsonObj(JsonElement data){
+        return data.getAsJsonObject();
+    }
+    public static JsonArray loadDataToJsonArray(JsonElement data) {
+        return data.getAsJsonArray();
     }
 }
