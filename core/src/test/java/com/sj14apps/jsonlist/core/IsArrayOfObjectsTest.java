@@ -1,4 +1,4 @@
-package com.sjapps.jsonlist.java;
+package com.sj14apps.jsonlist.core;
 
 import static org.junit.Assert.*;
 
@@ -6,12 +6,8 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.sjapps.jsonlist.FileSystem;
 
 import org.junit.Test;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class IsArrayOfObjectsTest {
 
@@ -67,10 +63,10 @@ public class IsArrayOfObjectsTest {
         String data2 = "[{'test':'val'},{'test2':true}]";
 
         JsonElement element = JsonParser.parseString(data);
-        JsonArray array = FileSystem.loadDataToJsonArray(element);
+        JsonArray array = element.getAsJsonArray();
 
         JsonElement element2 = JsonParser.parseString(data2);
-        JsonArray array2 = FileSystem.loadDataToJsonArray(element2);
+        JsonArray array2 = element2.getAsJsonArray();
 
         assertTrue(JsonFunctions.isArrayOfObjects(array));
         assertTrue(JsonFunctions.isArrayOfObjects(array2));
@@ -109,10 +105,10 @@ public class IsArrayOfObjectsTest {
         String data2 = "[false,{'test':'val'},{'test2':true}]";
 
         JsonElement element = JsonParser.parseString(data);
-        JsonArray array = FileSystem.loadDataToJsonArray(element);
+        JsonArray array = element.getAsJsonArray();
 
         JsonElement element2 = JsonParser.parseString(data2);
-        JsonArray array2 = FileSystem.loadDataToJsonArray(element2);
+        JsonArray array2 = element2.getAsJsonArray();
 
         assertFalse(JsonFunctions.isArrayOfObjects(array));
         assertFalse(JsonFunctions.isArrayOfObjects(array2));

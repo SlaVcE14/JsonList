@@ -1,4 +1,4 @@
-package com.sjapps.jsonlist.java;
+package com.sj14apps.jsonlist.core;
 
 import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.assertNotNull;
@@ -7,7 +7,6 @@ import static junit.framework.TestCase.assertTrue;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
-import com.sjapps.jsonlist.FileSystem;
 
 import org.junit.Test;
 
@@ -20,7 +19,7 @@ public class GetJsonArrayRootTest {
         String data = "[ {data2:\"123\"} ]";
         JsonElement element = JsonParser.parseString(data);
 
-        JsonArray array = FileSystem.loadDataToJsonArray(element);
+        JsonArray array = element.getAsJsonArray();
 
         ArrayList<ListItem> itemsArr = JsonFunctions.getJsonArrayRoot(array);
         ArrayList<ListItem> expectedArr = new ArrayList<>();
@@ -49,7 +48,7 @@ public class GetJsonArrayRootTest {
         String data = "[{\"data2\":123},1242,true,null]";
         JsonElement element = JsonParser.parseString(data);
 
-        JsonArray array = FileSystem.loadDataToJsonArray(element);
+        JsonArray array = element.getAsJsonArray();
 
         ArrayList<ListItem> itemsArr = JsonFunctions.getJsonArrayRoot(array);
 

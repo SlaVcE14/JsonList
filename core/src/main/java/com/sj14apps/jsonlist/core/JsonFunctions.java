@@ -1,4 +1,4 @@
-package com.sjapps.jsonlist.java;
+package com.sj14apps.jsonlist.core;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;

@@ -14,8 +14,8 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.sjapps.jsonlist.functions;
-import com.sjapps.jsonlist.java.JsonData;
-import com.sjapps.jsonlist.java.ListItem;
+import com.sj14apps.jsonlist.core.JsonData;
+import com.sj14apps.jsonlist.core.ListItem;
 import com.sjapps.jsonlist.MainActivity;
 import com.sjapps.jsonlist.R;
 

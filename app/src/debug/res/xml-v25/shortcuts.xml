@@ -2,7 +2,7 @@
 <shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
 
     <shortcut
-        android:shortcutId="open_cart"
+        android:shortcutId="open_file"
         android:enabled="true"
         android:icon="@mipmap/ic_open_file"
 
@@ -13,5 +13,18 @@
             android:targetPackage="com.sjapps.jsonlist.debug"
             android:targetClass="com.sjapps.jsonlist.MainActivity" />
     </shortcut>
-    <!-- Specify more shortcuts here. -->
+
+
+    <shortcut
+        android:shortcutId="open_url"
+        android:enabled="true"
+        android:icon="@mipmap/ic_open_url"
+
+        android:shortcutShortLabel="@string/open_from_url"
+        >
+        <intent
+            android:action="android.intent.action.OPEN_URL"
+            android:targetPackage="com.sjapps.jsonlist.debug"
+            android:targetClass="com.sjapps.jsonlist.MainActivity" />
+    </shortcut>
 </shortcuts>
