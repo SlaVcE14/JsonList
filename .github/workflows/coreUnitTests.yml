@@ -27,6 +27,7 @@ jobs:
       run: gradle :core:test
 
     - name: Show test summary
+      if: always()
       run: |
         echo "### Unit Test Summary" >> $GITHUB_STEP_SUMMARY
         TEST_RESULTS=$(find core/build/test-results/test -name "*.xml")
