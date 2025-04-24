@@ -24,7 +24,7 @@ jobs:
       uses: gradle/gradle-build-action@v3
 
     - name: Run unit tests
-      run: gradle core:test
+      run: gradle :core:test
 
     - name: Show test summary
       run: |
