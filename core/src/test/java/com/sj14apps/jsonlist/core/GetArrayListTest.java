@@ -31,7 +31,7 @@ public class GetArrayListTest {
 
         ArrayList<ListItem> result = JsonFunctions.getArrayList(inputList);
 
-        assertEquals(5, result.size());
+        assertEquals(6, result.size());
         assertEquals("Item 1", result.get(0).getName());
         assertEquals("Value 1", result.get(0).getValue());
         assertFalse(result.get(0).isSpace());
