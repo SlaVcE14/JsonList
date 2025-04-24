@@ -29,7 +29,7 @@ jobs:
     - name: Show test summary
       run: |
         echo "### Unit Test Summary" >> $GITHUB_STEP_SUMMARY
-        TEST_RESULTS=$(find build/test-results/test -name "*.xml")
+        TEST_RESULTS=$(find core/build/test-results/test -name "*.xml")
         PASSED=$(grep -o 'testsuite.*tests="[^"]*"' $TEST_RESULTS | sed -n 's/.*tests="\([0-9]*\)".*/\1/p' | awk '{s+=$1} END {print s}')
         FAILURES=$(grep -o 'testsuite.*failures="[^"]*"' $TEST_RESULTS | sed -n 's/.*failures="\([0-9]*\)".*/\1/p' | awk '{s+=$1} END {print s}')
         SKIPPED=$(grep -o 'testsuite.*skipped="[^"]*"' $TEST_RESULTS | sed -n 's/.*skipped="\([0-9]*\)".*/\1/p' | awk '{s+=$1} END {print s}')
