@@ -1,5 +1,7 @@
 package com.sjapps.jsonlist;
 
+import static android.view.View.GONE;
+import static android.view.View.VISIBLE;
 import static com.sj14apps.jsonlist.core.JsonFunctions.*;
 
 import androidx.activity.OnBackPressedCallback;
@@ -28,6 +30,7 @@ import android.util.Log;
 import android.util.TypedValue;
 import android.view.HapticFeedbackConstants;
 import android.view.KeyEvent;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.DecelerateInterpolator;
@@ -64,6 +67,7 @@ import com.sj14apps.jsonlist.core.AppState;
 import com.sj14apps.jsonlist.core.JsonData;
 import com.sj14apps.jsonlist.core.ListItem;
 import com.sjapps.library.customdialog.BasicDialog;
+import com.sjapps.library.customdialog.CustomViewDialog;
 import com.sjapps.library.customdialog.ListDialog;
 import com.sjapps.logs.CustomExceptionHandler;
 import com.sjapps.logs.LogActivity;
@@ -75,12 +79,13 @@ import java.util.ArrayList;
 public class MainActivity extends AppCompatActivity {
 
     final String TAG = "MainActivity";
-    ImageButton backBtn, menuBtn, splitViewBtn, filterBtn;
+    ImageButton backBtn, menuBtn, splitViewBtn, filterBtn, editBtn;
     ImageView fileImg;
     Button openFileBtn;
     Button openUrlBtn;
     EditText urlSearch;
     LinearLayout urlLL;
+    LinearLayout messageLL;
     TextView titleTxt, emptyListTxt;
     RecyclerView list;
     RecyclerView pathList;
@@ -110,6 +115,7 @@ public class MainActivity extends AppCompatActivity {
     FileManager fileManager;
     WebManager webController;
     JsonLoader jsonLoader;
+    boolean isEdited;
 
     ArrayList<String> filterList = new ArrayList<>();
 
@@ -162,8 +168,10 @@ public class MainActivity extends AppCompatActivity {
         backBtn = findViewById(R.id.backBtn);
         menuBtn = findViewById(R.id.menuBtn);
         mainLL = findViewById(R.id.mainLL);
+        messageLL = findViewById(R.id.messageLL);
         splitViewBtn = findViewById(R.id.splitViewBtn);
         filterBtn = findViewById(R.id.filterBtn);
+        editBtn = findViewById(R.id.editBtn);
         titleTxt = findViewById(R.id.titleTxt);
         emptyListTxt = findViewById(R.id.emptyListTxt);
         list = findViewById(R.id.list);
@@ -252,7 +260,7 @@ public class MainActivity extends AppCompatActivity {
         menuBtn.setOnClickListener(view -> open_closeMenu());
 
         backBtn.setOnClickListener(view -> {
-            if(!data.isEmptyPath() || urlLL.getVisibility() == View.VISIBLE) getOnBackPressedDispatcher().onBackPressed();
+            if(!data.isEmptyPath() || urlLL.getVisibility() == VISIBLE || (adapter != null && adapter.isEditMode())) getOnBackPressedDispatcher().onBackPressed();
         });
         openFileBtn.setOnClickListener(view -> fileManager.importFromFile());
         openUrlBtn.setOnClickListener(view -> {
@@ -303,7 +311,24 @@ public class MainActivity extends AppCompatActivity {
         dim_bg.setOnClickListener(view -> open_closeMenu());
         splitViewBtn.setOnClickListener(view -> rawJsonView.toggleSplitView());
         filterBtn.setOnClickListener(view -> filter());
+        editBtn.setOnClickListener(view -> toggleEdit());
 
+    }
+
+    private void toggleEdit() {
+        if (adapter == null)
+            return;
+
+        boolean isEditMode = !adapter.isEditMode();
+
+        if (isEditMode)
+            backBtn.setVisibility(VISIBLE);
+        else if (data.isEmptyPath())
+            backBtn.setVisibility(GONE);
+
+        adapter.setEditMode(isEditMode);
+        adapter.notifyItemRangeChanged(0,adapter.getItemCount());
+        messageLL.setVisibility(isEditMode ? VISIBLE: GONE);
     }
 
     @Override
@@ -328,7 +353,7 @@ public class MainActivity extends AppCompatActivity {
     OnBackPressedCallback backPressedCallback = new OnBackPressedCallback(true) {
         @Override
         public void handleOnBackPressed() {
-            if (pathListView.getVisibility() == View.VISIBLE){
+            if (pathListView.getVisibility() == VISIBLE){
                 showHidePathList();
                 return;
             }
@@ -338,12 +363,22 @@ public class MainActivity extends AppCompatActivity {
                 return;
             }
 
-            if (urlLL.getVisibility() == View.VISIBLE){
+            if (messageLL.getVisibility() == VISIBLE){
+                if (isEdited){
+                    //todo dialog
+                    return;
+                }
+                toggleEdit();
+
+                return;
+            }
+
+            if (urlLL.getVisibility() == VISIBLE){
                 hideUrlSearchView();
                 return;
             }
 
-            if (listRL.getVisibility() == View.GONE){
+            if (listRL.getVisibility() == GONE){
                 FullRaw(null);
                 return;
             }
@@ -392,10 +427,10 @@ public class MainActivity extends AppCompatActivity {
         AppState state = FileSystem.loadStateData(this);
         TextView logBtn = menu.findViewById(R.id.logBtn);
         if (!state.hasCrashLogs()) {
-            logBtn.setVisibility(View.GONE);
+            logBtn.setVisibility(GONE);
             return;
         }
-        logBtn.setVisibility(View.VISIBLE);
+        logBtn.setVisibility(VISIBLE);
 
         TypedValue typedValue = new TypedValue();
 
@@ -428,7 +463,7 @@ public class MainActivity extends AppCompatActivity {
         topMenu.animate().cancel();
 
         isTopMenuVisible = true;
-        topMenu.setVisibility(View.VISIBLE);
+        topMenu.setVisibility(VISIBLE);
         topMenu.animate()
                 .translationY(0)
                 .setDuration(200)
@@ -443,19 +478,19 @@ public class MainActivity extends AppCompatActivity {
         topMenu.animate()
                 .translationY(-topMenu.getHeight())
                 .setDuration(100)
-                .withEndAction(()-> topMenu.setVisibility(View.GONE))
+                .withEndAction(()-> topMenu.setVisibility(GONE))
                 .start();
     }
 
     private void open_closeMenu() {
         if (!isMenuOpen) {
-            dim_bg.setVisibility(View.VISIBLE);
-            menu.setVisibility(View.VISIBLE);
+            dim_bg.setVisibility(VISIBLE);
+            menu.setVisibility(VISIBLE);
             menuBtn.setImageResource(R.drawable.ic_close);
             isMenuOpen = true;
         } else {
             dim_bg.setVisibility(View.INVISIBLE);
-            menu.setVisibility(View.GONE);
+            menu.setVisibility(GONE);
             menuBtn.setImageResource(R.drawable.ic_menu);
             isMenuOpen = false;
         }
@@ -469,11 +504,11 @@ public class MainActivity extends AppCompatActivity {
 
 
         TransitionManager.beginDelayedTransition(viewGroup, autoTransition);
-        mainLL.setVisibility(View.GONE);
-        urlLL.setVisibility(View.VISIBLE);
+        mainLL.setVisibility(GONE);
+        urlLL.setVisibility(VISIBLE);
 
-        if (backBtn.getVisibility() == View.GONE)
-            backBtn.setVisibility(View.VISIBLE);
+        if (backBtn.getVisibility() == GONE)
+            backBtn.setVisibility(VISIBLE);
 
         urlSearch.requestFocus();
         InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
@@ -481,9 +516,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void hideUrlSearchView() {
-        urlLL.setVisibility(View.GONE);
+        urlLL.setVisibility(GONE);
         TransitionManager.beginDelayedTransition(viewGroup, autoTransition);
-        mainLL.setVisibility(View.VISIBLE);
+        mainLL.setVisibility(VISIBLE);
         urlSearch.setText("");
 
         InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
@@ -491,7 +526,7 @@ public class MainActivity extends AppCompatActivity {
             imm.hideSoftInputFromWindow(urlSearch.getWindowToken(), 0);
 
         if (data.isEmptyPath()) {
-            backBtn.setVisibility(View.GONE);
+            backBtn.setVisibility(GONE);
         }
 
     }
@@ -504,8 +539,8 @@ public class MainActivity extends AppCompatActivity {
         if (isMenuOpen)
             open_closeMenu();
 
-        if (emptyListTxt.getVisibility() == View.VISIBLE)
-            emptyListTxt.setVisibility(View.GONE);
+        if (emptyListTxt.getVisibility() == VISIBLE)
+            emptyListTxt.setVisibility(GONE);
 
 
 
@@ -531,17 +566,17 @@ public class MainActivity extends AppCompatActivity {
         else data.addPreviousPos(previousPosition);
 
         if (arrayList.isEmpty()) {
-            emptyListTxt.setVisibility(View.VISIBLE);
+            emptyListTxt.setVisibility(VISIBLE);
         }
         System.out.println("path = " + path);
         if (!path.isEmpty()) {
-            backBtn.setVisibility(View.VISIBLE);
-        } else backBtn.setVisibility(View.GONE);
+            backBtn.setVisibility(VISIBLE);
+        } else backBtn.setVisibility(GONE);
 
     }
 
     public void goBack(int n){
-        if (pathListView.getVisibility() == View.VISIBLE)
+        if (pathListView.getVisibility() == VISIBLE)
             showHidePathList();
         for (int i = 0; i<n; i++)
             data.goBack();
@@ -616,12 +651,12 @@ public class MainActivity extends AppCompatActivity {
 
     public void showHidePathList() {
 
-        if (pathListView.getVisibility() == View.VISIBLE) {
-            pathListView.setVisibility(View.GONE);
+        if (pathListView.getVisibility() == VISIBLE) {
+            pathListView.setVisibility(GONE);
             return;
         }
 
-        pathListView.setVisibility(View.VISIBLE);
+        pathListView.setVisibility(VISIBLE);
     }
 
     public void FullRaw(View view) {
@@ -629,10 +664,10 @@ public class MainActivity extends AppCompatActivity {
         TransitionManager.beginDelayedTransition(viewGroup, autoTransition);
 
         fullRawBtn.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP);
-        if (listRL.getVisibility() == View.VISIBLE){
-            listRL.setVisibility(View.GONE);
+        if (listRL.getVisibility() == VISIBLE){
+            listRL.setVisibility(GONE);
         }else
-            listRL.setVisibility(View.VISIBLE);
+            listRL.setVisibility(VISIBLE);
     }
 
     private void updateFullRawBtn(){
@@ -741,10 +776,10 @@ public class MainActivity extends AppCompatActivity {
         progressBar.setIndeterminate(true);
         text.setText(txt);
         handler.postDelayed(() -> {
-            if (progressView.getVisibility() != View.VISIBLE) {
+            if (progressView.getVisibility() != VISIBLE) {
                 functions.setAnimation(this, progressView, R.anim.scale_in);
-                text.setVisibility(View.VISIBLE);
-                progressView.setVisibility(View.VISIBLE);
+                text.setVisibility(VISIBLE);
+                progressView.setVisibility(VISIBLE);
             }
         },300);
 
@@ -806,7 +841,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void start() {
             loadingStarted(getString(R.string.loading_json));
-            emptyListTxt.setVisibility(View.GONE);
+            emptyListTxt.setVisibility(GONE);
         }
 
         @Override
@@ -824,7 +859,7 @@ public class MainActivity extends AppCompatActivity {
             handler.post(() -> {
                 TransitionManager.beginDelayedTransition(viewGroup, autoTransition);
 
-                if (urlLL.getVisibility() == View.VISIBLE)
+                if (urlLL.getVisibility() == VISIBLE)
                     hideUrlSearchView();
 
                 data.setCurrentList(data.getRootList());
@@ -835,12 +870,12 @@ public class MainActivity extends AppCompatActivity {
                 pathList.setAdapter(pathAdapter);
                 fileImg.clearAnimation();
                 openFileBtn.clearAnimation();
-                fileImg.setVisibility(View.GONE);
-                openFileBtn.setVisibility(View.GONE);
-                openUrlBtn.setVisibility(View.GONE);
+                fileImg.setVisibility(GONE);
+                openFileBtn.setVisibility(GONE);
+                openUrlBtn.setVisibility(GONE);
                 functions.setAnimation(MainActivity.this,list,R.anim.scale_in2,new DecelerateInterpolator());
-                list.setVisibility(View.VISIBLE);
-                backBtn.setVisibility(View.GONE);
+                list.setVisibility(VISIBLE);
+                backBtn.setVisibility(GONE);
                 titleTxt.setText("");
                 data.clearPath();
             });
@@ -911,4 +946,37 @@ public class MainActivity extends AppCompatActivity {
                 ReadFile(result.getData().getData());
             });
 
+    public void editItem(int pos) {
+        View view = LayoutInflater.from(this).inflate(R.layout.edit_item,null);
+
+        ListItem item = data.getCurrentList().get(pos);
+
+        EditText nameTxt = view.findViewById(R.id.NameTxt);
+        EditText valueTxt = view.findViewById(R.id.ValueTxt);
+
+        if (item.getName() == null) {
+            view.findViewById(R.id.nameLL).setVisibility(GONE);
+        }else nameTxt.setText(data.getCurrentList().get(pos).getName());
+
+        if (item.isArray() || item.isObject()) {
+            view.findViewById(R.id.valueLL).setVisibility(GONE);
+        }else valueTxt.setText(data.getCurrentList().get(pos).getValue());
+
+        CustomViewDialog dialog = new CustomViewDialog();
+        dialog.Builder(this, true)
+                .dialogWithTwoButtons()
+                .setTitle("Edit Item")
+                .addCustomView(view)
+                .onButtonClick(() -> {
+                    if (item.getName() != null)
+                        item.setName(nameTxt.getText().toString());
+
+                    if (!item.isArray() && !item.isObject())
+                        item.setValue(valueTxt.getText().toString());
+
+                    dialog.dismiss();
+                    adapter.notifyItemChanged(pos);
+                })
+                .show();
+    }
 }

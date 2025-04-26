@@ -71,6 +71,8 @@
     <string name="loading_file_in_progress">Loading file in progress, try again later</string>
     <string name="file_is_to_large_to_be_shown_in_a_split_screen">File is to large to be shown in a split screen!</string>
 
+    <string name="item_name">Item Name</string>
+    <string name="item_value">Item Value</string>
     <!--  Themes  -->
     <string name="theme">Theme</string>
 

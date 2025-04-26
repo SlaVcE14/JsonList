@@ -151,15 +151,37 @@
                 android:layout_alignParentEnd="true"
 
                 >
+                <ImageButton
+                    android:id="@+id/editBtn"
+                    android:layout_width="60dp"
+                    android:layout_height="40dp"
+                    android:background="@drawable/ripple_list"
 
+                    android:src="@drawable/ic_edit" />
                 <ImageButton
                     android:id="@+id/filterBtn"
-                    android:layout_width="80dp"
+                    android:layout_width="60dp"
                     android:layout_height="40dp"
                     android:background="@drawable/ripple_list"
 
                     android:src="@drawable/ic_filter" />
 
+            </LinearLayout>
+            <LinearLayout
+                android:id="@+id/messageLL"
+                android:layout_width="match_parent"
+                android:visibility="gone"
+                android:layout_below="@+id/topMenu"
+                android:background="@drawable/background5"
+                android:padding="10dp"
+                android:layout_margin="10dp"
+
+                android:layout_height="wrap_content">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Tap the item to edit"
+                    />
             </LinearLayout>
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/list"
@@ -168,7 +190,7 @@
                 android:divider="@null"
                 android:listSelector="@drawable/transparent_drawable"
                 android:foreground="@drawable/foreground"
-                android:layout_below="@+id/topMenu"
+                android:layout_below="@+id/messageLL"
                 android:visibility="gone"
                 />
             <TextView
