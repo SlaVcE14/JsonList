@@ -51,6 +51,7 @@ import com.google.android.material.progressindicator.LinearProgressIndicator;
 import com.google.android.material.snackbar.BaseTransientBottomBar;
 import com.google.android.material.snackbar.Snackbar;
 
+import com.sj14apps.jsonlist.core.JsonFunctions;
 import com.sjapps.about.AboutActivity;
 import com.sjapps.adapters.ListAdapter;
 import com.sjapps.adapters.PathListAdapter;
@@ -365,8 +366,11 @@ public class MainActivity extends AppCompatActivity {
 
             if (messageLL.getVisibility() == VISIBLE){
                 if (isEdited){
-                    //todo dialog
-                    return;
+                    data.setRawData(JsonFunctions.convertToRawString(data.getRootList()));
+                    rawJsonView.isRawJsonLoaded = false;
+                    if (rawJsonView.showJson){
+                        rawJsonView.ShowJSON();
+                    }
                 }
                 toggleEdit();
 
@@ -968,14 +972,16 @@ public class MainActivity extends AppCompatActivity {
                 .setTitle("Edit Item")
                 .addCustomView(view)
                 .onButtonClick(() -> {
-                    if (item.getName() != null)
+                    if (item.getName() != null){
                         item.setName(nameTxt.getText().toString());
+                    }
 
                     if (!item.isArray() && !item.isObject())
                         item.setValue(valueTxt.getText().toString());
 
                     dialog.dismiss();
                     adapter.notifyItemChanged(pos);
+                    isEdited = true;
                 })
                 .show();
     }
