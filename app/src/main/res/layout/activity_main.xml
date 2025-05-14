@@ -151,13 +151,33 @@
                 android:layout_alignParentEnd="true"
 
                 >
-                <ImageButton
+                <RelativeLayout
                     android:id="@+id/editBtn"
                     android:layout_width="60dp"
                     android:layout_height="40dp"
                     android:background="@drawable/ripple_list"
+                    >
+                    <ImageView
+                        android:layout_width="25dp"
+                        android:layout_height="25dp"
+                        android:layout_centerHorizontal="true"
+                        android:layout_marginTop="4dp"
+                        android:src="@drawable/ic_edit" >
+                    </ImageView>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/beta"
+                        android:paddingHorizontal="10dp"
+                        android:background="@drawable/ripple_red"
+                        android:textColor="?colorOnError"
+                        android:textSize="8dp"
+                        android:layout_alignParentBottom="true"
+                        android:layout_marginBottom="3dp"
+                        android:layout_centerHorizontal="true"
+                        />
 
-                    android:src="@drawable/ic_edit" />
+                </RelativeLayout>
                 <ImageButton
                     android:id="@+id/filterBtn"
                     android:layout_width="60dp"
