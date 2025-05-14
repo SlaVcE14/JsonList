@@ -196,6 +196,8 @@ public class ListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             view.findViewById(R.id.btn).setOnClickListener(v -> {
                 activity.editItem(pos);
             });
+        } else {
+            view.findViewById(R.id.btn).setOnClickListener(null);
         }
 
     }
