@@ -73,6 +73,16 @@
 
     <string name="item_name">Item Name</string>
     <string name="item_value">Item Value</string>
+
+    <!--  Save Changes  -->
+    <string name="save">Save</string>
+    <string name="dismiss">Dismiss</string>
+    <string name="unsaved_changes_msg">You have unsaved changes</string>
+    <string name="save_changes">Save changes?</string>
+    <string name="file_saved">File saved!</string>
+    <string name="fail_to_save">Fail to save a file</string>
+    <string name="saving_file">Saving file...</string>
+
     <!--  Themes  -->
     <string name="theme">Theme</string>
 
