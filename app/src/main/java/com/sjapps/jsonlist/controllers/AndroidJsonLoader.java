@@ -9,7 +9,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.sj14apps.jsonlist.core.JsonFunctions;
+
 import com.sjapps.jsonlist.MainActivity;
 import com.sjapps.jsonlist.R;
 import com.sj14apps.jsonlist.core.JsonData;
@@ -27,7 +27,7 @@ public class AndroidJsonLoader implements JsonLoader {
     }
 
     @Override
-    public void LoadData(String Data, JsonLoaderCallback callBack) {
+    public void LoadData(String Data, String fileName, JsonLoaderCallback callBack) {
         callBack.start();
 
         JsonData data = activity.data;
@@ -35,6 +35,7 @@ public class AndroidJsonLoader implements JsonLoader {
         activity.readFileThread = new Thread(() -> {
             ArrayList<ListItem> temp = data.getRootList();
             String tempRaw = data.getRawData();
+            String tmpFileName = data.getFileName();
             JsonElement element;
             try {
                 element = JsonParser.parseString(Data);
@@ -68,6 +69,7 @@ public class AndroidJsonLoader implements JsonLoader {
                     data.setRawData(Data);
                 else data.setRawData("-1");
                 data.clearPreviousPos();
+                data.setFileName(fileName);
             } catch (Exception e){
                 e.printStackTrace();
                 creatingListException();
@@ -80,6 +82,7 @@ public class AndroidJsonLoader implements JsonLoader {
             } else {
                 data.setRootList(temp);
                 data.setRawData(tempRaw);
+                data.setFileName(tmpFileName);
                 callBack.failed();
                 fileNotLoadedException();
                 return;

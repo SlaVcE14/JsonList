@@ -69,18 +69,22 @@ import com.sj14apps.jsonlist.core.JsonData;
 import com.sj14apps.jsonlist.core.ListItem;
 import com.sjapps.library.customdialog.BasicDialog;
 import com.sjapps.library.customdialog.CustomViewDialog;
+import com.sjapps.library.customdialog.DialogButtonEvents;
 import com.sjapps.library.customdialog.ListDialog;
 import com.sjapps.logs.CustomExceptionHandler;
 import com.sjapps.logs.LogActivity;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
 
     final String TAG = "MainActivity";
-    ImageButton backBtn, menuBtn, splitViewBtn, filterBtn, editBtn;
+    ImageButton backBtn, menuBtn, splitViewBtn, filterBtn;
+    View editBtn;
     ImageView fileImg;
     Button openFileBtn;
     Button openUrlBtn;
@@ -94,10 +98,6 @@ public class MainActivity extends AppCompatActivity {
     public LinearLayout progressView;
     LinearLayout mainLL;
     LinearProgressIndicator progressBar;
-    boolean isMenuOpen;
-    boolean isTopMenuVisible;
-    public boolean isUrlSearching;
-    public boolean isVertical = true;
     ListAdapter adapter;
     PathListAdapter pathAdapter;
     View menu, dim_bg, pathListView;
@@ -116,7 +116,14 @@ public class MainActivity extends AppCompatActivity {
     FileManager fileManager;
     WebManager webController;
     JsonLoader jsonLoader;
+
+    public boolean isVertical = true;
+    public boolean isUrlSearching;
+    boolean isMenuOpen;
+    boolean isTopMenuVisible;
     boolean isEdited;
+    boolean isEditMode;
+    boolean unsavedChanges;
 
     ArrayList<String> filterList = new ArrayList<>();
 
@@ -320,12 +327,25 @@ public class MainActivity extends AppCompatActivity {
         if (adapter == null)
             return;
 
-        boolean isEditMode = !adapter.isEditMode();
+        isEditMode = !adapter.isEditMode();
 
-        if (isEditMode)
-            backBtn.setVisibility(VISIBLE);
-        else if (data.isEmptyPath())
-            backBtn.setVisibility(GONE);
+        if (isEditMode){
+            showBackBtn();
+            hideTopMenu();
+        }
+        else {
+            hideBackBtnIfNotNeeded();
+
+            if (isEdited){
+                data.setRawData(JsonFunctions.convertToRawString(data.getRootList()));
+                isEdited = false;
+                rawJsonView.isRawJsonLoaded = false;
+                unsavedChanges = true;
+                if (rawJsonView.showJson){
+                    rawJsonView.ShowJSON();
+                }
+            }
+        }
 
         adapter.setEditMode(isEditMode);
         adapter.notifyItemRangeChanged(0,adapter.getItemCount());
@@ -365,15 +385,7 @@ public class MainActivity extends AppCompatActivity {
             }
 
             if (messageLL.getVisibility() == VISIBLE){
-                if (isEdited){
-                    data.setRawData(JsonFunctions.convertToRawString(data.getRootList()));
-                    rawJsonView.isRawJsonLoaded = false;
-                    if (rawJsonView.showJson){
-                        rawJsonView.ShowJSON();
-                    }
-                }
                 toggleEdit();
-
                 return;
             }
 
@@ -394,6 +406,32 @@ public class MainActivity extends AppCompatActivity {
             }
 
             if (data.isEmptyPath()){
+
+                if (unsavedChanges){
+                    BasicDialog dialog = new BasicDialog();
+                    dialog.Builder(MainActivity.this, true)
+                            .setTitle(getString(R.string.save_changes))
+                            .setMessage(getString(R.string.unsaved_changes_msg))
+                            .setLeftButtonText(getString(R.string.dismiss))
+                            .setRightButtonText(getString(R.string.save))
+
+                            .onButtonClick(new DialogButtonEvents() {
+                                @Override
+                                public void onLeftButtonClick() {
+                                    dialog.dismiss();
+                                    MainActivity.this.finish();
+                                }
+
+                                @Override
+                                public void onRightButtonClick() {
+                                    dialog.dismiss();
+                                    saveChanges();
+                                }
+                            })
+                            .show();
+                    return;
+                }
+
                 BasicDialog dialog = new BasicDialog();
                 dialog.Builder(MainActivity.this, true)
                         .setTitle(getString(R.string.exit))
@@ -412,6 +450,11 @@ public class MainActivity extends AppCompatActivity {
             open(JsonData.getPathFormat(data.getPath()), data.getPath(),-1);
         }
     };
+
+    private void saveChanges() {
+        fileManager.saveFile(data.getFileName());
+    }
+
 
     //TODO FileManager??
     public void LoadStateData() {
@@ -464,6 +507,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void showTopMenu() {
+        if (isEditMode)
+            return;
+
         topMenu.animate().cancel();
 
         isTopMenuVisible = true;
@@ -586,6 +632,17 @@ public class MainActivity extends AppCompatActivity {
             data.goBack();
         open(JsonData.getPathFormat(data.getPath()), data.getPath(),-1);
 
+    }
+
+    private void showBackBtn() {
+        if (backBtn.getVisibility() == VISIBLE)
+            return;
+        backBtn.setVisibility(VISIBLE);
+    }
+
+    private void hideBackBtnIfNotNeeded() {
+        if (data.isEmptyPath())
+            backBtn.setVisibility(GONE);
     }
 
     private void filter(){
@@ -747,11 +804,13 @@ public class MainActivity extends AppCompatActivity {
                 fileCallback.onFileLoadFailed();
                 return;
             }
+
+            String fileName = AndroidFileManager.getFileName(this,uri);
             long fileSize = fileDescriptor.getLength();
 
             fileDescriptor.close();
             readFileThread = new Thread(() -> {
-                fileManager.readFile(inputStream, fileSize, fileCallback);
+                fileManager.readFile(inputStream, fileName , fileSize, fileCallback);
             });
             readFileThread.setName("readFileThread");
             readFileThread.start();
@@ -816,13 +875,13 @@ public class MainActivity extends AppCompatActivity {
 
     private final FileManager.FileCallback fileCallback = new FileManager.FileCallback() {
         @Override
-        public void onFileLoaded(String data) {
+        public void onFileLoaded(String data, String fileName) {
             if (data == null) {
                 Log.d(TAG, "ReadFile: null data");
                 return;
             }
             handler.post(() -> {
-                jsonLoader.LoadData(data, jsonLoaderCallback);
+                jsonLoader.LoadData(data, fileName, jsonLoaderCallback);
             });
 
         }
@@ -840,6 +899,26 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
+    private final FileManager.FileWriteCallback fileWriteCallback = new FileManager.FileWriteCallback() {
+        @Override
+        public void onFileWriteSuccess() {
+            unsavedChanges = false;
+            loadingFinished(true);
+        }
+
+        @Override
+        public void onFileWriteFail() {
+            loadingFinished(false);
+            Toast.makeText(MainActivity.this, getString(R.string.fail_to_save), Toast.LENGTH_SHORT).show();
+        }
+
+        @Override
+        public void onProgressUpdate(int progress) {
+            handler.post(()->{
+                progressBar.setProgressCompat(progress,true);
+            });
+        }
+    };
 
     JsonLoader.JsonLoaderCallback jsonLoaderCallback = new JsonLoader.JsonLoaderCallback() {
         @Override
@@ -899,7 +978,7 @@ public class MainActivity extends AppCompatActivity {
         public void onResponse(String data) {
             handler.post(()-> loadingFinished(false));
             isUrlSearching = false;
-            jsonLoader.LoadData(data,jsonLoaderCallback);
+            jsonLoader.LoadData(data,null,jsonLoaderCallback);
         }
 
         @Override
@@ -950,21 +1029,40 @@ public class MainActivity extends AppCompatActivity {
                 ReadFile(result.getData().getData());
             });
 
+    public ActivityResultLauncher<Intent> ActivityResultSaveData = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                if (result.getResultCode() != Activity.RESULT_OK) {
+                    return;
+                }
+                if (result.getData() == null || result.getData().getData() == null){
+                    fileWriteCallback.onFileWriteFail();
+                    return;
+                }
+                try {
+                    loadingStarted(getString(R.string.saving_file));
+                    OutputStream outputStream = getContentResolver().openOutputStream(result.getData().getData());
+                    fileManager.writeFile(outputStream, data.getRawData(), fileWriteCallback); //TODO thread???
+                } catch (FileNotFoundException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+
     public void editItem(int pos) {
         View view = LayoutInflater.from(this).inflate(R.layout.edit_item,null);
 
-        ListItem item = data.getCurrentList().get(pos);
+        ListItem item = adapter.getList().get(pos);
 
         EditText nameTxt = view.findViewById(R.id.NameTxt);
         EditText valueTxt = view.findViewById(R.id.ValueTxt);
 
         if (item.getName() == null) {
             view.findViewById(R.id.nameLL).setVisibility(GONE);
-        }else nameTxt.setText(data.getCurrentList().get(pos).getName());
+        }else nameTxt.setText(adapter.getList().get(pos).getName());
 
         if (item.isArray() || item.isObject()) {
             view.findViewById(R.id.valueLL).setVisibility(GONE);
-        }else valueTxt.setText(data.getCurrentList().get(pos).getValue());
+        }else valueTxt.setText(adapter.getList().get(pos).getValue());
 
         CustomViewDialog dialog = new CustomViewDialog();
         dialog.Builder(this, true)
