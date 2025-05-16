@@ -146,6 +146,9 @@ public class ListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                 view.findViewById(R.id.btn).setOnClickListener(v -> {
                     activity.editItem(pos);
                 });
+                System.out.println("position: " + position + " selected: " + selectedItem + " highlighted: " + highlightedItem);
+                view.findViewById(R.id.btn).setOnLongClickListener(null);
+                view.findViewById(R.id.copyBtn).setVisibility(View.GONE);
                 return;
             }
 
@@ -192,12 +195,19 @@ public class ListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
         valueTxt.setText(item.getValue().isEmpty() ? "\"\"" : item.getValue());
         if (isEditMode){
+            setTextClickable(currentHolder.getTitleTxt(),false);
+            setTextClickable(currentHolder.getValueTxt(),false);
             view.findViewById(R.id.btn).setClickable(true);
+            view.findViewById(R.id.btn).setBackgroundResource(R.drawable.ripple_list2);
+
             view.findViewById(R.id.btn).setOnClickListener(v -> {
                 activity.editItem(pos);
             });
         } else {
             view.findViewById(R.id.btn).setOnClickListener(null);
+            view.findViewById(R.id.btn).setBackgroundResource(R.drawable.background);
+            setTextClickable(currentHolder.getTitleTxt(),true);
+            setTextClickable(currentHolder.getValueTxt(),true);
         }
 
     }
@@ -233,11 +243,19 @@ public class ListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     }
 
     public void setEditMode(boolean isEditMode) {
+        selectedItem = -1;
         this.isEditMode = isEditMode;
     }
 
     public boolean isEditMode() {
         return isEditMode;
+    }
+
+    private void setTextClickable(TextView textView, boolean clickable) {
+        textView.setLongClickable(clickable);
+        textView.setTextIsSelectable(clickable);
+        textView.setFocusable(clickable);
+        textView.setFocusableInTouchMode(clickable);
     }
 
 }
