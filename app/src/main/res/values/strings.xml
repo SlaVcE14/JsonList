@@ -85,6 +85,7 @@
 
     <!--  Themes  -->
     <string name="theme">Theme</string>
+    <string name="editing_in_progress">Editing in progress</string>
 
     <string-array name="Themes">
         <item>System theme</item>

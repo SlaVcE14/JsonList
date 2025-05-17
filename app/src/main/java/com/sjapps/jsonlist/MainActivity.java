@@ -1,6 +1,7 @@
 package com.sjapps.jsonlist;
 
 import static android.view.View.GONE;
+import static android.view.View.INVISIBLE;
 import static android.view.View.VISIBLE;
 import static com.sj14apps.jsonlist.core.JsonFunctions.*;
 
@@ -47,6 +48,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.progressindicator.LinearProgressIndicator;
 import com.google.android.material.snackbar.BaseTransientBottomBar;
 import com.google.android.material.snackbar.Snackbar;
@@ -122,8 +124,9 @@ public class MainActivity extends AppCompatActivity {
     boolean isMenuOpen;
     boolean isTopMenuVisible;
     boolean isEdited;
-    boolean isEditMode;
+    public boolean isEditMode;
     boolean unsavedChanges;
+    FloatingActionButton saveFAB;
 
     ArrayList<String> filterList = new ArrayList<>();
 
@@ -203,6 +206,7 @@ public class MainActivity extends AppCompatActivity {
         menuBtn.bringToFront();
         fullRawBtn = findViewById(R.id.fullRawBtn);
         topMenu = findViewById(R.id.topMenu);
+        saveFAB = findViewById(R.id.saveFAB);
 
         LinearLayoutManager pathLM = new LinearLayoutManager(this);
         LinearLayoutManager layoutManager = new LinearLayoutManager(this){
@@ -320,7 +324,7 @@ public class MainActivity extends AppCompatActivity {
         splitViewBtn.setOnClickListener(view -> rawJsonView.toggleSplitView());
         filterBtn.setOnClickListener(view -> filter());
         editBtn.setOnClickListener(view -> toggleEdit());
-
+        saveFAB.setOnClickListener(view -> saveChanges());
     }
 
     private void toggleEdit() {
@@ -332,8 +336,12 @@ public class MainActivity extends AppCompatActivity {
         if (isEditMode){
             showBackBtn();
             hideTopMenu();
+            menuBtn.setVisibility(INVISIBLE);
+            splitViewBtn.setVisibility(INVISIBLE);
         }
         else {
+            menuBtn.setVisibility(VISIBLE);
+            splitViewBtn.setVisibility(VISIBLE);
             hideBackBtnIfNotNeeded();
 
             if (isEdited){
@@ -341,6 +349,7 @@ public class MainActivity extends AppCompatActivity {
                 isEdited = false;
                 rawJsonView.isRawJsonLoaded = false;
                 unsavedChanges = true;
+                saveFAB.setVisibility(VISIBLE);
                 if (rawJsonView.showJson){
                     rawJsonView.ShowJSON();
                 }
@@ -539,7 +548,7 @@ public class MainActivity extends AppCompatActivity {
             menuBtn.setImageResource(R.drawable.ic_close);
             isMenuOpen = true;
         } else {
-            dim_bg.setVisibility(View.INVISIBLE);
+            dim_bg.setVisibility(INVISIBLE);
             menu.setVisibility(GONE);
             menuBtn.setImageResource(R.drawable.ic_menu);
             isMenuOpen = false;
@@ -853,7 +862,7 @@ public class MainActivity extends AppCompatActivity {
         if (!isFinished){
             handler.postDelayed(()-> {
                 functions.setAnimation(this, progressView,R.anim.scale_out);
-                progressView.setVisibility(View.INVISIBLE);
+                progressView.setVisibility(INVISIBLE);
             },300);
             return;
         }
@@ -865,10 +874,10 @@ public class MainActivity extends AppCompatActivity {
         handler.postDelayed(() -> text.setText( R.string.finished),500);
         handler.postDelayed(() -> {
         },700);
-        handler.postDelayed(() -> text.setVisibility(View.INVISIBLE),900);
+        handler.postDelayed(() -> text.setVisibility(INVISIBLE),900);
         handler.postDelayed(() -> {
             functions.setAnimation(this, progressView,R.anim.scale_out);
-            progressView.setVisibility(View.INVISIBLE);
+            progressView.setVisibility(INVISIBLE);
         },1000);
     }
 
@@ -904,6 +913,7 @@ public class MainActivity extends AppCompatActivity {
         public void onFileWriteSuccess() {
             unsavedChanges = false;
             loadingFinished(true);
+            saveFAB.setVisibility(GONE);
         }
 
         @Override
@@ -959,6 +969,8 @@ public class MainActivity extends AppCompatActivity {
                 functions.setAnimation(MainActivity.this,list,R.anim.scale_in2,new DecelerateInterpolator());
                 list.setVisibility(VISIBLE);
                 backBtn.setVisibility(GONE);
+                saveFAB.setVisibility(GONE);
+                unsavedChanges = false;
                 titleTxt.setText("");
                 data.clearPath();
             });
@@ -1003,6 +1015,11 @@ public class MainActivity extends AppCompatActivity {
                 Snackbar.make(getWindow().getDecorView(), R.string.loading_file_in_progress, BaseTransientBottomBar.LENGTH_SHORT).show();
                 return true;
             }
+            if (isEditMode){
+                Snackbar.make(getWindow().getDecorView(), R.string.editing_in_progress, BaseTransientBottomBar.LENGTH_SHORT).show();
+                return true;
+            }
+
             return false;
         }
 
@@ -1082,5 +1099,9 @@ public class MainActivity extends AppCompatActivity {
                     isEdited = true;
                 })
                 .show();
+    }
+
+    public void DoneEdit(View view) {
+        toggleEdit();
     }
 }

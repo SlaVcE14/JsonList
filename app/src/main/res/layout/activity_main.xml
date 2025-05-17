@@ -195,13 +195,24 @@
                 android:background="@drawable/background5"
                 android:padding="10dp"
                 android:layout_margin="10dp"
-
                 android:layout_height="wrap_content">
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Tap the item to edit"
+                    android:layout_weight="1"
                     />
+                <TextView
+                    android:id="@+id/messageBtn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="5dp"
+                    android:paddingHorizontal="15dp"
+                    android:paddingVertical="10dp"
+                    android:background="@drawable/ripple_button"
+                    android:textColor="?colorOnPrimary"
+                    android:onClick="DoneEdit"
+                    android:text="done"/>
             </LinearLayout>
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/list"
@@ -253,6 +264,20 @@
                 android:textColor="?colorOnBackground"
                 android:text="@string/open_from_url" />
 
+            <com.google.android.material.floatingactionbutton.FloatingActionButton
+                android:id="@+id/saveFAB"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
+                android:layout_alignParentEnd="true"
+                android:layout_marginBottom="20dp"
+                android:layout_marginEnd="20dp"
+                android:contentDescription="@string/save_changes"
+                app:fabCustomSize="70dp"
+                android:src="@drawable/ic_save"
+                android:visibility="gone"
+                >
+            </com.google.android.material.floatingactionbutton.FloatingActionButton>
 
         </RelativeLayout>
         <RelativeLayout
@@ -397,9 +422,6 @@
             />
 
     </RelativeLayout>
-
-
-
 
 
 </RelativeLayout>
