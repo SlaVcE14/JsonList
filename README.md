@@ -11,6 +11,8 @@ Introducing a Material You Android application for previewing JSON from a file o
 
 Or download the latest APK from the [Releases Section](https://github.com/SlaVcE14/JsonList/releases/latest).
 
+[Desktop app coming soon..](https://github.com/SlaVcE14/JsonList-Desktop)
+
 ![JsonList](images/jsonlist_main.jpg)
 
 Use the convenient split view feature that allows simultaneous display of the raw JSON string alongside the list representation.
