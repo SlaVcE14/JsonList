@@ -699,26 +699,6 @@ public class MainActivity extends AppCompatActivity {
             filterList.add(name);
     }
 
-/*    private void open_closeSplitView(){
-        TransitionManager.endTransitions(viewGroup);
-        TransitionManager.beginDelayedTransition(viewGroup, autoTransition);
-
-        if (rawJsonView.showJson){
-            functions.setAnimation(this,rawJsonRL,isVertical?R.anim.slide_bottom_out:R.anim.slide_right_out,new AccelerateDecelerateInterpolator());
-            handler.postDelayed(()-> rawJsonRL.setVisibility(View.GONE),400);
-            rawJsonView.showJson = false;
-            if (listRL.getVisibility() == View.GONE)
-                listRL.setVisibility(View.VISIBLE);
-            return;
-        }
-        rawJsonView.showJson = true;
-        rawJsonRL.setVisibility(View.VISIBLE);
-        functions.setAnimation(this,rawJsonRL,isVertical?R.anim.slide_bottom_in:R.anim.slide_right_in,new DecelerateInterpolator());
-        if (!isRawJsonLoaded)
-            ShowJSON();
-
-    }*/
-
     public void showHidePathList() {
 
         if (pathListView.getVisibility() == VISIBLE) {
@@ -767,36 +747,6 @@ public class MainActivity extends AppCompatActivity {
 
         fullRawBtn.setLayoutParams(params);
     }
-/*
-
-    private void ShowJSON(){
-
-        if (data.getRawData().equals("-1")) {
-            Snackbar.make(getWindow().getDecorView(), R.string.file_is_to_large_to_be_shown_in_a_split_screen, BaseTransientBottomBar.LENGTH_SHORT).show();
-            if (progressView.getVisibility() == View.VISIBLE)
-                loadingFinished(true);
-            if (rawJsonView.showJson)
-                open_closeSplitView();
-            return;
-        }
-        if (data.getRawData().isEmpty())
-            return;
-
-        loadingStarted(getString(R.string.displaying_json));
-
-        Thread thread = new Thread(() -> {
-            String dataStr = JsonFunctions.getAsPrettyPrint(data.getRawData());
-            handler.post(()-> {
-                rawJsonView.updateRawJson(dataStr);
-                loadingFinished(true);
-                isRawJsonLoaded = true;
-            });
-        });
-        thread.setName("loadingJson");
-        thread.start();
-
-    }
-*/
 
     void ReadFile(Uri uri){
         if ((readFileThread != null && readFileThread.isAlive()) || isUrlSearching){
