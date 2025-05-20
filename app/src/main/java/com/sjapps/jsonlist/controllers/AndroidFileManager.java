@@ -88,12 +88,12 @@ public class AndroidFileManager implements FileManager {
                 totalWritten += length;
 
                 int progress = ((totalWritten * 100) / totalSize);
-                callback.onProgressUpdate(progress);
+                handler.post(()-> callback.onProgressUpdate(progress));
             }
 
             outputStream.flush();
             outputStream.close();
-            callback.onFileWriteSuccess();
+            handler.post(callback::onFileWriteSuccess);
         } catch (Exception e) {
             e.printStackTrace();
             handler.post(callback::onFileWriteFail);

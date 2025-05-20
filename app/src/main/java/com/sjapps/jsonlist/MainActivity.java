@@ -778,6 +778,25 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    void WriteFile(Uri uri){
+        if ((readFileThread != null && readFileThread.isAlive()) || isUrlSearching){
+            return;
+        }
+        loadingStarted(getString(R.string.saving_file));
+
+        try {
+            OutputStream outputStream = getContentResolver().openOutputStream(uri);
+
+            readFileThread = new Thread(() -> {
+                fileManager.writeFile(outputStream, data.getRawData(), fileWriteCallback);
+            });
+            readFileThread.setName("writeFileThread");
+            readFileThread.start();
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public void SearchUrl(View view) {
         SearchUrl();
     }
@@ -874,9 +893,7 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void onProgressUpdate(int progress) {
-            handler.post(()->{
-                progressBar.setProgressCompat(progress,true);
-            });
+            progressBar.setProgressCompat(progress,true);
         }
     };
 
@@ -1006,13 +1023,7 @@ public class MainActivity extends AppCompatActivity {
                     fileWriteCallback.onFileWriteFail();
                     return;
                 }
-                try {
-                    loadingStarted(getString(R.string.saving_file));
-                    OutputStream outputStream = getContentResolver().openOutputStream(result.getData().getData());
-                    fileManager.writeFile(outputStream, data.getRawData(), fileWriteCallback); //TODO thread???
-                } catch (FileNotFoundException e) {
-                    throw new RuntimeException(e);
-                }
+                WriteFile(result.getData().getData());
             });
 
     public void editItem(int pos) {
