@@ -1070,6 +1070,7 @@ public class MainActivity extends AppCompatActivity {
                     dialog.dismiss();
                     adapter.notifyItemChanged(pos);
                     isEdited = true;
+                    updateFilterList(data.getCurrentList());
                 })
                 .show();
     }
