@@ -18,6 +18,7 @@
             android:text="@string/item_name"
             android:layout_marginBottom="5dp"
             android:layout_marginStart="5dp"
+            android:textSize="20sp"
             />
         <EditText
             android:id="@+id/NameTxt"
@@ -44,6 +45,7 @@
             android:text="@string/item_value"
             android:layout_marginBottom="5dp"
             android:layout_marginStart="5dp"
+            android:textSize="20sp"
             />
         <EditText
             android:id="@+id/ValueTxt"
@@ -51,6 +53,7 @@
             android:background="@drawable/outline_background"
             android:paddingVertical="10dp"
             android:paddingHorizontal="15dp"
+
             android:layout_height="wrap_content"/>
 
     </LinearLayout>
