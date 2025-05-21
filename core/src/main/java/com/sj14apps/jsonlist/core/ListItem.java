@@ -9,6 +9,7 @@ public class ListItem {
     private boolean isArray;
     private boolean isObject;
     private boolean isSpace;
+    private boolean isRootItem;
     private ArrayList<ListItem> Objects;
     private ArrayList<ArrayList<ListItem>> ListObjects;
     private int id = -1;
@@ -24,7 +25,8 @@ public class ListItem {
     }
 
     public void setName(String name) {
-        Name = name;
+        if (!isRootItem)
+            Name = name;
     }
 
     public String getValue() {
@@ -53,6 +55,14 @@ public class ListItem {
 
     public boolean isSpace() {
         return isSpace;
+    }
+
+    public boolean isRootItem() {
+        return isRootItem;
+    }
+
+    public void setIsRootItem(boolean b) {
+        isRootItem = b;
     }
 
     public void setIsSpace(boolean space) {

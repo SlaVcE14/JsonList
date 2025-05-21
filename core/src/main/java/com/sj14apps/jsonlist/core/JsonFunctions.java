@@ -91,13 +91,16 @@ public class JsonFunctions {
     private static void setArrayName(JsonArray array, ListItem item){
         if(isArrayOfObjects(array)) {
             item.setName("Objects Array");
+            item.setIsRootItem(true);
             return;
         }
         if (isArrayOfArray(array)){
             item.setName("Array");
+            item.setIsRootItem(true);
             return;
         }
         item.setName("Array items");
+        item.setIsRootItem(true);
     }
     private static String getStringFromJson(String value){
         return value.startsWith("\"") && value.endsWith("\"") ? value.substring(1,value.length()-1) : value;
