@@ -32,8 +32,6 @@ public class ListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     boolean isEditMode = false;
 
 
-
-
     static class ViewHolderShort extends RecyclerView.ViewHolder{
 
         TextView title;
@@ -146,7 +144,6 @@ public class ListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                 view.findViewById(R.id.btn).setOnClickListener(v -> {
                     activity.editItem(pos);
                 });
-                System.out.println("position: " + position + " selected: " + selectedItem + " highlighted: " + highlightedItem);
                 view.findViewById(R.id.btn).setOnLongClickListener(null);
                 view.findViewById(R.id.copyBtn).setVisibility(View.GONE);
                 return;
