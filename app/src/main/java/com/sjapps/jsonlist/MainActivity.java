@@ -73,6 +73,7 @@ import com.sjapps.library.customdialog.BasicDialog;
 import com.sjapps.library.customdialog.CustomViewDialog;
 import com.sjapps.library.customdialog.DialogButtonEvents;
 import com.sjapps.library.customdialog.ListDialog;
+import com.sjapps.library.customdialog.MessageDialog;
 import com.sjapps.logs.CustomExceptionHandler;
 import com.sjapps.logs.LogActivity;
 
@@ -701,6 +702,9 @@ public class MainActivity extends AppCompatActivity {
 
     public void showHidePathList() {
 
+        if (isEditMode)
+            return;
+
         if (pathListView.getVisibility() == VISIBLE) {
             pathListView.setVisibility(GONE);
             return;
@@ -1030,6 +1034,14 @@ public class MainActivity extends AppCompatActivity {
         View view = LayoutInflater.from(this).inflate(R.layout.edit_item,null);
 
         ListItem item = adapter.getList().get(pos);
+
+        if (item.isRootItem()) {
+            MessageDialog dialog = new MessageDialog();
+            dialog.Builder(this,true)
+                    .setTitle("Editing a root item is not available!")
+                    .show();
+            return;
+        }
 
         EditText nameTxt = view.findViewById(R.id.NameTxt);
         EditText valueTxt = view.findViewById(R.id.ValueTxt);
