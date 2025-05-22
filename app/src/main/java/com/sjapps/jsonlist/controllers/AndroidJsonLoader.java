@@ -65,7 +65,7 @@ public class AndroidJsonLoader implements JsonLoader {
                     JsonArray array = element.getAsJsonArray();
                     data.setRootList(getJsonArrayRoot(array));
                 }
-                if (Data.length()<500000)
+                if (Data.length()<10000000)
                     data.setRawData(Data);
                 else data.setRawData("-1");
                 data.clearPreviousPos();
