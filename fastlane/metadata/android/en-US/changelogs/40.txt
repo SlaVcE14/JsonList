@@ -1,0 +1,6 @@
+Bugfix
+- Fix shortcut for opening JSON from file crashing
+
+New features
+- Added shortcut for opening JSON from url
+- Added editing support for JSON and exporting to file
