@@ -14,6 +14,7 @@ public class ListItem {
     private ArrayList<ArrayList<ListItem>> ListObjects;
     private int id = -1;
     private int position = -1;
+    private ArrayList<ListItem> parentList;
 
 
     public ListItem(){
@@ -99,6 +100,14 @@ public class ListItem {
 
     public void setPosition(int position) {
         this.position = position;
+    }
+
+    public ArrayList<ListItem> getParentList() {
+        return parentList;
+    }
+
+    public void setParentList(ArrayList<ListItem> parentList) {
+        this.parentList = parentList;
     }
 
     @Override

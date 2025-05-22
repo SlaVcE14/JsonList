@@ -82,6 +82,7 @@ public class JsonFunctions {
         for (Object o : keysArray) {
             ListItem item = new ListItem();
             item.setName(o.toString());
+            item.setParentList(mainList);
             setItem(obj,o,item);
             mainList.add(item);
         }

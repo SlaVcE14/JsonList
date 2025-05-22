@@ -1060,16 +1060,35 @@ public class MainActivity extends AppCompatActivity {
                 .setTitle("Edit Item")
                 .addCustomView(view)
                 .onButtonClick(() -> {
+
                     if (item.getName() != null){
-                        item.setName(nameTxt.getText().toString());
+                        String name = nameTxt.getText().toString();
+
+                        for(ListItem i : item.getParentList()){
+                            if (i.getName().equals(name) && i != item){
+                                dialog.dismiss();
+                                new MessageDialog().Builder(this,true)
+                                        .setTitle(getString(R.string.item_with_name_already_exists))
+                                        .onDismissListener(d-> dialog.show())
+                                        .show();
+                                return;
+                            }
+                        }
+                        if (!item.getName().equals(name))
+                            isEdited = true;
+
+                        item.setName(name);
                     }
 
-                    if (!item.isArray() && !item.isObject())
-                        item.setValue(valueTxt.getText().toString());
+                    if (!item.isArray() && !item.isObject()){
+                        String value = valueTxt.getText().toString();
+                        if (!item.getValue().equals(value))
+                            isEdited = true;
+                        item.setValue(value);
+                    }
 
                     dialog.dismiss();
                     adapter.notifyItemChanged(pos);
-                    isEdited = true;
                     updateFilterList(data.getCurrentList());
                 })
                 .show();
