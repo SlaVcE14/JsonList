@@ -1,4 +1,4 @@
-package com.sjapps.jsonlist.java;
+package com.sj14apps.jsonlist.core;
 
 import java.util.ArrayList;
 
@@ -9,10 +9,12 @@ public class ListItem {
     private boolean isArray;
     private boolean isObject;
     private boolean isSpace;
+    private boolean isRootItem;
     private ArrayList<ListItem> Objects;
     private ArrayList<ArrayList<ListItem>> ListObjects;
     private int id = -1;
     private int position = -1;
+    private ArrayList<ListItem> parentList;
 
 
     public ListItem(){
@@ -24,7 +26,8 @@ public class ListItem {
     }
 
     public void setName(String name) {
-        Name = name;
+        if (!isRootItem)
+            Name = name;
     }
 
     public String getValue() {
@@ -53,6 +56,14 @@ public class ListItem {
 
     public boolean isSpace() {
         return isSpace;
+    }
+
+    public boolean isRootItem() {
+        return isRootItem;
+    }
+
+    public void setIsRootItem(boolean b) {
+        isRootItem = b;
     }
 
     public void setIsSpace(boolean space) {
@@ -89,6 +100,14 @@ public class ListItem {
 
     public void setPosition(int position) {
         this.position = position;
+    }
+
+    public ArrayList<ListItem> getParentList() {
+        return parentList;
+    }
+
+    public void setParentList(ArrayList<ListItem> parentList) {
+        this.parentList = parentList;
     }
 
     @Override

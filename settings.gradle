@@ -9,3 +9,4 @@ dependencyResolutionManagement {
 }
 rootProject.name = "Json List"
 include ':app'
+include ':core'

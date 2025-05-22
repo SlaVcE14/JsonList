@@ -10,7 +10,7 @@
         >
         <intent
             android:action="android.intent.action.OPEN_FILE"
-            android:targetPackage="com.sjapps.jsonlist"
+            android:targetPackage="com.sjapps.jsonlist.debug"
             android:targetClass="com.sjapps.jsonlist.MainActivity" />
     </shortcut>
 
@@ -24,7 +24,7 @@
         >
         <intent
             android:action="android.intent.action.OPEN_URL"
-            android:targetPackage="com.sjapps.jsonlist"
+            android:targetPackage="com.sjapps.jsonlist.debug"
             android:targetClass="com.sjapps.jsonlist.MainActivity" />
     </shortcut>
 </shortcuts>

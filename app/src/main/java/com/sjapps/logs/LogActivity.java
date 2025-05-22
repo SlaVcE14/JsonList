@@ -22,7 +22,7 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.google.gson.Gson;
-import com.sjapps.jsonlist.AppState;
+import com.sj14apps.jsonlist.core.AppState;
 import com.sjapps.jsonlist.FileSystem;
 import com.sjapps.jsonlist.R;
 import com.sjapps.jsonlist.functions;

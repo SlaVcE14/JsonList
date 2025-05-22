@@ -16,6 +16,7 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.google.android.material.materialswitch.MaterialSwitch;
+import com.sj14apps.jsonlist.core.AppState;
 
 public class SettingsActivity extends AppCompatActivity {
 

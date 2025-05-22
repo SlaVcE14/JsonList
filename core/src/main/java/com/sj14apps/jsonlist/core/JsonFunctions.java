@@ -1,10 +1,13 @@
-package com.sjapps.jsonlist.java;
+package com.sj14apps.jsonlist.core;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.google.gson.JsonPrimitive;
 
 import java.util.ArrayList;
 import java.util.Set;
@@ -79,6 +82,7 @@ public class JsonFunctions {
         for (Object o : keysArray) {
             ListItem item = new ListItem();
             item.setName(o.toString());
+            item.setParentList(mainList);
             setItem(obj,o,item);
             mainList.add(item);
         }
@@ -88,13 +92,16 @@ public class JsonFunctions {
     private static void setArrayName(JsonArray array, ListItem item){
         if(isArrayOfObjects(array)) {
             item.setName("Objects Array");
+            item.setIsRootItem(true);
             return;
         }
         if (isArrayOfArray(array)){
             item.setName("Array");
+            item.setIsRootItem(true);
             return;
         }
         item.setName("Array items");
+        item.setIsRootItem(true);
     }
     private static String getStringFromJson(String value){
         return value.startsWith("\"") && value.endsWith("\"") ? value.substring(1,value.length()-1) : value;
@@ -175,4 +182,86 @@ public class JsonFunctions {
         Gson gson = new Gson().newBuilder().setPrettyPrinting().serializeNulls().create();
         return gson.toJson(json);
     }
+
+
+    public static String convertToRawString(ArrayList<ListItem> rootList) {
+        JsonElement rootElement;
+
+        if (rootList.size() == 1 && rootList.get(0).isArray() &&
+                (
+                        rootList.get(0).getName().equals("Array items") ||
+                                rootList.get(0).getName().equals("Objects Array") ||
+                                rootList.get(0).getName().equals("Array"))
+        ) {
+
+            rootElement = convertListItemToElement(rootList.get(0));
+
+        } else {
+            JsonObject jsonObject = new JsonObject();
+            for (ListItem item : rootList) {
+                jsonObject.add(item.getName(), convertListItemToElement(item));
+            }
+            rootElement = jsonObject;
+        }
+
+        return new GsonBuilder().setPrettyPrinting().serializeNulls().create().toJson(rootElement);
+    }
+
+
+    private static JsonElement convertListItemToElement(ListItem item) {
+        if (item.isArray()) {
+            JsonArray jsonArray = new JsonArray();
+            for (ArrayList<ListItem> sublist : item.getListObjects()) {
+                if (sublist.size() == 1 && !sublist.get(0).isArray() && !sublist.get(0).isObject()) {
+                    if (sublist.get(0).getName() != null){
+                        JsonObject obj = new JsonObject();
+                        obj.add(sublist.get(0).getName(),convertListItemToElement(sublist.get(0)));
+                        jsonArray.add(obj);
+                        continue;
+                    }
+
+                    jsonArray.add(getPrimitive(sublist.get(0)));
+                    continue;
+                }
+                if (sublist.size() == 1 && sublist.get(0).isArray()) {
+                    jsonArray.add(convertListItemToElement(sublist.get(0)));
+                    continue;
+                }
+
+                JsonObject obj = new JsonObject();
+                for (ListItem subitem : sublist) {
+                    obj.add(subitem.getName(), convertListItemToElement(subitem));
+                }
+                jsonArray.add(obj);
+            }
+            return jsonArray;
+        }
+
+        if (item.isObject()) {
+            JsonObject jsonObject = new JsonObject();
+            for (ListItem subitem : item.getObjects()) {
+                jsonObject.add(subitem.getName(), convertListItemToElement(subitem));
+            }
+            return jsonObject;
+        }
+
+        return getPrimitive(item);
+
+    }
+
+    private static JsonElement getPrimitive(ListItem item){
+
+        String val = item.getValue();
+
+        if (val == null) return new JsonPrimitive("");
+        if (val.equals("null")) return JsonNull.INSTANCE;
+        if (val.equals("true")) return new JsonPrimitive(true);
+        if (val.equals("false")) return new JsonPrimitive(false);
+        if (val.matches("^\\d+\\.\\d+$")) return new JsonPrimitive(Double.parseDouble(item.getValue()));
+        if (val.matches("^\\d+$")) return new JsonPrimitive(Long.parseLong(item.getValue()));
+
+        return new JsonPrimitive(item.getValue());
+
+    }
+
 }

@@ -1,4 +1,4 @@
-package com.sjapps.jsonlist.java;
+package com.sj14apps.jsonlist.core;
 
 import java.util.ArrayList;
 import java.util.Stack;
@@ -9,8 +9,10 @@ public class JsonData {
     ArrayList<ListItem> currentList = new ArrayList<>();
     Stack<Integer> previousPosStack = new Stack<>();
     String rawData = "";
+    String fileName;
 
     int previousPos = -1;
+    static int maxPathNameLength = 3;
 
     public String getPath() {
         return path;
@@ -43,6 +45,14 @@ public class JsonData {
 
     public String getRawData() {
         return rawData;
+    }
+
+    public String getFileName() {
+        return fileName;
+    }
+
+    public void setFileName(String fileName) {
+        this.fileName = fileName;
     }
 
     public boolean isEmptyPath(){
@@ -90,9 +100,9 @@ public class JsonData {
     public static String getPathFormat(String path){
         String[] pathStrings = splitPath(path);
         StringBuilder builder = new StringBuilder();
-        builder.append(pathStrings.length > 3 ? "..." : pathStrings[0]);
+        builder.append(pathStrings.length > maxPathNameLength ? "..." : pathStrings[0]);
 
-        for (int i = pathStrings.length > 3? pathStrings.length-3 : 1; i < pathStrings.length; i++) {
+        for (int i = pathStrings.length > maxPathNameLength ? pathStrings.length- maxPathNameLength : 1; i < pathStrings.length; i++) {
             builder.append("/").append(getName(pathStrings[i]));
         }
 
