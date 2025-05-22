@@ -1,5 +1,8 @@
 package com.sjapps.jsonlist;
 
+import static android.view.View.GONE;
+import static android.view.View.INVISIBLE;
+import static android.view.View.VISIBLE;
 import static com.sj14apps.jsonlist.core.JsonFunctions.*;
 
 import androidx.activity.OnBackPressedCallback;
@@ -28,6 +31,7 @@ import android.util.Log;
 import android.util.TypedValue;
 import android.view.HapticFeedbackConstants;
 import android.view.KeyEvent;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.DecelerateInterpolator;
@@ -44,10 +48,12 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.progressindicator.LinearProgressIndicator;
 import com.google.android.material.snackbar.BaseTransientBottomBar;
 import com.google.android.material.snackbar.Snackbar;
 
+import com.sj14apps.jsonlist.core.JsonFunctions;
 import com.sjapps.about.AboutActivity;
 import com.sjapps.adapters.ListAdapter;
 import com.sjapps.adapters.PathListAdapter;
@@ -64,23 +70,30 @@ import com.sj14apps.jsonlist.core.AppState;
 import com.sj14apps.jsonlist.core.JsonData;
 import com.sj14apps.jsonlist.core.ListItem;
 import com.sjapps.library.customdialog.BasicDialog;
+import com.sjapps.library.customdialog.CustomViewDialog;
+import com.sjapps.library.customdialog.DialogButtonEvents;
 import com.sjapps.library.customdialog.ListDialog;
+import com.sjapps.library.customdialog.MessageDialog;
 import com.sjapps.logs.CustomExceptionHandler;
 import com.sjapps.logs.LogActivity;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
 
     final String TAG = "MainActivity";
     ImageButton backBtn, menuBtn, splitViewBtn, filterBtn;
+    View editBtn;
     ImageView fileImg;
     Button openFileBtn;
     Button openUrlBtn;
     EditText urlSearch;
     LinearLayout urlLL;
+    LinearLayout messageLL;
     TextView titleTxt, emptyListTxt;
     RecyclerView list;
     RecyclerView pathList;
@@ -88,10 +101,6 @@ public class MainActivity extends AppCompatActivity {
     public LinearLayout progressView;
     LinearLayout mainLL;
     LinearProgressIndicator progressBar;
-    boolean isMenuOpen;
-    boolean isTopMenuVisible;
-    public boolean isUrlSearching;
-    public boolean isVertical = true;
     ListAdapter adapter;
     PathListAdapter pathAdapter;
     View menu, dim_bg, pathListView;
@@ -110,6 +119,15 @@ public class MainActivity extends AppCompatActivity {
     FileManager fileManager;
     WebManager webController;
     JsonLoader jsonLoader;
+
+    public boolean isVertical = true;
+    public boolean isUrlSearching;
+    boolean isMenuOpen;
+    boolean isTopMenuVisible;
+    boolean isEdited;
+    public boolean isEditMode;
+    boolean unsavedChanges;
+    FloatingActionButton saveFAB;
 
     ArrayList<String> filterList = new ArrayList<>();
 
@@ -162,8 +180,10 @@ public class MainActivity extends AppCompatActivity {
         backBtn = findViewById(R.id.backBtn);
         menuBtn = findViewById(R.id.menuBtn);
         mainLL = findViewById(R.id.mainLL);
+        messageLL = findViewById(R.id.messageLL);
         splitViewBtn = findViewById(R.id.splitViewBtn);
         filterBtn = findViewById(R.id.filterBtn);
+        editBtn = findViewById(R.id.editBtn);
         titleTxt = findViewById(R.id.titleTxt);
         emptyListTxt = findViewById(R.id.emptyListTxt);
         list = findViewById(R.id.list);
@@ -187,6 +207,7 @@ public class MainActivity extends AppCompatActivity {
         menuBtn.bringToFront();
         fullRawBtn = findViewById(R.id.fullRawBtn);
         topMenu = findViewById(R.id.topMenu);
+        saveFAB = findViewById(R.id.saveFAB);
 
         LinearLayoutManager pathLM = new LinearLayoutManager(this);
         LinearLayoutManager layoutManager = new LinearLayoutManager(this){
@@ -252,7 +273,7 @@ public class MainActivity extends AppCompatActivity {
         menuBtn.setOnClickListener(view -> open_closeMenu());
 
         backBtn.setOnClickListener(view -> {
-            if(!data.isEmptyPath() || urlLL.getVisibility() == View.VISIBLE) getOnBackPressedDispatcher().onBackPressed();
+            if(!data.isEmptyPath() || urlLL.getVisibility() == VISIBLE || (adapter != null && adapter.isEditMode())) getOnBackPressedDispatcher().onBackPressed();
         });
         openFileBtn.setOnClickListener(view -> fileManager.importFromFile());
         openUrlBtn.setOnClickListener(view -> {
@@ -303,7 +324,42 @@ public class MainActivity extends AppCompatActivity {
         dim_bg.setOnClickListener(view -> open_closeMenu());
         splitViewBtn.setOnClickListener(view -> rawJsonView.toggleSplitView());
         filterBtn.setOnClickListener(view -> filter());
+        editBtn.setOnClickListener(view -> toggleEdit());
+        saveFAB.setOnClickListener(view -> saveChanges());
+    }
 
+    private void toggleEdit() {
+        if (adapter == null)
+            return;
+
+        isEditMode = !adapter.isEditMode();
+
+        if (isEditMode){
+            showBackBtn();
+            hideTopMenu();
+            menuBtn.setVisibility(INVISIBLE);
+            splitViewBtn.setVisibility(INVISIBLE);
+        }
+        else {
+            menuBtn.setVisibility(VISIBLE);
+            splitViewBtn.setVisibility(VISIBLE);
+            hideBackBtnIfNotNeeded();
+
+            if (isEdited){
+                data.setRawData(JsonFunctions.convertToRawString(data.getRootList()));
+                isEdited = false;
+                rawJsonView.isRawJsonLoaded = false;
+                unsavedChanges = true;
+                saveFAB.setVisibility(VISIBLE);
+                if (rawJsonView.showJson){
+                    rawJsonView.ShowJSON();
+                }
+            }
+        }
+
+        adapter.setEditMode(isEditMode);
+        adapter.notifyItemRangeChanged(0,adapter.getItemCount());
+        messageLL.setVisibility(isEditMode ? VISIBLE: GONE);
     }
 
     @Override
@@ -328,7 +384,7 @@ public class MainActivity extends AppCompatActivity {
     OnBackPressedCallback backPressedCallback = new OnBackPressedCallback(true) {
         @Override
         public void handleOnBackPressed() {
-            if (pathListView.getVisibility() == View.VISIBLE){
+            if (pathListView.getVisibility() == VISIBLE){
                 showHidePathList();
                 return;
             }
@@ -338,12 +394,17 @@ public class MainActivity extends AppCompatActivity {
                 return;
             }
 
-            if (urlLL.getVisibility() == View.VISIBLE){
+            if (messageLL.getVisibility() == VISIBLE){
+                toggleEdit();
+                return;
+            }
+
+            if (urlLL.getVisibility() == VISIBLE){
                 hideUrlSearchView();
                 return;
             }
 
-            if (listRL.getVisibility() == View.GONE){
+            if (listRL.getVisibility() == GONE){
                 FullRaw(null);
                 return;
             }
@@ -355,6 +416,32 @@ public class MainActivity extends AppCompatActivity {
             }
 
             if (data.isEmptyPath()){
+
+                if (unsavedChanges){
+                    BasicDialog dialog = new BasicDialog();
+                    dialog.Builder(MainActivity.this, true)
+                            .setTitle(getString(R.string.save_changes))
+                            .setMessage(getString(R.string.unsaved_changes_msg))
+                            .setLeftButtonText(getString(R.string.dismiss))
+                            .setRightButtonText(getString(R.string.save))
+
+                            .onButtonClick(new DialogButtonEvents() {
+                                @Override
+                                public void onLeftButtonClick() {
+                                    dialog.dismiss();
+                                    MainActivity.this.finish();
+                                }
+
+                                @Override
+                                public void onRightButtonClick() {
+                                    dialog.dismiss();
+                                    saveChanges();
+                                }
+                            })
+                            .show();
+                    return;
+                }
+
                 BasicDialog dialog = new BasicDialog();
                 dialog.Builder(MainActivity.this, true)
                         .setTitle(getString(R.string.exit))
@@ -374,6 +461,11 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
+    private void saveChanges() {
+        fileManager.saveFile(data.getFileName());
+    }
+
+
     //TODO FileManager??
     public void LoadStateData() {
         boolean prevSH = state != null && state.isSyntaxHighlighting();
@@ -392,10 +484,10 @@ public class MainActivity extends AppCompatActivity {
         AppState state = FileSystem.loadStateData(this);
         TextView logBtn = menu.findViewById(R.id.logBtn);
         if (!state.hasCrashLogs()) {
-            logBtn.setVisibility(View.GONE);
+            logBtn.setVisibility(GONE);
             return;
         }
-        logBtn.setVisibility(View.VISIBLE);
+        logBtn.setVisibility(VISIBLE);
 
         TypedValue typedValue = new TypedValue();
 
@@ -425,10 +517,13 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void showTopMenu() {
+        if (isEditMode)
+            return;
+
         topMenu.animate().cancel();
 
         isTopMenuVisible = true;
-        topMenu.setVisibility(View.VISIBLE);
+        topMenu.setVisibility(VISIBLE);
         topMenu.animate()
                 .translationY(0)
                 .setDuration(200)
@@ -443,19 +538,19 @@ public class MainActivity extends AppCompatActivity {
         topMenu.animate()
                 .translationY(-topMenu.getHeight())
                 .setDuration(100)
-                .withEndAction(()-> topMenu.setVisibility(View.GONE))
+                .withEndAction(()-> topMenu.setVisibility(GONE))
                 .start();
     }
 
     private void open_closeMenu() {
         if (!isMenuOpen) {
-            dim_bg.setVisibility(View.VISIBLE);
-            menu.setVisibility(View.VISIBLE);
+            dim_bg.setVisibility(VISIBLE);
+            menu.setVisibility(VISIBLE);
             menuBtn.setImageResource(R.drawable.ic_close);
             isMenuOpen = true;
         } else {
-            dim_bg.setVisibility(View.INVISIBLE);
-            menu.setVisibility(View.GONE);
+            dim_bg.setVisibility(INVISIBLE);
+            menu.setVisibility(GONE);
             menuBtn.setImageResource(R.drawable.ic_menu);
             isMenuOpen = false;
         }
@@ -469,11 +564,11 @@ public class MainActivity extends AppCompatActivity {
 
 
         TransitionManager.beginDelayedTransition(viewGroup, autoTransition);
-        mainLL.setVisibility(View.GONE);
-        urlLL.setVisibility(View.VISIBLE);
+        mainLL.setVisibility(GONE);
+        urlLL.setVisibility(VISIBLE);
 
-        if (backBtn.getVisibility() == View.GONE)
-            backBtn.setVisibility(View.VISIBLE);
+        if (backBtn.getVisibility() == GONE)
+            backBtn.setVisibility(VISIBLE);
 
         urlSearch.requestFocus();
         InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
@@ -481,9 +576,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void hideUrlSearchView() {
-        urlLL.setVisibility(View.GONE);
+        urlLL.setVisibility(GONE);
         TransitionManager.beginDelayedTransition(viewGroup, autoTransition);
-        mainLL.setVisibility(View.VISIBLE);
+        mainLL.setVisibility(VISIBLE);
         urlSearch.setText("");
 
         InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
@@ -491,7 +586,7 @@ public class MainActivity extends AppCompatActivity {
             imm.hideSoftInputFromWindow(urlSearch.getWindowToken(), 0);
 
         if (data.isEmptyPath()) {
-            backBtn.setVisibility(View.GONE);
+            backBtn.setVisibility(GONE);
         }
 
     }
@@ -504,8 +599,8 @@ public class MainActivity extends AppCompatActivity {
         if (isMenuOpen)
             open_closeMenu();
 
-        if (emptyListTxt.getVisibility() == View.VISIBLE)
-            emptyListTxt.setVisibility(View.GONE);
+        if (emptyListTxt.getVisibility() == VISIBLE)
+            emptyListTxt.setVisibility(GONE);
 
 
 
@@ -531,22 +626,33 @@ public class MainActivity extends AppCompatActivity {
         else data.addPreviousPos(previousPosition);
 
         if (arrayList.isEmpty()) {
-            emptyListTxt.setVisibility(View.VISIBLE);
+            emptyListTxt.setVisibility(VISIBLE);
         }
         System.out.println("path = " + path);
         if (!path.isEmpty()) {
-            backBtn.setVisibility(View.VISIBLE);
-        } else backBtn.setVisibility(View.GONE);
+            backBtn.setVisibility(VISIBLE);
+        } else backBtn.setVisibility(GONE);
 
     }
 
     public void goBack(int n){
-        if (pathListView.getVisibility() == View.VISIBLE)
+        if (pathListView.getVisibility() == VISIBLE)
             showHidePathList();
         for (int i = 0; i<n; i++)
             data.goBack();
         open(JsonData.getPathFormat(data.getPath()), data.getPath(),-1);
 
+    }
+
+    private void showBackBtn() {
+        if (backBtn.getVisibility() == VISIBLE)
+            return;
+        backBtn.setVisibility(VISIBLE);
+    }
+
+    private void hideBackBtnIfNotNeeded() {
+        if (data.isEmptyPath())
+            backBtn.setVisibility(GONE);
     }
 
     private void filter(){
@@ -594,34 +700,17 @@ public class MainActivity extends AppCompatActivity {
             filterList.add(name);
     }
 
-/*    private void open_closeSplitView(){
-        TransitionManager.endTransitions(viewGroup);
-        TransitionManager.beginDelayedTransition(viewGroup, autoTransition);
-
-        if (rawJsonView.showJson){
-            functions.setAnimation(this,rawJsonRL,isVertical?R.anim.slide_bottom_out:R.anim.slide_right_out,new AccelerateDecelerateInterpolator());
-            handler.postDelayed(()-> rawJsonRL.setVisibility(View.GONE),400);
-            rawJsonView.showJson = false;
-            if (listRL.getVisibility() == View.GONE)
-                listRL.setVisibility(View.VISIBLE);
-            return;
-        }
-        rawJsonView.showJson = true;
-        rawJsonRL.setVisibility(View.VISIBLE);
-        functions.setAnimation(this,rawJsonRL,isVertical?R.anim.slide_bottom_in:R.anim.slide_right_in,new DecelerateInterpolator());
-        if (!isRawJsonLoaded)
-            ShowJSON();
-
-    }*/
-
     public void showHidePathList() {
 
-        if (pathListView.getVisibility() == View.VISIBLE) {
-            pathListView.setVisibility(View.GONE);
+        if (isEditMode)
+            return;
+
+        if (pathListView.getVisibility() == VISIBLE) {
+            pathListView.setVisibility(GONE);
             return;
         }
 
-        pathListView.setVisibility(View.VISIBLE);
+        pathListView.setVisibility(VISIBLE);
     }
 
     public void FullRaw(View view) {
@@ -629,10 +718,10 @@ public class MainActivity extends AppCompatActivity {
         TransitionManager.beginDelayedTransition(viewGroup, autoTransition);
 
         fullRawBtn.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP);
-        if (listRL.getVisibility() == View.VISIBLE){
-            listRL.setVisibility(View.GONE);
+        if (listRL.getVisibility() == VISIBLE){
+            listRL.setVisibility(GONE);
         }else
-            listRL.setVisibility(View.VISIBLE);
+            listRL.setVisibility(VISIBLE);
     }
 
     private void updateFullRawBtn(){
@@ -662,36 +751,6 @@ public class MainActivity extends AppCompatActivity {
 
         fullRawBtn.setLayoutParams(params);
     }
-/*
-
-    private void ShowJSON(){
-
-        if (data.getRawData().equals("-1")) {
-            Snackbar.make(getWindow().getDecorView(), R.string.file_is_to_large_to_be_shown_in_a_split_screen, BaseTransientBottomBar.LENGTH_SHORT).show();
-            if (progressView.getVisibility() == View.VISIBLE)
-                loadingFinished(true);
-            if (rawJsonView.showJson)
-                open_closeSplitView();
-            return;
-        }
-        if (data.getRawData().isEmpty())
-            return;
-
-        loadingStarted(getString(R.string.displaying_json));
-
-        Thread thread = new Thread(() -> {
-            String dataStr = JsonFunctions.getAsPrettyPrint(data.getRawData());
-            handler.post(()-> {
-                rawJsonView.updateRawJson(dataStr);
-                loadingFinished(true);
-                isRawJsonLoaded = true;
-            });
-        });
-        thread.setName("loadingJson");
-        thread.start();
-
-    }
-*/
 
     void ReadFile(Uri uri){
         if ((readFileThread != null && readFileThread.isAlive()) || isUrlSearching){
@@ -708,15 +767,36 @@ public class MainActivity extends AppCompatActivity {
                 fileCallback.onFileLoadFailed();
                 return;
             }
+
+            String fileName = AndroidFileManager.getFileName(this,uri);
             long fileSize = fileDescriptor.getLength();
 
             fileDescriptor.close();
             readFileThread = new Thread(() -> {
-                fileManager.readFile(inputStream, fileSize, fileCallback);
+                fileManager.readFile(inputStream, fileName , fileSize, fileCallback);
             });
             readFileThread.setName("readFileThread");
             readFileThread.start();
         } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    void WriteFile(Uri uri){
+        if ((readFileThread != null && readFileThread.isAlive()) || isUrlSearching){
+            return;
+        }
+        loadingStarted(getString(R.string.saving_file));
+
+        try {
+            OutputStream outputStream = getContentResolver().openOutputStream(uri);
+
+            readFileThread = new Thread(() -> {
+                fileManager.writeFile(outputStream, data.getRawData(), fileWriteCallback);
+            });
+            readFileThread.setName("writeFileThread");
+            readFileThread.start();
+        } catch (FileNotFoundException e) {
             throw new RuntimeException(e);
         }
     }
@@ -741,10 +821,10 @@ public class MainActivity extends AppCompatActivity {
         progressBar.setIndeterminate(true);
         text.setText(txt);
         handler.postDelayed(() -> {
-            if (progressView.getVisibility() != View.VISIBLE) {
+            if (progressView.getVisibility() != VISIBLE) {
                 functions.setAnimation(this, progressView, R.anim.scale_in);
-                text.setVisibility(View.VISIBLE);
-                progressView.setVisibility(View.VISIBLE);
+                text.setVisibility(VISIBLE);
+                progressView.setVisibility(VISIBLE);
             }
         },300);
 
@@ -755,7 +835,7 @@ public class MainActivity extends AppCompatActivity {
         if (!isFinished){
             handler.postDelayed(()-> {
                 functions.setAnimation(this, progressView,R.anim.scale_out);
-                progressView.setVisibility(View.INVISIBLE);
+                progressView.setVisibility(INVISIBLE);
             },300);
             return;
         }
@@ -767,23 +847,23 @@ public class MainActivity extends AppCompatActivity {
         handler.postDelayed(() -> text.setText( R.string.finished),500);
         handler.postDelayed(() -> {
         },700);
-        handler.postDelayed(() -> text.setVisibility(View.INVISIBLE),900);
+        handler.postDelayed(() -> text.setVisibility(INVISIBLE),900);
         handler.postDelayed(() -> {
             functions.setAnimation(this, progressView,R.anim.scale_out);
-            progressView.setVisibility(View.INVISIBLE);
+            progressView.setVisibility(INVISIBLE);
         },1000);
     }
 
 
     private final FileManager.FileCallback fileCallback = new FileManager.FileCallback() {
         @Override
-        public void onFileLoaded(String data) {
+        public void onFileLoaded(String data, String fileName) {
             if (data == null) {
                 Log.d(TAG, "ReadFile: null data");
                 return;
             }
             handler.post(() -> {
-                jsonLoader.LoadData(data, jsonLoaderCallback);
+                jsonLoader.LoadData(data, fileName, jsonLoaderCallback);
             });
 
         }
@@ -801,12 +881,31 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
+    private final FileManager.FileWriteCallback fileWriteCallback = new FileManager.FileWriteCallback() {
+        @Override
+        public void onFileWriteSuccess() {
+            unsavedChanges = false;
+            loadingFinished(true);
+            saveFAB.setVisibility(GONE);
+        }
+
+        @Override
+        public void onFileWriteFail() {
+            loadingFinished(false);
+            Toast.makeText(MainActivity.this, getString(R.string.fail_to_save), Toast.LENGTH_SHORT).show();
+        }
+
+        @Override
+        public void onProgressUpdate(int progress) {
+            progressBar.setProgressCompat(progress,true);
+        }
+    };
 
     JsonLoader.JsonLoaderCallback jsonLoaderCallback = new JsonLoader.JsonLoaderCallback() {
         @Override
         public void start() {
             loadingStarted(getString(R.string.loading_json));
-            emptyListTxt.setVisibility(View.GONE);
+            emptyListTxt.setVisibility(GONE);
         }
 
         @Override
@@ -824,7 +923,7 @@ public class MainActivity extends AppCompatActivity {
             handler.post(() -> {
                 TransitionManager.beginDelayedTransition(viewGroup, autoTransition);
 
-                if (urlLL.getVisibility() == View.VISIBLE)
+                if (urlLL.getVisibility() == VISIBLE)
                     hideUrlSearchView();
 
                 data.setCurrentList(data.getRootList());
@@ -835,12 +934,14 @@ public class MainActivity extends AppCompatActivity {
                 pathList.setAdapter(pathAdapter);
                 fileImg.clearAnimation();
                 openFileBtn.clearAnimation();
-                fileImg.setVisibility(View.GONE);
-                openFileBtn.setVisibility(View.GONE);
-                openUrlBtn.setVisibility(View.GONE);
+                fileImg.setVisibility(GONE);
+                openFileBtn.setVisibility(GONE);
+                openUrlBtn.setVisibility(GONE);
                 functions.setAnimation(MainActivity.this,list,R.anim.scale_in2,new DecelerateInterpolator());
-                list.setVisibility(View.VISIBLE);
-                backBtn.setVisibility(View.GONE);
+                list.setVisibility(VISIBLE);
+                backBtn.setVisibility(GONE);
+                saveFAB.setVisibility(GONE);
+                unsavedChanges = false;
                 titleTxt.setText("");
                 data.clearPath();
             });
@@ -860,7 +961,7 @@ public class MainActivity extends AppCompatActivity {
         public void onResponse(String data) {
             handler.post(()-> loadingFinished(false));
             isUrlSearching = false;
-            jsonLoader.LoadData(data,jsonLoaderCallback);
+            jsonLoader.LoadData(data,null,jsonLoaderCallback);
         }
 
         @Override
@@ -885,6 +986,11 @@ public class MainActivity extends AppCompatActivity {
                 Snackbar.make(getWindow().getDecorView(), R.string.loading_file_in_progress, BaseTransientBottomBar.LENGTH_SHORT).show();
                 return true;
             }
+            if (isEditMode){
+                Snackbar.make(getWindow().getDecorView(), R.string.editing_in_progress, BaseTransientBottomBar.LENGTH_SHORT).show();
+                return true;
+            }
+
             return false;
         }
 
@@ -911,4 +1017,84 @@ public class MainActivity extends AppCompatActivity {
                 ReadFile(result.getData().getData());
             });
 
+    public ActivityResultLauncher<Intent> ActivityResultSaveData = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                if (result.getResultCode() != Activity.RESULT_OK) {
+                    return;
+                }
+                if (result.getData() == null || result.getData().getData() == null){
+                    fileWriteCallback.onFileWriteFail();
+                    return;
+                }
+                WriteFile(result.getData().getData());
+            });
+
+    public void editItem(int pos) {
+        View view = LayoutInflater.from(this).inflate(R.layout.edit_item,null);
+
+        ListItem item = adapter.getList().get(pos);
+
+        if (item.isRootItem()) {
+            MessageDialog dialog = new MessageDialog();
+            dialog.Builder(this,true)
+                    .setTitle("Editing a root item is not available!")
+                    .show();
+            return;
+        }
+
+        EditText nameTxt = view.findViewById(R.id.NameTxt);
+        EditText valueTxt = view.findViewById(R.id.ValueTxt);
+
+        if (item.getName() == null) {
+            view.findViewById(R.id.nameLL).setVisibility(GONE);
+        }else nameTxt.setText(adapter.getList().get(pos).getName());
+
+        if (item.isArray() || item.isObject()) {
+            view.findViewById(R.id.valueLL).setVisibility(GONE);
+        }else valueTxt.setText(adapter.getList().get(pos).getValue());
+
+        CustomViewDialog dialog = new CustomViewDialog();
+        dialog.Builder(this, true)
+                .dialogWithTwoButtons()
+                .setTitle("Edit Item")
+                .addCustomView(view)
+                .onButtonClick(() -> {
+
+                    if (item.getName() != null){
+                        String name = nameTxt.getText().toString();
+
+                        for(ListItem i : item.getParentList()){
+                            if (i.getName().equals(name) && i != item){
+                                dialog.dismiss();
+                                new MessageDialog().Builder(this,true)
+                                        .setTitle(getString(R.string.item_with_name_already_exists))
+                                        .onDismissListener(d-> dialog.show())
+                                        .show();
+                                return;
+                            }
+                        }
+                        if (!item.getName().equals(name))
+                            isEdited = true;
+
+                        item.setName(name);
+                    }
+
+                    if (!item.isArray() && !item.isObject()){
+                        String value = valueTxt.getText().toString();
+                        if (!item.getValue().equals(value))
+                            isEdited = true;
+                        item.setValue(value);
+                    }
+
+                    dialog.dismiss();
+                    adapter.notifyItemChanged(pos);
+                    updateFilterList(data.getCurrentList());
+                })
+                .show();
+    }
+
+    public void DoneEdit(View view) {
+        toggleEdit();
+    }
 }

@@ -71,8 +71,22 @@
     <string name="loading_file_in_progress">Loading file in progress, try again later</string>
     <string name="file_is_to_large_to_be_shown_in_a_split_screen">File is to large to be shown in a split screen!</string>
 
+    <string name="item_name">Item name</string>
+    <string name="item_value">Item value</string>
+
+    <!--  Save Changes  -->
+    <string name="save">Save</string>
+    <string name="dismiss">Dismiss</string>
+    <string name="unsaved_changes_msg">You have unsaved changes</string>
+    <string name="save_changes">Save changes?</string>
+    <string name="file_saved">File saved!</string>
+    <string name="fail_to_save">Fail to save a file</string>
+    <string name="saving_file">Saving file...</string>
+
     <!--  Themes  -->
     <string name="theme">Theme</string>
+    <string name="editing_in_progress">Editing in progress</string>
+    <string name="item_with_name_already_exists">Item with this name already exists!</string>
 
     <string-array name="Themes">
         <item>System theme</item>

@@ -2,7 +2,8 @@ package com.sj14apps.jsonlist.core.controllers;
 
 public interface JsonLoader {
 
-    void LoadData(String Data, JsonLoaderCallback callBack);
+    //TODO get a file name form other place???
+    void LoadData(String Data, String fileName, JsonLoaderCallback callBack);
 
     interface JsonLoaderCallback {
         void start();

@@ -9,6 +9,7 @@ public class JsonData {
     ArrayList<ListItem> currentList = new ArrayList<>();
     Stack<Integer> previousPosStack = new Stack<>();
     String rawData = "";
+    String fileName;
 
     int previousPos = -1;
     static int maxPathNameLength = 3;
@@ -44,6 +45,14 @@ public class JsonData {
 
     public String getRawData() {
         return rawData;
+    }
+
+    public String getFileName() {
+        return fileName;
+    }
+
+    public void setFileName(String fileName) {
+        this.fileName = fileName;
     }
 
     public boolean isEmptyPath(){

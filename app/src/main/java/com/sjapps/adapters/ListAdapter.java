@@ -29,7 +29,7 @@ public class ListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     String path;
     public int selectedItem = -1;
     public int highlightedItem = -1;
-
+    boolean isEditMode = false;
 
 
     static class ViewHolderShort extends RecyclerView.ViewHolder{
@@ -140,6 +140,15 @@ public class ListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
             View view = currentHolder.getView();
 
+            if (isEditMode){
+                view.findViewById(R.id.btn).setOnClickListener(v -> {
+                    activity.editItem(pos);
+                });
+                view.findViewById(R.id.btn).setOnLongClickListener(null);
+                view.findViewById(R.id.copyBtn).setVisibility(View.GONE);
+                return;
+            }
+
             if (selectedItem == position){
                 view.findViewById(R.id.copyBtn).setVisibility(View.VISIBLE);
             }else view.findViewById(R.id.copyBtn).setVisibility(View.GONE);
@@ -150,6 +159,7 @@ public class ListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             }
 
             String newPath = path + (path.equals("") ? "": "///" + (item.getId()!=-1?"{" + item.getId() + "}":"")) + item.getName();
+
             view.findViewById(R.id.btn).setOnClickListener(view1 -> activity.open(JsonData.getPathFormat(newPath),newPath,item.getPosition()!=-1?item.getPosition():position));
             view.findViewById(R.id.copyBtn).setOnClickListener(v -> {
                 ClipboardManager clipboard = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
@@ -181,6 +191,21 @@ public class ListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         view.setClickable(false);
 
         valueTxt.setText(item.getValue().isEmpty() ? "\"\"" : item.getValue());
+        if (isEditMode){
+            setTextClickable(currentHolder.getTitleTxt(),false);
+            setTextClickable(currentHolder.getValueTxt(),false);
+            view.findViewById(R.id.btn).setClickable(true);
+            view.findViewById(R.id.btn).setBackgroundResource(R.drawable.ripple_list2);
+
+            view.findViewById(R.id.btn).setOnClickListener(v -> {
+                activity.editItem(pos);
+            });
+        } else {
+            view.findViewById(R.id.btn).setOnClickListener(null);
+            view.findViewById(R.id.btn).setBackgroundResource(R.drawable.background);
+            setTextClickable(currentHolder.getTitleTxt(),true);
+            setTextClickable(currentHolder.getValueTxt(),true);
+        }
 
     }
 
@@ -213,4 +238,21 @@ public class ListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     public ArrayList<ListItem> getList(){
         return list;
     }
+
+    public void setEditMode(boolean isEditMode) {
+        selectedItem = -1;
+        this.isEditMode = isEditMode;
+    }
+
+    public boolean isEditMode() {
+        return isEditMode;
+    }
+
+    private void setTextClickable(TextView textView, boolean clickable) {
+        textView.setLongClickable(clickable);
+        textView.setTextIsSelectable(clickable);
+        textView.setFocusable(clickable);
+        textView.setFocusableInTouchMode(clickable);
+    }
+
 }
