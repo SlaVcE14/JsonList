@@ -9,6 +9,8 @@ Introducing a Material You Android application for previewing JSON from a file o
      alt="Get it on IzzyOnDroid"
      height="80">](https://slavce14.github.io/redirect?link=jsonlist-izzy)
 
+[![Packaging status](https://repology.org/badge/vertical-allrepos/android%3Ajson-list.svg)](https://repology.org/project/android%3Ajson-list/versions)
+
 Or download the latest APK from the [Releases Section](https://github.com/SlaVcE14/JsonList/releases/latest).
 
 [Desktop app coming soon..](https://github.com/SlaVcE14/JsonList-Desktop)
