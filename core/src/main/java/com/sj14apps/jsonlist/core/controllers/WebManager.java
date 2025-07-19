@@ -11,6 +11,7 @@ import java.io.IOException;
 
 
 public class WebManager {
+    private OkHttpClient client;
 
     public void getFromUrl(String url, WebCallback webCallback){
         if (url.trim().isEmpty())
@@ -19,7 +20,7 @@ public class WebManager {
         if (!url.startsWith("http"))
             url = "https://" + url;
 
-        OkHttpClient client = new OkHttpClient();
+        createClientIfNeeded();
         Request request;
         try {
             request = new Request.Builder()
@@ -45,12 +46,22 @@ public class WebManager {
                     return;
                 }
                 webCallback.onResponse(response.body().string());
-
             }
         });
         webCallback.onStarted();
     }
 
+    private void createClientIfNeeded(){
+        if (client == null)
+            client = new OkHttpClient();
+    }
+
+    public void shutdownClient() {
+        if (client == null)
+            return;
+        client.connectionPool().evictAll();
+        client.dispatcher().executorService().shutdown();
+    }
     public interface WebCallback {
         void onStarted();
         void onInvalidURL();
