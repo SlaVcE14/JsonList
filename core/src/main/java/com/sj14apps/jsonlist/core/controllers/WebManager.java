@@ -23,6 +23,7 @@ public class WebManager {
         createClientIfNeeded();
         Request request;
         try {
+            // CodeQL [java/ssrf] Safe to ignore: this is a client-side app, user controls their own URLs.
             request = new Request.Builder()
                     .url(url)
                     .build();
