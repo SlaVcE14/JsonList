@@ -21,6 +21,8 @@ public class WebManager {
             url = "https://" + url;
 
         createClientIfNeeded();
+
+        @SuppressWarnings("java/ssrf")
         Request request;
         try {
             // CodeQL [java/ssrf] Safe to ignore: this is a client-side app, user controls their own URLs.
