@@ -61,7 +61,6 @@ import com.sjapps.jsonlist.controllers.AndroidDragAndDrop;
 import com.sjapps.jsonlist.controllers.AndroidFileManager;
 import com.sjapps.jsonlist.controllers.AndroidJsonLoader;
 import com.sjapps.jsonlist.controllers.AndroidRawJsonView;
-import com.sjapps.jsonlist.controllers.AndroidWebManager;
 import com.sj14apps.jsonlist.core.controllers.FileManager;
 import com.sj14apps.jsonlist.core.controllers.JsonLoader;
 import com.sj14apps.jsonlist.core.controllers.RawJsonView;
@@ -117,7 +116,7 @@ public class MainActivity extends AppCompatActivity {
     int listPrevDx = 0;
     RawJsonView rawJsonView;
     FileManager fileManager;
-    WebManager webController;
+    WebManager webManager;
     JsonLoader jsonLoader;
 
     public boolean isVertical = true;
@@ -239,7 +238,7 @@ public class MainActivity extends AppCompatActivity {
 
         rawJsonView = new AndroidRawJsonView(this,textColor,keyColor,numberColor,booleanAndNullColor,bgColor);
 
-        webController =  new AndroidWebManager(this);
+        webManager =  new WebManager();
 
         rawJsonView.updateRawJson("");
 
@@ -806,7 +805,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void SearchUrl() {
-        webController.getFromUrl(urlSearch.getText().toString(),webCallback);
+        webManager.getFromUrl(urlSearch.getText().toString(),webCallback);
         InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
         imm.hideSoftInputFromWindow(urlSearch.getWindowToken(), 0);
     }
@@ -957,6 +956,18 @@ public class MainActivity extends AppCompatActivity {
     };
 
     private final WebManager.WebCallback webCallback = new WebManager.WebCallback() {
+        @Override
+        public void onStarted() {
+            hideUrlSearchView();
+            loadingStarted();
+            isUrlSearching = true;
+        }
+
+        @Override
+        public void onInvalidURL() {
+            Toast.makeText(MainActivity.this, getString(R.string.invalid_url), Toast.LENGTH_SHORT).show();
+        }
+
         @Override
         public void onResponse(String data) {
             handler.post(()-> loadingFinished(false));
