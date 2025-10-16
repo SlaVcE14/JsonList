@@ -31,13 +31,23 @@ public class AndroidRawJsonView extends RawJsonView {
         if (showJson){
             functions.setAnimation(mainActivity,mainActivity.rawJsonRL,mainActivity.isVertical? R.anim.slide_bottom_out:R.anim.slide_right_out,new AccelerateDecelerateInterpolator());
             mainActivity.handler.postDelayed(()-> mainActivity.rawJsonRL.setVisibility(View.GONE),400);
+            mainActivity.resizeSplitViewBtn.setVisibility(View.GONE);
             showJson = false;
             if (mainActivity.listRL.getVisibility() == View.GONE)
                 mainActivity.listRL.setVisibility(View.VISIBLE);
+
+            mainActivity.guideLine.setGuidelinePercent(1f);
             return;
         }
         showJson = true;
         mainActivity.rawJsonRL.setVisibility(View.VISIBLE);
+
+        mainActivity.guideLine.setGuidelinePercent(0.5f);
+        mainActivity.handler.postDelayed(()->{
+                    mainActivity.resizeSplitViewBtn.setVisibility(View.VISIBLE);
+                    functions.setAnimation(mainActivity,mainActivity.resizeSplitViewBtn, R.anim.scale_in,new DecelerateInterpolator());
+                },
+                350);
         functions.setAnimation(mainActivity,mainActivity.rawJsonRL,mainActivity.isVertical?R.anim.slide_bottom_in:R.anim.slide_right_in,new DecelerateInterpolator());
         if (!isRawJsonLoaded)
             ShowJSON();

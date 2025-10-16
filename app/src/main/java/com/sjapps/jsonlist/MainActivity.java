@@ -11,6 +11,9 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.constraintlayout.widget.ConstraintSet;
+import androidx.constraintlayout.widget.Guideline;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -32,6 +35,7 @@ import android.util.TypedValue;
 import android.view.HapticFeedbackConstants;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.DecelerateInterpolator;
@@ -41,6 +45,7 @@ import android.view.inputmethod.InputMethodManager;
 import android.webkit.WebView;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -98,7 +103,7 @@ public class MainActivity extends AppCompatActivity {
     RecyclerView pathList;
     public JsonData data = new JsonData();
     public LinearLayout progressView;
-    LinearLayout mainLL;
+    ConstraintLayout mainLL;
     LinearProgressIndicator progressBar;
     ListAdapter adapter;
     PathListAdapter pathAdapter;
@@ -111,7 +116,7 @@ public class MainActivity extends AppCompatActivity {
     public RelativeLayout listRL;
     public RelativeLayout rawJsonRL;
     public AppState state;
-    View fullRawBtn;
+    public View resizeSplitViewBtn;
     LinearLayout topMenu;
     int listPrevDx = 0;
     RawJsonView rawJsonView;
@@ -127,6 +132,7 @@ public class MainActivity extends AppCompatActivity {
     public boolean isEditMode;
     boolean unsavedChanges;
     FloatingActionButton saveFAB;
+    public Guideline guideLine;
 
     ArrayList<String> filterList = new ArrayList<>();
 
@@ -152,8 +158,7 @@ public class MainActivity extends AppCompatActivity {
 
         if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE){
             isVertical = false;
-            mainLL.setOrientation(LinearLayout.HORIZONTAL);
-            updateFullRawBtn();
+            updateOrientation();
         }
 
         Intent intent = getIntent();
@@ -204,9 +209,10 @@ public class MainActivity extends AppCompatActivity {
         rawJsonRL = findViewById(R.id.rawJsonRL);
         rawJsonWV = findViewById(R.id.rawJsonWV);
         menuBtn.bringToFront();
-        fullRawBtn = findViewById(R.id.fullRawBtn);
+        resizeSplitViewBtn = findViewById(R.id.resizeSplitViewBtn);
         topMenu = findViewById(R.id.topMenu);
         saveFAB = findViewById(R.id.saveFAB);
+        guideLine = findViewById(R.id.guideline);
 
         LinearLayoutManager pathLM = new LinearLayoutManager(this);
         LinearLayoutManager layoutManager = new LinearLayoutManager(this){
@@ -325,6 +331,50 @@ public class MainActivity extends AppCompatActivity {
         filterBtn.setOnClickListener(view -> filter());
         editBtn.setOnClickListener(view -> toggleEdit());
         saveFAB.setOnClickListener(view -> saveChanges());
+
+        resizeSplitViewBtn.setOnTouchListener(new View.OnTouchListener() {
+
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                switch (event.getAction()) {
+                    case MotionEvent.ACTION_DOWN:
+                        resizeSplitViewBtn.setScaleX(1.2f);
+                        resizeSplitViewBtn.setScaleY(1.2f);
+                        resizeSplitViewBtn.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP);
+                        return true;
+
+                    case MotionEvent.ACTION_MOVE:
+                        ConstraintLayout.LayoutParams params = (ConstraintLayout.LayoutParams) guideLine.getLayoutParams();
+                        if (isVertical){
+                            params.guidePercent = (event.getRawY() - mainLL.getY()) / viewGroup.getHeight();
+                        }else {
+                            params.guidePercent = (event.getRawX() - mainLL.getX()) / viewGroup.getWidth();
+                        }
+                        if (params.guidePercent < 0.2f){
+                            params.guidePercent = 0.03f;
+                            if (listRL.getVisibility() == VISIBLE)
+                                resizeSplitViewBtn.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK);
+                            listRL.setVisibility(GONE);
+                        }else {
+                            if (listRL.getVisibility() == GONE)
+                                resizeSplitViewBtn.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP);
+                            listRL.setVisibility(VISIBLE);
+                        }
+                        if (params.guidePercent > 0.8f)
+                            params.guidePercent = 0.8f;
+                        guideLine.setLayoutParams(params);
+                        return true;
+
+                    case MotionEvent.ACTION_UP:
+
+                        resizeSplitViewBtn.setScaleX(1f);
+                        resizeSplitViewBtn.setScaleY(1f);
+                        resizeSplitViewBtn.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP);
+                        return true;
+                }
+                return true;
+            }
+        });
     }
 
     private void toggleEdit() {
@@ -370,14 +420,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         isVertical = !isVertical;
-
-        if (!isVertical){
-            mainLL.setOrientation(LinearLayout.HORIZONTAL);
-            updateFullRawBtn();
-        }else {
-            mainLL.setOrientation(LinearLayout.VERTICAL);
-            updateFullRawBtn();
-        }
+        updateOrientation();
     }
 
     OnBackPressedCallback backPressedCallback = new OnBackPressedCallback(true) {
@@ -404,7 +447,7 @@ public class MainActivity extends AppCompatActivity {
             }
 
             if (listRL.getVisibility() == GONE){
-                FullRaw(null);
+                ShowList();
                 return;
             }
 
@@ -712,43 +755,96 @@ public class MainActivity extends AppCompatActivity {
         pathListView.setVisibility(VISIBLE);
     }
 
-    public void FullRaw(View view) {
+    public void ShowList() {
         TransitionManager.endTransitions(viewGroup);
         TransitionManager.beginDelayedTransition(viewGroup, autoTransition);
 
-        fullRawBtn.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP);
-        if (listRL.getVisibility() == VISIBLE){
-            listRL.setVisibility(GONE);
-        }else
-            listRL.setVisibility(VISIBLE);
+        resizeSplitViewBtn.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP);
+        listRL.setVisibility(VISIBLE);
+        guideLine.setGuidelinePercent(.5f);
     }
 
-    private void updateFullRawBtn(){
+    private void updateOrientation(){
 
         int initWidth = functions.dpToPixels(this,100);
         int initHeight = functions.dpToPixels(this,7);
 
-        RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) fullRawBtn.getLayoutParams();
+        ConstraintLayout.LayoutParams params = (ConstraintLayout.LayoutParams) resizeSplitViewBtn.getLayoutParams();
+        FrameLayout.LayoutParams paramsLine = (FrameLayout.LayoutParams) findViewById(R.id.resizeSplitViewBtnLine).getLayoutParams();
+
+        mainLL.removeView(guideLine);
+        guideLine = new Guideline(this);
+        guideLine.setId(R.id.guideline);
+
+        ConstraintLayout.LayoutParams paramsGuideLine =
+                new ConstraintLayout.LayoutParams(
+                        ConstraintLayout.LayoutParams.WRAP_CONTENT,
+                        ConstraintLayout.LayoutParams.WRAP_CONTENT);
+
+        if (rawJsonView.showJson)
+            paramsGuideLine.guidePercent = 0.5f;
+        else paramsGuideLine.guidePercent = 1;
+
+        ConstraintLayout constraintLayout = findViewById(R.id.mainLL);
+        ConstraintSet constraintSet = new ConstraintSet();
+        constraintSet.clone(constraintLayout);
+
+        constraintSet.clear(R.id.resizeSplitViewBtn);
+        constraintSet.clear(R.id.listRL);
+        constraintSet.clear(R.id.rawJsonRL);
 
         if (!isVertical){
+            paramsGuideLine.orientation = ConstraintLayout.LayoutParams.VERTICAL;
+            mainLL.addView(guideLine,1,paramsGuideLine);
 
-            params.width = initHeight;
-            params.height = initWidth;
+            paramsLine.width = initHeight;
+            paramsLine.height = initWidth;
 
-            params.addRule(RelativeLayout.CENTER_VERTICAL);
-            params.removeRule(RelativeLayout.CENTER_HORIZONTAL);
+            params.leftMargin = functions.dpToPixels(this,-15);
+            params.topMargin = 0;
+            params.topToTop = ConstraintLayout.LayoutParams.PARENT_ID;
+            params.bottomToBottom = ConstraintLayout.LayoutParams.PARENT_ID;
+            params.startToStart = rawJsonRL.getId();
+            params.endToEnd = ConstraintLayout.LayoutParams.UNSET;
 
-            fullRawBtn.setLayoutParams(params);
+            constraintSet.connect(R.id.listRL,ConstraintSet.START,ConstraintSet.PARENT_ID,ConstraintSet.START);
+            constraintSet.connect(R.id.listRL,ConstraintSet.END,R.id.guideline,ConstraintSet.START);
+            constraintSet.connect(R.id.listRL,ConstraintSet.TOP,ConstraintSet.PARENT_ID,ConstraintSet.TOP);
+            constraintSet.connect(R.id.listRL,ConstraintSet.BOTTOM,ConstraintSet.PARENT_ID,ConstraintSet.BOTTOM);
+
+            constraintSet.connect(R.id.rawJsonRL,ConstraintSet.START,R.id.guideline,ConstraintSet.START);
+            constraintSet.connect(R.id.rawJsonRL,ConstraintSet.END,ConstraintSet.PARENT_ID,ConstraintSet.END);
+            constraintSet.connect(R.id.rawJsonRL,ConstraintSet.TOP,ConstraintSet.PARENT_ID,ConstraintSet.TOP);
+            constraintSet.connect(R.id.rawJsonRL,ConstraintSet.BOTTOM,ConstraintSet.PARENT_ID,ConstraintSet.BOTTOM);
+
+            constraintSet.applyTo(constraintLayout);
             return;
         }
 
-        params.width = initWidth;
-        params.height = initHeight;
+        paramsGuideLine.orientation = ConstraintLayout.LayoutParams.HORIZONTAL;
+        mainLL.addView(guideLine,paramsGuideLine);
 
-        params.addRule(RelativeLayout.CENTER_HORIZONTAL);
-        params.removeRule(RelativeLayout.CENTER_VERTICAL);
+        paramsLine.width = initWidth;
+        paramsLine.height = initHeight;
 
-        fullRawBtn.setLayoutParams(params);
+        params.leftMargin = 0;
+        params.topMargin = functions.dpToPixels(this,-15);
+        params.topToTop = rawJsonRL.getId();
+        params.bottomToBottom = ConstraintLayout.LayoutParams.UNSET;
+        params.startToStart = ConstraintLayout.LayoutParams.PARENT_ID;
+        params.endToEnd = ConstraintLayout.LayoutParams.PARENT_ID;
+
+        constraintSet.connect(R.id.listRL,ConstraintSet.START,ConstraintSet.PARENT_ID,ConstraintSet.START);
+        constraintSet.connect(R.id.listRL,ConstraintSet.END,ConstraintSet.PARENT_ID,ConstraintSet.END);
+        constraintSet.connect(R.id.listRL,ConstraintSet.TOP,ConstraintSet.PARENT_ID,ConstraintSet.TOP);
+        constraintSet.connect(R.id.listRL,ConstraintSet.BOTTOM,R.id.guideline,ConstraintSet.BOTTOM);
+
+        constraintSet.connect(R.id.rawJsonRL,ConstraintSet.START,ConstraintSet.PARENT_ID,ConstraintSet.START);
+        constraintSet.connect(R.id.rawJsonRL,ConstraintSet.END,ConstraintSet.PARENT_ID,ConstraintSet.END);
+        constraintSet.connect(R.id.rawJsonRL,ConstraintSet.TOP,R.id.guideline,ConstraintSet.TOP);
+        constraintSet.connect(R.id.rawJsonRL,ConstraintSet.BOTTOM,ConstraintSet.PARENT_ID,ConstraintSet.BOTTOM);
+
+        constraintSet.applyTo(constraintLayout);
     }
 
     void ReadFile(Uri uri){
