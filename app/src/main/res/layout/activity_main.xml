@@ -119,20 +119,25 @@
 
     </LinearLayout>
 
-    <LinearLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/mainLL"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_below="@+id/titlePanel"
-        android:weightSum="2"
         android:orientation="vertical"
         >
 
         <RelativeLayout
             android:id="@+id/listRL"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
+            android:layout_height="0dp"
+            android:minWidth="50dp"
+            android:minHeight="50dp"
+            app:layout_constraintBottom_toTopOf="@id/guideline"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+
             >
             <LinearLayout
                 android:id="@+id/topMenu"
@@ -276,45 +281,66 @@
             </com.google.android.material.floatingactionbutton.FloatingActionButton>
 
         </RelativeLayout>
+
+        <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/guideline"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@color/Custom0"
+            android:orientation="horizontal"
+            app:layout_constraintGuide_percent="1" />
+
+
         <RelativeLayout
             android:id="@+id/rawJsonRL"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
+            android:layout_height="0dp"
             android:visibility="gone"
-
-            >
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@id/guideline">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:background="@drawable/split_view_bg"
                 android:layout_margin="10dp"
+                android:background="@drawable/split_view_bg"
                 android:orientation="vertical"
-                android:visibility="visible"
-                >
+                android:visibility="visible">
 
                 <WebView
                     android:id="@+id/rawJsonWV"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:layout_margin="10dp"
-                    />
+                    android:layout_margin="10dp" />
 
             </LinearLayout>
+
+
+        </RelativeLayout>
+
+        <FrameLayout
+            android:id="@+id/resizeSplitViewBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="15dp"
+            android:layout_marginTop="-15dp"
+            app:layout_constraintTop_toTopOf="@+id/rawJsonRL"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:visibility="gone"
+            android:clickable="false">
             <View
-                android:id="@+id/fullRawBtn"
+                android:id="@+id/resizeSplitViewBtnLine"
                 android:layout_width="100dp"
                 android:layout_height="7dp"
                 android:background="@drawable/ripple_button"
-                android:onClick="FullRaw"
-                android:layout_centerHorizontal="true"
-
                 />
-        </RelativeLayout>
+        </FrameLayout>
 
 
-    </LinearLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
 
     <RelativeLayout

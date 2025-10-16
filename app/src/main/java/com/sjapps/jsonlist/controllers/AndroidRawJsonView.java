@@ -4,6 +4,7 @@ import android.transition.TransitionManager;
 import android.view.View;
 import android.view.animation.AccelerateDecelerateInterpolator;
 import android.view.animation.DecelerateInterpolator;
+import android.webkit.WebSettings;
 
 import com.google.android.material.snackbar.BaseTransientBottomBar;
 import com.google.android.material.snackbar.Snackbar;
@@ -21,6 +22,14 @@ public class AndroidRawJsonView extends RawJsonView {
     public AndroidRawJsonView(MainActivity mainActivity, int textColor, int keyColor, int numberColor, int booleanAndNullColor, int bgColor) {
         super(textColor, keyColor, numberColor, booleanAndNullColor, bgColor);
         this.mainActivity = mainActivity;
+        setup();
+    }
+
+    private void setup(){
+        WebSettings webSettings = mainActivity.rawJsonWV.getSettings();
+        webSettings.setBuiltInZoomControls(true);
+        webSettings.setDisplayZoomControls(false);
+        webSettings.setSupportZoom(true);
     }
 
     @Override
@@ -31,13 +40,23 @@ public class AndroidRawJsonView extends RawJsonView {
         if (showJson){
             functions.setAnimation(mainActivity,mainActivity.rawJsonRL,mainActivity.isVertical? R.anim.slide_bottom_out:R.anim.slide_right_out,new AccelerateDecelerateInterpolator());
             mainActivity.handler.postDelayed(()-> mainActivity.rawJsonRL.setVisibility(View.GONE),400);
+            mainActivity.resizeSplitViewBtn.setVisibility(View.GONE);
             showJson = false;
             if (mainActivity.listRL.getVisibility() == View.GONE)
                 mainActivity.listRL.setVisibility(View.VISIBLE);
+
+            mainActivity.guideLine.setGuidelinePercent(1f);
             return;
         }
         showJson = true;
         mainActivity.rawJsonRL.setVisibility(View.VISIBLE);
+
+        mainActivity.guideLine.setGuidelinePercent(0.5f);
+        mainActivity.handler.postDelayed(()->{
+                    mainActivity.resizeSplitViewBtn.setVisibility(View.VISIBLE);
+                    functions.setAnimation(mainActivity,mainActivity.resizeSplitViewBtn, R.anim.scale_in,new DecelerateInterpolator());
+                },
+                350);
         functions.setAnimation(mainActivity,mainActivity.rawJsonRL,mainActivity.isVertical?R.anim.slide_bottom_in:R.anim.slide_right_in,new DecelerateInterpolator());
         if (!isRawJsonLoaded)
             ShowJSON();
