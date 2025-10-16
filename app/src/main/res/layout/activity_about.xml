@@ -75,11 +75,24 @@
 
                     android:layout_marginTop="10dp" />
 
+                <Button
+                    android:id="@+id/releasesNotesBtn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@+id/aboutList"
+                    android:layout_centerHorizontal="true"
+                    android:layout_marginTop="10dp"
+                    android:onClick="ShowReleasesNotes"
+                    android:background="@drawable/ripple"
+                    android:textColor="?colorPrimary"
+                    android:text="@string/release_notes"
+                    />
+
                 <TextView
                     android:id="@+id/LibrariesTxt"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_below="@id/aboutList"
+                    android:layout_below="@id/releasesNotesBtn"
                     android:layout_marginHorizontal="20dp"
                     android:layout_marginTop="20dp"
 
@@ -119,7 +132,7 @@
                 android:onClick="SendFeedback"
                 android:text="@string/send_feedback"
                 android:background="@drawable/ripple"
-                android:textColor="?colorOnBackground"
+                android:textColor="?colorPrimary"
                 />
 
         </RelativeLayout>
