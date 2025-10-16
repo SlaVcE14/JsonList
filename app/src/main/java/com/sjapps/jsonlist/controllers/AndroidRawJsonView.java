@@ -4,6 +4,7 @@ import android.transition.TransitionManager;
 import android.view.View;
 import android.view.animation.AccelerateDecelerateInterpolator;
 import android.view.animation.DecelerateInterpolator;
+import android.webkit.WebSettings;
 
 import com.google.android.material.snackbar.BaseTransientBottomBar;
 import com.google.android.material.snackbar.Snackbar;
@@ -21,6 +22,14 @@ public class AndroidRawJsonView extends RawJsonView {
     public AndroidRawJsonView(MainActivity mainActivity, int textColor, int keyColor, int numberColor, int booleanAndNullColor, int bgColor) {
         super(textColor, keyColor, numberColor, booleanAndNullColor, bgColor);
         this.mainActivity = mainActivity;
+        setup();
+    }
+
+    private void setup(){
+        WebSettings webSettings = mainActivity.rawJsonWV.getSettings();
+        webSettings.setBuiltInZoomControls(true);
+        webSettings.setDisplayZoomControls(false);
+        webSettings.setSupportZoom(true);
     }
 
     @Override
