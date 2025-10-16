@@ -9,35 +9,49 @@ import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.telecom.Call;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
+import android.widget.ScrollView;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.content.res.AppCompatResources;
 import androidx.core.graphics.Insets;
+import androidx.core.text.HtmlCompat;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.core.widget.NestedScrollView;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import com.sj14apps.jsonlist.core.controllers.WebManager;
+import com.sjapps.jsonlist.MainActivity;
 import com.sjapps.jsonlist.R;
 import com.sjapps.library.customdialog.BasicDialog;
+import com.sjapps.library.customdialog.CustomViewDialog;
 import com.sjapps.library.customdialog.DialogButtonEvents;
 import com.sjapps.library.customdialog.ImageListItem;
 import com.sjapps.library.customdialog.ListDialog;
 import com.sjapps.library.customdialog.SJDialog;
 
+import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.List;
 
 public class AboutActivity extends AppCompatActivity {
 
     private static final String SITE_APP_VERSIONS = "https://slavce14.github.io/redirect?link=jsonlist-app-versions";
+    private static final String RELEASE_NOTES_URL = "https://slavce14.github.io/apps/JsonList/changelogs.json";
     private static final String SITE_FDroid = "https://slavce14.github.io/redirect?link=jsonlist-fdroid";
     private static final String SITE_IzzyOnDroid = "https://slavce14.github.io/redirect?link=jsonlist-izzy";
     private static final String GITHUB_REPOSITORY_RELEASES = "https://github.com/SlaVcE14/JsonList/releases";
@@ -51,6 +65,8 @@ public class AboutActivity extends AppCompatActivity {
     ArrayList<AboutListItem> libsItems;
     boolean isStoreInstalled;
     Drawable storeIcon;
+    boolean releaseNotesOpen = false;
+    Handler handler = new Handler();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -232,6 +248,78 @@ public class AboutActivity extends AppCompatActivity {
         s += "\n";
 
         return s;
+    }
+
+    public void ShowReleasesNotes(View view) {
+        if (releaseNotesOpen)
+            return;
+
+        releaseNotesOpen = true;
+        CustomViewDialog dialog = new CustomViewDialog();
+        ScrollView scrollView = new ScrollView(AboutActivity.this);
+        TextView textView = new TextView(AboutActivity.this);
+
+        WebManager webManager = new WebManager();
+        webManager.getFromUrl(RELEASE_NOTES_URL, new WebManager.WebCallback() {
+            @Override
+            public void onStarted() {
+                textView.setText(R.string.loading);
+                textView.setTextAlignment(TextView.TEXT_ALIGNMENT_CENTER);
+                scrollView.addView(textView);
+                dialog.Builder(AboutActivity.this,true)
+                        .setTitle(getString(R.string.release_notes))
+                        .addCustomView(scrollView)
+                        .onDismissListener(dialog1 -> {
+                            releaseNotesOpen = false;
+                        })
+                        .show();
+            }
+
+            @Override
+            public void onInvalidURL() {
+
+            }
+
+            @Override
+            public void onResponse(String data) {
+                Type listType = new TypeToken<List<ReleaseNote>>() {}.getType();
+
+                List<ReleaseNote> releasesHistory = new Gson().fromJson(data,listType);
+                if (releasesHistory == null)
+                    return;
+
+                StringBuilder stringBuilder = new StringBuilder();
+                for (ReleaseNote note : releasesHistory){
+                    stringBuilder.append("<h3>").append(note.title).append("</h3>");
+                    stringBuilder.append(note.changelog.replaceAll("\n","<br>")).append("<br>");
+                    stringBuilder.append("<br><br>");
+                }
+
+
+                handler.post(() -> {
+                    textView.setTextAlignment(TextView.TEXT_ALIGNMENT_TEXT_START);
+                    textView.setText(HtmlCompat.fromHtml(stringBuilder.toString(),HtmlCompat.FROM_HTML_MODE_LEGACY));
+
+                });
+            }
+
+            @Override
+            public void onFailure() {
+                handler.post(() -> {
+                    Toast.makeText(AboutActivity.this, getResources().getText(R.string.fail_to_get_data),Toast.LENGTH_SHORT).show();
+                    dialog.dismiss();
+                });
+
+            }
+
+            @Override
+            public void onFailure(int code) {
+                handler.post(() -> {
+                    Toast.makeText(AboutActivity.this, getResources().getText(R.string.fail_to_get_data) + "code:" + code, Toast.LENGTH_SHORT).show();
+                    dialog.dismiss();
+                });
+            }
+        });
     }
 
     public void Back(View view) {
