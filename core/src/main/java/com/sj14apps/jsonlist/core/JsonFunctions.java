@@ -104,7 +104,15 @@ public class JsonFunctions {
         item.setIsRootItem(true);
     }
     private static String getStringFromJson(String value){
-        return value.startsWith("\"") && value.endsWith("\"") ? value.substring(1,value.length()-1) : value;
+        String ret = value.startsWith("\"") && value.endsWith("\"") ? value.substring(1,value.length()-1) : value;
+        return ret
+                .replace("\\n","\n")
+                .replace("\\t","\t")
+                .replace("\\r","\r")
+                .replace("\\b","\b")
+                .replace("\\f","\f")
+                .replace("\\\"","\"")
+                .replace("\\\\","\\");
     }
 
     private static void setItem(JsonObject obj, Object o, ListItem item){
