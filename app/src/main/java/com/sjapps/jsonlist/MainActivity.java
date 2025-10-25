@@ -28,6 +28,8 @@ import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.transition.AutoTransition;
 import android.transition.TransitionManager;
 import android.util.Log;
@@ -38,6 +40,7 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.view.animation.DecelerateInterpolator;
 import android.view.animation.OvershootInterpolator;
 import android.view.inputmethod.EditorInfo;
@@ -53,15 +56,19 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.material.chip.Chip;
+import com.google.android.material.chip.ChipGroup;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.progressindicator.LinearProgressIndicator;
 import com.google.android.material.snackbar.BaseTransientBottomBar;
 import com.google.android.material.snackbar.Snackbar;
 
 import com.sj14apps.jsonlist.core.JsonFunctions;
+import com.sj14apps.jsonlist.core.SearchItem;
 import com.sjapps.about.AboutActivity;
 import com.sjapps.adapters.ListAdapter;
 import com.sjapps.adapters.PathListAdapter;
+import com.sjapps.adapters.SearchListAdapter;
 import com.sjapps.jsonlist.controllers.AndroidDragAndDrop;
 import com.sjapps.jsonlist.controllers.AndroidFileManager;
 import com.sjapps.jsonlist.controllers.AndroidJsonLoader;
@@ -86,27 +93,31 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Objects;
 
 public class MainActivity extends AppCompatActivity {
 
     final String TAG = "MainActivity";
-    ImageButton backBtn, menuBtn, splitViewBtn, filterBtn;
+    ImageButton backBtn, menuBtn, splitViewBtn, filterBtn, searchBtn;
     View editBtn;
     ImageView fileImg;
     Button openFileBtn;
     Button openUrlBtn;
-    EditText urlSearch;
+    EditText urlSearchTxt,searchTxt;
     LinearLayout urlLL;
+    LinearLayout searchLL;
     LinearLayout messageLL;
     TextView titleTxt, emptyListTxt;
     RecyclerView list;
     RecyclerView pathList;
+    RecyclerView searchList;
     public JsonData data = new JsonData();
     public LinearLayout progressView;
     ConstraintLayout mainLL;
     LinearProgressIndicator progressBar;
     ListAdapter adapter;
     PathListAdapter pathAdapter;
+    SearchListAdapter searchAdapter;
     View menu, dim_bg, pathListView;
     public WebView rawJsonWV;
     public ViewGroup viewGroup;
@@ -187,17 +198,21 @@ public class MainActivity extends AppCompatActivity {
         messageLL = findViewById(R.id.messageLL);
         splitViewBtn = findViewById(R.id.splitViewBtn);
         filterBtn = findViewById(R.id.filterBtn);
+        searchBtn = findViewById(R.id.searchBtn);
         editBtn = findViewById(R.id.editBtn);
         titleTxt = findViewById(R.id.titleTxt);
         emptyListTxt = findViewById(R.id.emptyListTxt);
         list = findViewById(R.id.list);
         pathListView = findViewById(R.id.pathListBG);
         pathList = findViewById(R.id.pathList);
+        searchList = findViewById(R.id.searchResultList);
         listRL = findViewById(R.id.listRL);
         openFileBtn = findViewById(R.id.openFileBtn);
         openUrlBtn = findViewById(R.id.openUrlBtn);
-        urlSearch = findViewById(R.id.urlSearch);
+        urlSearchTxt = findViewById(R.id.urlSearch);
+        searchTxt = findViewById(R.id.searchTxt);
         urlLL = findViewById(R.id.searchUrlView);
+        searchLL = findViewById(R.id.searchLL);
         viewGroup = findViewById(R.id.content);
         menu = findViewById(R.id.menu);
         dim_bg = findViewById(R.id.dim_layout);
@@ -250,6 +265,7 @@ public class MainActivity extends AppCompatActivity {
 
         list.setLayoutManager(layoutManager);
         pathList.setLayoutManager(pathLM);
+        searchList.setLayoutManager(new LinearLayoutManager(this));
 
         fileManager = new AndroidFileManager(this,handler);
         jsonLoader = new AndroidJsonLoader(this);
@@ -270,6 +286,15 @@ public class MainActivity extends AppCompatActivity {
             layoutParams.rightMargin = insets.right + insetsN.right;
             layoutParams.bottomMargin = insets.bottom;
             v.setLayoutParams(layoutParams);
+
+            Insets imeInsets = windowInsets.getInsets(WindowInsetsCompat.Type.ime());
+            searchLL.setPadding(
+                    v.getPaddingLeft(),
+                    v.getPaddingTop(),
+                    v.getPaddingRight(),
+                    imeInsets.bottom
+            );
+
             return WindowInsetsCompat.CONSUMED;
         });
     }
@@ -278,7 +303,7 @@ public class MainActivity extends AppCompatActivity {
         menuBtn.setOnClickListener(view -> open_closeMenu());
 
         backBtn.setOnClickListener(view -> {
-            if(!data.isEmptyPath() || urlLL.getVisibility() == VISIBLE || (adapter != null && adapter.isEditMode())) getOnBackPressedDispatcher().onBackPressed();
+            if(!data.isEmptyPath() || urlLL.getVisibility() == VISIBLE || searchLL.getVisibility() == VISIBLE || (adapter != null && adapter.isEditMode())) getOnBackPressedDispatcher().onBackPressed();
         });
         openFileBtn.setOnClickListener(view -> fileManager.importFromFile());
         openUrlBtn.setOnClickListener(view -> {
@@ -293,7 +318,7 @@ public class MainActivity extends AppCompatActivity {
         pathListView.setOnClickListener(v -> showHidePathList());
 
         //TODO Web
-        urlSearch.setOnEditorActionListener((v, actionId, event) -> {
+        urlSearchTxt.setOnEditorActionListener((v, actionId, event) -> {
             if (actionId == EditorInfo.IME_ACTION_DONE ||
                     actionId == EditorInfo.IME_ACTION_SEARCH ||
                     event != null &&
@@ -301,6 +326,58 @@ public class MainActivity extends AppCompatActivity {
                             event.getKeyCode() == KeyEvent.KEYCODE_ENTER){
 
                 SearchUrl();
+                return true;
+            }
+            return false;
+        });
+
+
+        ChipGroup searchChipGroup = findViewById(R.id.searchChipGroup);
+        searchChipGroup.setOnCheckedStateChangeListener((group, checkedIds) -> {
+            if (!checkedIds.isEmpty()){
+                boolean chip1 = ((Chip) group.getChildAt(0)).isChecked();
+                boolean chip2 = ((Chip) group.getChildAt(1)).isChecked();
+
+                if (chip1 && chip2)
+                    data.searchMode = 0;
+                else if (chip1)
+                    data.searchMode = 1;
+                else if (chip2)
+                    data.searchMode = 2;
+
+            }else data.searchMode = 0;
+
+            if (searchLL.getVisibility() == VISIBLE)
+                search(searchTxt.getText().toString());
+        });
+
+        searchTxt.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if (searchLL.getVisibility() == VISIBLE)
+                    search(s.toString());
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+
+            }
+        });
+
+        searchTxt.setOnEditorActionListener((v, actionId, event) -> {
+            if (actionId == EditorInfo.IME_ACTION_DONE ||
+                    actionId == EditorInfo.IME_ACTION_SEARCH ||
+                    event != null &&
+                            event.getAction() == KeyEvent.ACTION_DOWN &&
+                            event.getKeyCode() == KeyEvent.KEYCODE_ENTER){
+
+                InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                imm.hideSoftInputFromWindow(searchTxt.getWindowToken(), 0);
                 return true;
             }
             return false;
@@ -329,6 +406,7 @@ public class MainActivity extends AppCompatActivity {
         dim_bg.setOnClickListener(view -> open_closeMenu());
         splitViewBtn.setOnClickListener(view -> rawJsonView.toggleSplitView());
         filterBtn.setOnClickListener(view -> filter());
+        searchBtn.setOnClickListener(view -> showSearchView());
         editBtn.setOnClickListener(view -> toggleEdit());
         saveFAB.setOnClickListener(view -> saveChanges());
 
@@ -375,6 +453,22 @@ public class MainActivity extends AppCompatActivity {
                 return true;
             }
         });
+    }
+
+    private void search(String string) {
+
+        if (searchAdapter == null){
+            searchAdapter = new SearchListAdapter(this, new ArrayList<>());
+        }
+
+        ArrayList<SearchItem> searchItems;
+        if (string.isEmpty())
+            searchItems = new ArrayList<>();
+        else searchItems = JsonFunctions.searchItem(data,string);
+
+        searchAdapter.setSearchItems(searchItems);
+        searchAdapter.notifyDataSetChanged();
+
     }
 
     private void toggleEdit() {
@@ -443,6 +537,10 @@ public class MainActivity extends AppCompatActivity {
 
             if (urlLL.getVisibility() == VISIBLE){
                 hideUrlSearchView();
+                return;
+            }
+            if (searchLL.getVisibility() == VISIBLE){
+                hideSearchView();
                 return;
             }
 
@@ -604,6 +702,10 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
+        if (searchLL.getVisibility() == VISIBLE){
+            hideSearchView();
+        }
+
 
         TransitionManager.beginDelayedTransition(viewGroup, autoTransition);
         mainLL.setVisibility(GONE);
@@ -612,20 +714,20 @@ public class MainActivity extends AppCompatActivity {
         if (backBtn.getVisibility() == GONE)
             backBtn.setVisibility(VISIBLE);
 
-        urlSearch.requestFocus();
+        urlSearchTxt.requestFocus();
         InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-        imm.showSoftInput(urlSearch, InputMethodManager.SHOW_IMPLICIT);
+        imm.showSoftInput(urlSearchTxt, InputMethodManager.SHOW_IMPLICIT);
     }
 
     public void hideUrlSearchView() {
         urlLL.setVisibility(GONE);
         TransitionManager.beginDelayedTransition(viewGroup, autoTransition);
         mainLL.setVisibility(VISIBLE);
-        urlSearch.setText("");
+        urlSearchTxt.setText("");
 
         InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
         if (imm.isActive())
-            imm.hideSoftInputFromWindow(urlSearch.getWindowToken(), 0);
+            imm.hideSoftInputFromWindow(urlSearchTxt.getWindowToken(), 0);
 
         if (data.isEmptyPath()) {
             backBtn.setVisibility(GONE);
@@ -633,6 +735,39 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    private void showSearchView() {
+        TransitionManager.beginDelayedTransition(viewGroup, autoTransition);
+        mainLL.setVisibility(GONE);
+        searchLL.setVisibility(VISIBLE);
+
+        if (backBtn.getVisibility() == GONE)
+            backBtn.setVisibility(VISIBLE);
+
+        searchTxt.requestFocus();
+        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm.showSoftInput(searchTxt, InputMethodManager.SHOW_IMPLICIT);
+
+        searchAdapter = new SearchListAdapter(this,new ArrayList<>());
+
+        searchList.setAdapter(searchAdapter);
+
+    }
+
+    public void hideSearchView() {
+        searchLL.setVisibility(GONE);
+        TransitionManager.beginDelayedTransition(viewGroup, autoTransition);
+        mainLL.setVisibility(VISIBLE);
+        searchTxt.setText("");
+
+        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+        if (imm.isActive())
+            imm.hideSoftInputFromWindow(searchTxt.getWindowToken(), 0);
+
+        if (data.isEmptyPath()) {
+            backBtn.setVisibility(GONE);
+        }
+
+    }
 
     public void open(String Title, String path, int previousPosition) {
         TransitionManager.endTransitions(viewGroup);
@@ -677,6 +812,16 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    public void highlightItem(int id){
+        handler.postDelayed(() -> {
+            list.smoothScrollToPosition(id+2);
+            adapter.setHighlightItem(id);
+        }, 500);
+        handler.postDelayed(() -> {
+            adapter.notifyItemChanged(id);
+        }, 600);
+    }
+
     public void goBack(int n){
         if (pathListView.getVisibility() == VISIBLE)
             showHidePathList();
@@ -697,13 +842,13 @@ public class MainActivity extends AppCompatActivity {
             backBtn.setVisibility(GONE);
     }
 
-    private void filter(){
+    private void filter() {
         ListDialog dialog = new ListDialog();
-        dialog.Builder(this,true)
+        dialog.Builder(this, true)
                 .setTitle(getString(R.string.filter))
                 .dialogWithTwoButtons()
                 .setSelectableList()
-                .setItems(filterList,val -> val)
+                .setItems(filterList, val -> val)
                 .onButtonClick(() -> {
                     setFilter(dialog.getSelectedItems());
                     dialog.dismiss();
@@ -901,9 +1046,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void SearchUrl() {
-        webManager.getFromUrl(urlSearch.getText().toString(),webCallback);
+        webManager.getFromUrl(urlSearchTxt.getText().toString(),webCallback);
         InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-        imm.hideSoftInputFromWindow(urlSearch.getWindowToken(), 0);
+        imm.hideSoftInputFromWindow(urlSearchTxt.getWindowToken(), 0);
     }
 
     public void loadingStarted(){
@@ -1020,6 +1165,9 @@ public class MainActivity extends AppCompatActivity {
 
                 if (urlLL.getVisibility() == VISIBLE)
                     hideUrlSearchView();
+
+                if (searchLL.getVisibility() == VISIBLE)
+                    hideSearchView();
 
                 data.setCurrentList(data.getRootList());
                 updateFilterList(data.getRootList());
@@ -1202,6 +1350,7 @@ public class MainActivity extends AppCompatActivity {
                     updateFilterList(data.getCurrentList());
                 })
                 .show();
+        Objects.requireNonNull(dialog.dialog.getWindow()).setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
     }
 
     private void editAllItemsWithSameKey(String oldName, String name, ListItem item){
