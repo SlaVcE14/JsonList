@@ -1293,7 +1293,7 @@ public class MainActivity extends AppCompatActivity {
         if (item.isRootItem()) {
             MessageDialog dialog = new MessageDialog();
             dialog.Builder(this,true)
-                    .setTitle("Editing a root item is not available!")
+                    .setTitle(getString(R.string.editing_root_item_not_available))
                     .show();
             return;
         }
@@ -1312,12 +1312,13 @@ public class MainActivity extends AppCompatActivity {
         CustomViewDialog dialog = new CustomViewDialog();
         dialog.Builder(this, true)
                 .dialogWithTwoButtons()
-                .setTitle("Edit Item")
+                .setTitle(getString(R.string.edit_item))
                 .addCustomView(view)
                 .onButtonClick(() -> {
 
                     if (item.getName() != null){
                         String name = nameTxt.getText().toString();
+                        String oldName = item.getName();
 
                         for(ListItem i : item.getParentList()){
                             if (i.getName().equals(name) && i != item){
@@ -1329,8 +1330,10 @@ public class MainActivity extends AppCompatActivity {
                                 return;
                             }
                         }
-                        if (!item.getName().equals(name))
+                        if (!oldName.equals(name)){
                             isEdited = true;
+                            if (adapter.itemCountInJSONList > 1) editAllItemsWithSameKey(oldName,name,item);
+                        }
 
                         item.setName(name);
                     }
@@ -1348,6 +1351,23 @@ public class MainActivity extends AppCompatActivity {
                 })
                 .show();
         Objects.requireNonNull(dialog.dialog.getWindow()).setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
+    }
+
+    private void editAllItemsWithSameKey(String oldName, String name, ListItem item){
+        BasicDialog renameAllDialog = new BasicDialog();
+        renameAllDialog.Builder(this,true)
+                .setTitle(getString(R.string.rename_all))
+                .setMessage(String.format(getString(R.string.rename_all_s_key_with_s),oldName,name))
+                .onButtonClick(() -> {
+                    for (ListItem listItem : adapter.getList()){
+                        if (listItem.getName() != null && listItem.getName().equals(oldName) && listItem != item){
+                            listItem.setName(name);
+                            adapter.notifyItemRangeChanged(0,adapter.getItemCount());
+                        }
+                    }
+                    renameAllDialog.dismiss();
+                })
+                .show();
     }
 
     public void DoneEdit(View view) {
