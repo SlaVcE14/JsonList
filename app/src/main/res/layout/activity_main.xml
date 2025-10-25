@@ -52,6 +52,7 @@
 
             android:src="@drawable/ic_splitscreen" />
 
+
         <ImageButton
             android:id="@+id/menuBtn"
             android:layout_width="40dp"
@@ -101,6 +102,7 @@
             android:paddingVertical="10dp"
             android:paddingHorizontal="15dp"
             android:imeOptions="actionSearch"
+
             android:inputType="textUri"
             android:hint="@string/enter_url"
             android:layout_weight="1"
@@ -116,6 +118,62 @@
             android:onClick="SearchUrl"
             />
 
+
+    </LinearLayout>
+    <LinearLayout
+        android:id="@+id/searchLL"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:layout_below="@+id/titlePanel"
+        android:visibility="gone"
+        >
+        <EditText
+            android:id="@+id/searchTxt"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:background="@drawable/outline_background"
+            android:paddingVertical="10dp"
+            android:paddingHorizontal="15dp"
+            android:layout_marginHorizontal="5dp"
+            android:imeOptions="actionSearch"
+            android:inputType="textUri"
+            android:hint="@string/search"
+            />
+
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/searchChipGroup"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="10dp"
+
+            >
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/searchChipKey"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                style="@style/Widget.Material3.Chip.Filter"
+                android:text="key"
+                />
+            <com.google.android.material.chip.Chip
+                android:id="@+id/searchChipValue"
+                android:layout_width="wrap_content"
+                style="@style/Widget.Material3.Chip.Filter"
+                android:layout_height="wrap_content"
+                android:text="value"
+
+                />
+
+        </com.google.android.material.chip.ChipGroup>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/searchResultList"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:foreground="@drawable/foreground"
+            />
 
     </LinearLayout>
 
@@ -151,6 +209,13 @@
                 android:layout_alignParentEnd="true"
 
                 >
+                <ImageButton
+                    android:id="@+id/searchBtn"
+                    android:layout_width="60dp"
+                    android:layout_height="40dp"
+                    android:background="@drawable/ripple_list"
+
+                    android:src="@drawable/ic_search" />
                 <RelativeLayout
                     android:id="@+id/editBtn"
                     android:layout_width="60dp"
@@ -215,6 +280,8 @@
                     android:onClick="DoneEdit"
                     android:text="done"/>
             </LinearLayout>
+
+
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/list"
                 android:layout_width="match_parent"
@@ -281,6 +348,8 @@
             </com.google.android.material.floatingactionbutton.FloatingActionButton>
 
         </RelativeLayout>
+
+
 
         <androidx.constraintlayout.widget.Guideline
             android:id="@+id/guideline"
