@@ -12,6 +12,7 @@ public class JsonData {
     String fileName;
 
     int previousPos = -1;
+    public int searchMode = 0;
     static int maxPathNameLength = 3;
 
     public String getPath() {

@@ -272,4 +272,57 @@ public class JsonFunctions {
 
     }
 
+
+    public static ArrayList<SearchItem> searchItem(JsonData data, String val){
+        ArrayList<SearchItem> searchItems = new ArrayList<>();
+
+        ArrayList<ListItem> root = data.getRootList();
+        searchItem(root,searchItems,"",val,data.searchMode,0,-1);
+        return searchItems;
+    }
+
+    public static void searchItem(ArrayList<ListItem> list,ArrayList<SearchItem> searchItems, String path, String val,int searchMode,int currentID,int arrayId){
+
+        for (ListItem item : list){
+            if (searchMode != 2 && item.getName() != null && item.getName().toLowerCase().contains(val)){
+                searchItems.add(new SearchItem(item.getName(),path,currentID,arrayId));
+            }
+            if (item.isObject()){
+                searchItem(item.getObjects(),
+                        searchItems,
+                        path + (path.equals("") ? "": "///" + (item.getId()!=-1?"{" + item.getId() + "}":"")) + item.getName(),
+                        val,
+                        searchMode,
+                        0,
+                        -1
+                );
+                currentID++;
+                continue;
+            }
+            if (item.isArray()){
+                int idInArray = 0;
+                int arrayNum = 0;
+                for (ArrayList<ListItem> listItems : item.getListObjects()){
+                    searchItem(listItems,
+                            searchItems,
+                            path + (path.equals("") ? "": "///" + (item.getId()!=-1?"{" + item.getId() + "}":"")) + item.getName(),
+                            val,
+                            searchMode,
+                            idInArray,
+                            arrayNum
+                    );
+                    idInArray += listItems.size()+1;
+                    arrayNum++;
+                }
+                currentID++;
+                continue;
+            }
+            if (searchMode != 1 && item.getValue() != null && item.getValue().toLowerCase().contains(val)){
+                searchItems.add(new SearchItem((item.getName() != null?item.getName() + ": " :"") + item.getValue(),path,currentID,arrayId));
+            }
+            currentID++;
+        }
+
+    }
+
 }

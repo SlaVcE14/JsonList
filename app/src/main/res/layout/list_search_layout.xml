@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:clickable="false"
+    >
+
+    <RelativeLayout
+        android:id="@+id/btn"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="3dp"
+        android:background="@drawable/ripple_list"
+
+        >
+
+        <TextView
+            android:id="@+id/itemPath"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:layout_marginTop="10dp"
+            android:layout_marginEnd="10dp"
+            android:textColor="?colorOnPrimary"
+            android:visibility="visible"
+            android:text="path/to/the/value"
+            android:background="@drawable/ripple_button"
+            android:paddingHorizontal="10dp"
+            android:textSize="15dp" />
+
+        <TextView
+            android:id="@+id/itemValue"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/itemPath"
+            android:layout_marginHorizontal="10dp"
+            android:layout_marginVertical="10dp"
+            android:textStyle="bold"
+            android:textColor="?colorOnSurfaceVariant"
+            android:clickable="false"
+            android:textIsSelectable="false"
+            android:text="Value"
+            android:textSize="25dp" />
+
+    </RelativeLayout>
+
+</RelativeLayout>
