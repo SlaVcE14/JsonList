@@ -30,6 +30,7 @@ public class ListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     public int selectedItem = -1;
     public int highlightedItem = -1;
     boolean isEditMode = false;
+    public int itemCountInJSONList = 0;
 
 
     static class ViewHolderShort extends RecyclerView.ViewHolder{
@@ -126,6 +127,7 @@ public class ListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
         ListItem item = list.get(pos);
         if(item.isSpace()) {
+            itemCountInJSONList++;
             return;
         }
 
