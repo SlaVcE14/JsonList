@@ -197,66 +197,12 @@
             app:layout_constraintTop_toTopOf="parent"
 
             >
-            <LinearLayout
-                android:id="@+id/topMenu"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginVertical="5dp"
-                android:layout_marginHorizontal="10dp"
-                android:visibility="gone"
-                android:gravity="center"
-                android:background="@drawable/ripple_list"
-                android:layout_alignParentEnd="true"
 
-                >
-                <ImageButton
-                    android:id="@+id/searchBtn"
-                    android:layout_width="60dp"
-                    android:layout_height="40dp"
-                    android:background="@drawable/ripple_list"
 
-                    android:src="@drawable/ic_search" />
-                <RelativeLayout
-                    android:id="@+id/editBtn"
-                    android:layout_width="60dp"
-                    android:layout_height="40dp"
-                    android:background="@drawable/ripple_list"
-                    >
-                    <ImageView
-                        android:layout_width="25dp"
-                        android:layout_height="25dp"
-                        android:layout_centerHorizontal="true"
-                        android:layout_marginTop="4dp"
-                        android:src="@drawable/ic_edit" >
-                    </ImageView>
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/beta"
-                        android:paddingHorizontal="10dp"
-                        android:background="@drawable/ripple_red"
-                        android:textColor="?colorOnError"
-                        android:textSize="8dp"
-                        android:layout_alignParentBottom="true"
-                        android:layout_marginBottom="3dp"
-                        android:layout_centerHorizontal="true"
-                        />
-
-                </RelativeLayout>
-                <ImageButton
-                    android:id="@+id/filterBtn"
-                    android:layout_width="60dp"
-                    android:layout_height="40dp"
-                    android:background="@drawable/ripple_list"
-
-                    android:src="@drawable/ic_filter" />
-
-            </LinearLayout>
             <LinearLayout
                 android:id="@+id/messageLL"
                 android:layout_width="match_parent"
                 android:visibility="gone"
-                android:layout_below="@+id/topMenu"
                 android:background="@drawable/background5"
                 android:padding="10dp"
                 android:layout_margin="10dp"
@@ -292,6 +238,74 @@
                 android:layout_below="@+id/messageLL"
                 android:visibility="gone"
                 />
+
+            <com.google.android.material.floatingtoolbar.FloatingToolbarLayout
+                android:id="@+id/floating_toolbar"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerHorizontal="true"
+                android:layout_alignParentBottom="true"
+                android:visibility="gone"
+                style="?attr/floatingToolbarVibrantStyle"
+                android:elevation="4dp"
+                android:layout_marginBottom="16dp">
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginVertical="5dp"
+                    android:gravity="center"
+                    android:layout_alignParentEnd="true"
+
+                    >
+                    <ImageButton
+                        android:id="@+id/searchBtn"
+                        android:layout_width="60dp"
+                        android:layout_height="40dp"
+                        android:background="@drawable/ripple2"
+                        app:tint="?colorOnPrimaryContainer"
+
+                        android:src="@drawable/ic_search" />
+                    <RelativeLayout
+                        android:id="@+id/editBtn"
+                        android:layout_width="60dp"
+                        android:layout_height="40dp"
+                        android:background="@drawable/ripple2"
+                        >
+                        <ImageView
+                            android:layout_width="25dp"
+                            android:layout_height="25dp"
+                            android:layout_centerHorizontal="true"
+                            android:layout_marginTop="4dp"
+                            app:tint="?colorOnPrimaryContainer"
+                            android:src="@drawable/ic_edit" >
+                        </ImageView>
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/beta"
+                            android:paddingHorizontal="10dp"
+                            android:background="@drawable/ripple_red"
+                            android:textColor="?colorOnError"
+                            android:textSize="8dp"
+                            android:layout_alignParentBottom="true"
+                            android:layout_marginBottom="3dp"
+                            android:layout_centerHorizontal="true"
+                            />
+
+                    </RelativeLayout>
+                    <ImageButton
+                        android:id="@+id/filterBtn"
+                        android:layout_width="60dp"
+                        android:layout_height="40dp"
+                        android:background="@drawable/ripple2"
+                        app:tint="?colorOnPrimaryContainer"
+                        android:src="@drawable/ic_filter" />
+
+                </LinearLayout>
+
+            </com.google.android.material.floatingtoolbar.FloatingToolbarLayout>
+
             <TextView
                 android:id="@+id/emptyListTxt"
                 android:layout_width="wrap_content"

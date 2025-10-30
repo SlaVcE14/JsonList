@@ -59,6 +59,7 @@ import android.widget.Toast;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.floatingtoolbar.FloatingToolbarLayout;
 import com.google.android.material.progressindicator.LinearProgressIndicator;
 import com.google.android.material.snackbar.BaseTransientBottomBar;
 import com.google.android.material.snackbar.Snackbar;
@@ -128,7 +129,7 @@ public class MainActivity extends AppCompatActivity {
     public RelativeLayout rawJsonRL;
     public AppState state;
     public View resizeSplitViewBtn;
-    LinearLayout topMenu;
+    FloatingToolbarLayout toolbar;
     int listPrevDx = 0;
     RawJsonView rawJsonView;
     FileManager fileManager;
@@ -225,7 +226,7 @@ public class MainActivity extends AppCompatActivity {
         rawJsonWV = findViewById(R.id.rawJsonWV);
         menuBtn.bringToFront();
         resizeSplitViewBtn = findViewById(R.id.resizeSplitViewBtn);
-        topMenu = findViewById(R.id.topMenu);
+        toolbar = findViewById(R.id.floating_toolbar);
         saveFAB = findViewById(R.id.saveFAB);
         guideLine = findViewById(R.id.guideline);
 
@@ -237,14 +238,14 @@ public class MainActivity extends AppCompatActivity {
                 int overScroll = dx - scrollRange;
 
                 if ((dx < -40 || overScroll < -10) && !isTopMenuVisible && Math.abs(listPrevDx - dx) < 100) {
-                    showTopMenu();
+                    showToolbar();
                     listPrevDx = dx;
                     return scrollRange;
                 }
 
                 if (dx > 40 && isTopMenuVisible && Math.abs(listPrevDx - dx) < 100){
                     listPrevDx = dx;
-                    hideTopMenu();
+                    hideToolbar();
                 }
                 listPrevDx = dx;
                 return scrollRange;
@@ -479,7 +480,7 @@ public class MainActivity extends AppCompatActivity {
 
         if (isEditMode){
             showBackBtn();
-            hideTopMenu();
+            hideToolbar();
             menuBtn.setVisibility(INVISIBLE);
             splitViewBtn.setVisibility(INVISIBLE);
         }
@@ -656,29 +657,29 @@ public class MainActivity extends AppCompatActivity {
         startActivity(new Intent(MainActivity.this, LogActivity.class));
     }
 
-    private void showTopMenu() {
+    private void showToolbar() {
         if (isEditMode)
             return;
 
-        topMenu.animate().cancel();
+        toolbar.animate().cancel();
 
         isTopMenuVisible = true;
-        topMenu.setVisibility(VISIBLE);
-        topMenu.animate()
+        toolbar.setVisibility(VISIBLE);
+        toolbar.animate()
                 .translationY(0)
                 .setDuration(200)
                 .start();
 
     }
 
-    private void hideTopMenu() {
-        topMenu.animate().cancel();
-      
+    private void hideToolbar() {
+        toolbar.animate().cancel();
+
         isTopMenuVisible = false;
-        topMenu.animate()
-                .translationY(-topMenu.getHeight())
+        toolbar.animate()
+                .translationY(toolbar.getHeight()+50)
                 .setDuration(100)
-                .withEndAction(()-> topMenu.setVisibility(GONE))
+                .withEndAction(()-> toolbar.setVisibility(GONE))
                 .start();
     }
 
@@ -1187,6 +1188,9 @@ public class MainActivity extends AppCompatActivity {
                 unsavedChanges = false;
                 titleTxt.setText("");
                 data.clearPath();
+
+                if (!isTopMenuVisible)
+                    showToolbar();
             });
         }
 
