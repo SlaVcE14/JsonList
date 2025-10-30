@@ -667,7 +667,11 @@ public class MainActivity extends AppCompatActivity {
         toolbar.setVisibility(VISIBLE);
         toolbar.animate()
                 .translationY(0)
-                .setDuration(200)
+                .scaleX(1)
+                .scaleY(1)
+                .alpha(1)
+                .setInterpolator(new OvershootInterpolator(1.1f))
+                .setDuration(500)
                 .start();
 
     }
@@ -678,7 +682,10 @@ public class MainActivity extends AppCompatActivity {
         isTopMenuVisible = false;
         toolbar.animate()
                 .translationY(toolbar.getHeight()+50)
-                .setDuration(100)
+                .setDuration(300)
+                .scaleX(.5f)
+                .scaleY(.5f)
+                .alpha(0)
                 .withEndAction(()-> toolbar.setVisibility(GONE))
                 .start();
     }

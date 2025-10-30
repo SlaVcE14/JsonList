@@ -2,8 +2,6 @@ package com.sjapps.jsonlist.controllers;
 
 import android.transition.TransitionManager;
 import android.view.View;
-import android.view.animation.AccelerateDecelerateInterpolator;
-import android.view.animation.DecelerateInterpolator;
 import android.webkit.WebSettings;
 
 import com.google.android.material.snackbar.BaseTransientBottomBar;
@@ -12,7 +10,6 @@ import com.sjapps.jsonlist.MainActivity;
 import com.sjapps.jsonlist.R;
 import com.sj14apps.jsonlist.core.JsonFunctions;
 import com.sj14apps.jsonlist.core.controllers.RawJsonView;
-import com.sjapps.jsonlist.functions;
 
 public class AndroidRawJsonView extends RawJsonView {
 
@@ -38,9 +35,25 @@ public class AndroidRawJsonView extends RawJsonView {
         TransitionManager.beginDelayedTransition(mainActivity.viewGroup, mainActivity.autoTransition);
 
         if (showJson){
-            functions.setAnimation(mainActivity,mainActivity.rawJsonRL,mainActivity.isVertical? R.anim.slide_bottom_out:R.anim.slide_right_out,new AccelerateDecelerateInterpolator());
-            mainActivity.handler.postDelayed(()-> mainActivity.rawJsonRL.setVisibility(View.GONE),400);
-            mainActivity.resizeSplitViewBtn.setVisibility(View.GONE);
+            if (mainActivity.isVertical)
+                mainActivity.rawJsonRL.animate()
+                        .translationY(mainActivity.rawJsonRL.getHeight())
+                        .setDuration(400)
+                        .withEndAction(()-> mainActivity.rawJsonRL.setVisibility(View.GONE))
+                        .start();
+            else mainActivity.rawJsonRL.animate()
+                    .translationX(mainActivity.rawJsonRL.getWidth())
+                    .setDuration(400)
+                    .withEndAction(()-> mainActivity.rawJsonRL.setVisibility(View.GONE))
+                    .start();
+
+
+            mainActivity.resizeSplitViewBtn.animate()
+                    .scaleX(.5f)
+                    .scaleY(.5f)
+                    .withEndAction(() -> mainActivity.resizeSplitViewBtn.setVisibility(View.GONE))
+                    .setDuration(150)
+                    .start();
             showJson = false;
             if (mainActivity.listRL.getVisibility() == View.GONE)
                 mainActivity.listRL.setVisibility(View.VISIBLE);
@@ -54,10 +67,21 @@ public class AndroidRawJsonView extends RawJsonView {
         mainActivity.guideLine.setGuidelinePercent(0.5f);
         mainActivity.handler.postDelayed(()->{
                     mainActivity.resizeSplitViewBtn.setVisibility(View.VISIBLE);
-                    functions.setAnimation(mainActivity,mainActivity.resizeSplitViewBtn, R.anim.scale_in,new DecelerateInterpolator());
+                    mainActivity.resizeSplitViewBtn.animate()
+                            .scaleX(1)
+                            .scaleY(1)
+                            .setDuration(150)
+                            .start();
                 },
                 350);
-        functions.setAnimation(mainActivity,mainActivity.rawJsonRL,mainActivity.isVertical?R.anim.slide_bottom_in:R.anim.slide_right_in,new DecelerateInterpolator());
+        mainActivity.rawJsonRL.animate().cancel();
+
+        mainActivity.rawJsonRL.animate()
+                .translationY(0)
+                .translationX(0)
+                .setDuration(400)
+                .start();
+
         if (!isRawJsonLoaded)
             ShowJSON();
     }
