@@ -54,6 +54,7 @@ public class AboutActivity extends AppCompatActivity {
     private static final String RELEASE_NOTES_URL = "https://slavce14.github.io/apps/JsonList/changelogs.json";
     private static final String SITE_FDroid = "https://slavce14.github.io/redirect?link=jsonlist-fdroid";
     private static final String SITE_IzzyOnDroid = "https://slavce14.github.io/redirect?link=jsonlist-izzy";
+    private static final String SITE_PlayStore = "https://play.google.com/store/apps/details?id=com.sjapps.jsonlist";
     private static final String GITHUB_REPOSITORY_RELEASES = "https://github.com/SlaVcE14/JsonList/releases";
     final String STORE_PACKAGE_NAME = "com.sjapps.sjstore";
     final String CONTACT_MAIL = "slavce14.apps@gmail.com";
@@ -137,6 +138,7 @@ public class AboutActivity extends AppCompatActivity {
         ArrayList<ImageListItem> items = new ArrayList<>();
         items.add(new ImageListItem("Site", AppCompatResources.getDrawable(this,R.drawable.ic_globe), (ImageItemClick) this::openSite));
         items.add(new ImageListItem("GitHub", AppCompatResources.getDrawable(this,R.drawable.github_logo), (ImageItemClick) this::openGitHub));
+        items.add(new ImageListItem("Play Store", AppCompatResources.getDrawable(this,R.drawable.play_store_logo_com), (ImageItemClick) this::openPlayStore));
         items.add(new ImageListItem("F-Droid", AppCompatResources.getDrawable(this,R.drawable.fdroid_logo), (ImageItemClick) this::openFDroid));
         items.add(new ImageListItem("IzzyOnDroid", AppCompatResources.getDrawable(this, R.drawable.izzyondroid_logo), (ImageItemClick) this::openIzzy));
 
@@ -155,10 +157,13 @@ public class AboutActivity extends AppCompatActivity {
                 })
                 .show();
     }
-    
+
+    private void openPlayStore() {
+        openLink(SITE_PlayStore);
+    }
+
     private void openGitHub(){
-        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(GITHUB_REPOSITORY_RELEASES));
-        startActivity(intent);
+        openLink(GITHUB_REPOSITORY_RELEASES);
     }
 
     private void openSite(){
