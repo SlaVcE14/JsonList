@@ -11,6 +11,9 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.constraintlayout.widget.ConstraintSet;
+import androidx.constraintlayout.widget.Guideline;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -25,6 +28,8 @@ import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.transition.AutoTransition;
 import android.transition.TransitionManager;
 import android.util.Log;
@@ -32,8 +37,10 @@ import android.util.TypedValue;
 import android.view.HapticFeedbackConstants;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.view.animation.DecelerateInterpolator;
 import android.view.animation.OvershootInterpolator;
 import android.view.inputmethod.EditorInfo;
@@ -41,6 +48,7 @@ import android.view.inputmethod.InputMethodManager;
 import android.webkit.WebView;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -48,20 +56,23 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.chip.Chip;
+import com.google.android.material.chip.ChipGroup;
+import com.google.android.material.floatingtoolbar.FloatingToolbarLayout;
 import com.google.android.material.progressindicator.LinearProgressIndicator;
 import com.google.android.material.snackbar.BaseTransientBottomBar;
 import com.google.android.material.snackbar.Snackbar;
 
 import com.sj14apps.jsonlist.core.JsonFunctions;
+import com.sj14apps.jsonlist.core.SearchItem;
 import com.sjapps.about.AboutActivity;
 import com.sjapps.adapters.ListAdapter;
 import com.sjapps.adapters.PathListAdapter;
+import com.sjapps.adapters.SearchListAdapter;
 import com.sjapps.jsonlist.controllers.AndroidDragAndDrop;
 import com.sjapps.jsonlist.controllers.AndroidFileManager;
 import com.sjapps.jsonlist.controllers.AndroidJsonLoader;
 import com.sjapps.jsonlist.controllers.AndroidRawJsonView;
-import com.sjapps.jsonlist.controllers.AndroidWebManager;
 import com.sj14apps.jsonlist.core.controllers.FileManager;
 import com.sj14apps.jsonlist.core.controllers.JsonLoader;
 import com.sj14apps.jsonlist.core.controllers.RawJsonView;
@@ -82,27 +93,31 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Objects;
 
 public class MainActivity extends AppCompatActivity {
 
     final String TAG = "MainActivity";
-    ImageButton backBtn, menuBtn, splitViewBtn, filterBtn;
+    ImageButton backBtn, menuBtn, splitViewBtn, filterBtn, searchBtn;
     View editBtn;
     ImageView fileImg;
     Button openFileBtn;
     Button openUrlBtn;
-    EditText urlSearch;
+    EditText urlSearchTxt,searchTxt;
     LinearLayout urlLL;
+    LinearLayout searchLL;
     LinearLayout messageLL;
     TextView titleTxt, emptyListTxt;
     RecyclerView list;
     RecyclerView pathList;
+    RecyclerView searchList;
     public JsonData data = new JsonData();
     public LinearLayout progressView;
-    LinearLayout mainLL;
+    ConstraintLayout mainLL;
     LinearProgressIndicator progressBar;
     ListAdapter adapter;
     PathListAdapter pathAdapter;
+    SearchListAdapter searchAdapter;
     View menu, dim_bg, pathListView;
     public WebView rawJsonWV;
     public ViewGroup viewGroup;
@@ -112,12 +127,12 @@ public class MainActivity extends AppCompatActivity {
     public RelativeLayout listRL;
     public RelativeLayout rawJsonRL;
     public AppState state;
-    View fullRawBtn;
-    LinearLayout topMenu;
+    public View resizeSplitViewBtn;
+    FloatingToolbarLayout toolbar;
     int listPrevDx = 0;
     RawJsonView rawJsonView;
     FileManager fileManager;
-    WebManager webController;
+    WebManager webManager;
     JsonLoader jsonLoader;
 
     public boolean isVertical = true;
@@ -127,7 +142,8 @@ public class MainActivity extends AppCompatActivity {
     boolean isEdited;
     public boolean isEditMode;
     boolean unsavedChanges;
-    FloatingActionButton saveFAB;
+    ImageButton saveBtn;
+    public Guideline guideLine;
 
     ArrayList<String> filterList = new ArrayList<>();
 
@@ -153,8 +169,7 @@ public class MainActivity extends AppCompatActivity {
 
         if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE){
             isVertical = false;
-            mainLL.setOrientation(LinearLayout.HORIZONTAL);
-            updateFullRawBtn();
+            updateOrientation();
         }
 
         Intent intent = getIntent();
@@ -183,17 +198,21 @@ public class MainActivity extends AppCompatActivity {
         messageLL = findViewById(R.id.messageLL);
         splitViewBtn = findViewById(R.id.splitViewBtn);
         filterBtn = findViewById(R.id.filterBtn);
+        searchBtn = findViewById(R.id.searchBtn);
         editBtn = findViewById(R.id.editBtn);
         titleTxt = findViewById(R.id.titleTxt);
         emptyListTxt = findViewById(R.id.emptyListTxt);
         list = findViewById(R.id.list);
         pathListView = findViewById(R.id.pathListBG);
         pathList = findViewById(R.id.pathList);
+        searchList = findViewById(R.id.searchResultList);
         listRL = findViewById(R.id.listRL);
         openFileBtn = findViewById(R.id.openFileBtn);
         openUrlBtn = findViewById(R.id.openUrlBtn);
-        urlSearch = findViewById(R.id.urlSearch);
+        urlSearchTxt = findViewById(R.id.urlSearch);
+        searchTxt = findViewById(R.id.searchTxt);
         urlLL = findViewById(R.id.searchUrlView);
+        searchLL = findViewById(R.id.searchLL);
         viewGroup = findViewById(R.id.content);
         menu = findViewById(R.id.menu);
         dim_bg = findViewById(R.id.dim_layout);
@@ -205,9 +224,10 @@ public class MainActivity extends AppCompatActivity {
         rawJsonRL = findViewById(R.id.rawJsonRL);
         rawJsonWV = findViewById(R.id.rawJsonWV);
         menuBtn.bringToFront();
-        fullRawBtn = findViewById(R.id.fullRawBtn);
-        topMenu = findViewById(R.id.topMenu);
-        saveFAB = findViewById(R.id.saveFAB);
+        resizeSplitViewBtn = findViewById(R.id.resizeSplitViewBtn);
+        toolbar = findViewById(R.id.floating_toolbar);
+        saveBtn = findViewById(R.id.saveBtn);
+        guideLine = findViewById(R.id.guideline);
 
         LinearLayoutManager pathLM = new LinearLayoutManager(this);
         LinearLayoutManager layoutManager = new LinearLayoutManager(this){
@@ -217,14 +237,14 @@ public class MainActivity extends AppCompatActivity {
                 int overScroll = dx - scrollRange;
 
                 if ((dx < -40 || overScroll < -10) && !isTopMenuVisible && Math.abs(listPrevDx - dx) < 100) {
-                    showTopMenu();
+                    showToolbar();
                     listPrevDx = dx;
                     return scrollRange;
                 }
 
                 if (dx > 40 && isTopMenuVisible && Math.abs(listPrevDx - dx) < 100){
                     listPrevDx = dx;
-                    hideTopMenu();
+                    hideToolbar();
                 }
                 listPrevDx = dx;
                 return scrollRange;
@@ -239,12 +259,13 @@ public class MainActivity extends AppCompatActivity {
 
         rawJsonView = new AndroidRawJsonView(this,textColor,keyColor,numberColor,booleanAndNullColor,bgColor);
 
-        webController =  new AndroidWebManager(this);
+        webManager =  new WebManager();
 
         rawJsonView.updateRawJson("");
 
         list.setLayoutManager(layoutManager);
         pathList.setLayoutManager(pathLM);
+        searchList.setLayoutManager(new LinearLayoutManager(this));
 
         fileManager = new AndroidFileManager(this,handler);
         jsonLoader = new AndroidJsonLoader(this);
@@ -265,6 +286,15 @@ public class MainActivity extends AppCompatActivity {
             layoutParams.rightMargin = insets.right + insetsN.right;
             layoutParams.bottomMargin = insets.bottom;
             v.setLayoutParams(layoutParams);
+
+            Insets imeInsets = windowInsets.getInsets(WindowInsetsCompat.Type.ime());
+            searchLL.setPadding(
+                    v.getPaddingLeft(),
+                    v.getPaddingTop(),
+                    v.getPaddingRight(),
+                    imeInsets.bottom
+            );
+
             return WindowInsetsCompat.CONSUMED;
         });
     }
@@ -273,7 +303,7 @@ public class MainActivity extends AppCompatActivity {
         menuBtn.setOnClickListener(view -> open_closeMenu());
 
         backBtn.setOnClickListener(view -> {
-            if(!data.isEmptyPath() || urlLL.getVisibility() == VISIBLE || (adapter != null && adapter.isEditMode())) getOnBackPressedDispatcher().onBackPressed();
+            if(!data.isEmptyPath() || urlLL.getVisibility() == VISIBLE || searchLL.getVisibility() == VISIBLE || (adapter != null && adapter.isEditMode())) getOnBackPressedDispatcher().onBackPressed();
         });
         openFileBtn.setOnClickListener(view -> fileManager.importFromFile());
         openUrlBtn.setOnClickListener(view -> {
@@ -288,7 +318,7 @@ public class MainActivity extends AppCompatActivity {
         pathListView.setOnClickListener(v -> showHidePathList());
 
         //TODO Web
-        urlSearch.setOnEditorActionListener((v, actionId, event) -> {
+        urlSearchTxt.setOnEditorActionListener((v, actionId, event) -> {
             if (actionId == EditorInfo.IME_ACTION_DONE ||
                     actionId == EditorInfo.IME_ACTION_SEARCH ||
                     event != null &&
@@ -296,6 +326,58 @@ public class MainActivity extends AppCompatActivity {
                             event.getKeyCode() == KeyEvent.KEYCODE_ENTER){
 
                 SearchUrl();
+                return true;
+            }
+            return false;
+        });
+
+
+        ChipGroup searchChipGroup = findViewById(R.id.searchChipGroup);
+        searchChipGroup.setOnCheckedStateChangeListener((group, checkedIds) -> {
+            if (!checkedIds.isEmpty()){
+                boolean chip1 = ((Chip) group.getChildAt(0)).isChecked();
+                boolean chip2 = ((Chip) group.getChildAt(1)).isChecked();
+
+                if (chip1 && chip2)
+                    data.searchMode = 0;
+                else if (chip1)
+                    data.searchMode = 1;
+                else if (chip2)
+                    data.searchMode = 2;
+
+            }else data.searchMode = 0;
+
+            if (searchLL.getVisibility() == VISIBLE)
+                search(searchTxt.getText().toString());
+        });
+
+        searchTxt.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if (searchLL.getVisibility() == VISIBLE)
+                    search(s.toString());
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+
+            }
+        });
+
+        searchTxt.setOnEditorActionListener((v, actionId, event) -> {
+            if (actionId == EditorInfo.IME_ACTION_DONE ||
+                    actionId == EditorInfo.IME_ACTION_SEARCH ||
+                    event != null &&
+                            event.getAction() == KeyEvent.ACTION_DOWN &&
+                            event.getKeyCode() == KeyEvent.KEYCODE_ENTER){
+
+                InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                imm.hideSoftInputFromWindow(searchTxt.getWindowToken(), 0);
                 return true;
             }
             return false;
@@ -324,8 +406,69 @@ public class MainActivity extends AppCompatActivity {
         dim_bg.setOnClickListener(view -> open_closeMenu());
         splitViewBtn.setOnClickListener(view -> rawJsonView.toggleSplitView());
         filterBtn.setOnClickListener(view -> filter());
+        searchBtn.setOnClickListener(view -> showSearchView());
         editBtn.setOnClickListener(view -> toggleEdit());
-        saveFAB.setOnClickListener(view -> saveChanges());
+        saveBtn.setOnClickListener(view -> saveChanges());
+
+        resizeSplitViewBtn.setOnTouchListener(new View.OnTouchListener() {
+
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                switch (event.getAction()) {
+                    case MotionEvent.ACTION_DOWN:
+                        resizeSplitViewBtn.setScaleX(1.2f);
+                        resizeSplitViewBtn.setScaleY(1.2f);
+                        resizeSplitViewBtn.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP);
+                        return true;
+
+                    case MotionEvent.ACTION_MOVE:
+                        ConstraintLayout.LayoutParams params = (ConstraintLayout.LayoutParams) guideLine.getLayoutParams();
+                        if (isVertical){
+                            params.guidePercent = (event.getRawY() - mainLL.getY()) / viewGroup.getHeight();
+                        }else {
+                            params.guidePercent = (event.getRawX() - mainLL.getX()) / viewGroup.getWidth();
+                        }
+                        if (params.guidePercent < 0.2f){
+                            params.guidePercent = 0.03f;
+                            if (listRL.getVisibility() == VISIBLE)
+                                resizeSplitViewBtn.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK);
+                            listRL.setVisibility(GONE);
+                        }else {
+                            if (listRL.getVisibility() == GONE)
+                                resizeSplitViewBtn.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP);
+                            listRL.setVisibility(VISIBLE);
+                        }
+                        if (params.guidePercent > 0.8f)
+                            params.guidePercent = 0.8f;
+                        guideLine.setLayoutParams(params);
+                        return true;
+
+                    case MotionEvent.ACTION_UP:
+
+                        resizeSplitViewBtn.setScaleX(1f);
+                        resizeSplitViewBtn.setScaleY(1f);
+                        resizeSplitViewBtn.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP);
+                        return true;
+                }
+                return true;
+            }
+        });
+    }
+
+    private void search(String string) {
+
+        if (searchAdapter == null){
+            searchAdapter = new SearchListAdapter(this, new ArrayList<>());
+        }
+
+        ArrayList<SearchItem> searchItems;
+        if (string.isEmpty())
+            searchItems = new ArrayList<>();
+        else searchItems = JsonFunctions.searchItem(data,string);
+
+        searchAdapter.setSearchItems(searchItems);
+        searchAdapter.notifyDataSetChanged();
+
     }
 
     private void toggleEdit() {
@@ -336,7 +479,7 @@ public class MainActivity extends AppCompatActivity {
 
         if (isEditMode){
             showBackBtn();
-            hideTopMenu();
+            hideToolbar();
             menuBtn.setVisibility(INVISIBLE);
             splitViewBtn.setVisibility(INVISIBLE);
         }
@@ -350,7 +493,7 @@ public class MainActivity extends AppCompatActivity {
                 isEdited = false;
                 rawJsonView.isRawJsonLoaded = false;
                 unsavedChanges = true;
-                saveFAB.setVisibility(VISIBLE);
+                saveBtn.setVisibility(VISIBLE);
                 if (rawJsonView.showJson){
                     rawJsonView.ShowJSON();
                 }
@@ -371,14 +514,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         isVertical = !isVertical;
-
-        if (!isVertical){
-            mainLL.setOrientation(LinearLayout.HORIZONTAL);
-            updateFullRawBtn();
-        }else {
-            mainLL.setOrientation(LinearLayout.VERTICAL);
-            updateFullRawBtn();
-        }
+        updateOrientation();
     }
 
     OnBackPressedCallback backPressedCallback = new OnBackPressedCallback(true) {
@@ -394,7 +530,7 @@ public class MainActivity extends AppCompatActivity {
                 return;
             }
 
-            if (messageLL.getVisibility() == VISIBLE){
+            if (isEditMode){
                 toggleEdit();
                 return;
             }
@@ -403,9 +539,13 @@ public class MainActivity extends AppCompatActivity {
                 hideUrlSearchView();
                 return;
             }
+            if (searchLL.getVisibility() == VISIBLE){
+                hideSearchView();
+                return;
+            }
 
             if (listRL.getVisibility() == GONE){
-                FullRaw(null);
+                ShowList();
                 return;
             }
 
@@ -516,29 +656,36 @@ public class MainActivity extends AppCompatActivity {
         startActivity(new Intent(MainActivity.this, LogActivity.class));
     }
 
-    private void showTopMenu() {
+    private void showToolbar() {
         if (isEditMode)
             return;
 
-        topMenu.animate().cancel();
+        toolbar.animate().cancel();
 
         isTopMenuVisible = true;
-        topMenu.setVisibility(VISIBLE);
-        topMenu.animate()
+        toolbar.setVisibility(VISIBLE);
+        toolbar.animate()
                 .translationY(0)
-                .setDuration(200)
+                .scaleX(1)
+                .scaleY(1)
+                .alpha(1)
+                .setInterpolator(new OvershootInterpolator(1.1f))
+                .setDuration(500)
                 .start();
 
     }
 
-    private void hideTopMenu() {
-        topMenu.animate().cancel();
-      
+    private void hideToolbar() {
+        toolbar.animate().cancel();
+
         isTopMenuVisible = false;
-        topMenu.animate()
-                .translationY(-topMenu.getHeight())
-                .setDuration(100)
-                .withEndAction(()-> topMenu.setVisibility(GONE))
+        toolbar.animate()
+                .translationY(toolbar.getHeight()+50)
+                .setDuration(300)
+                .scaleX(.5f)
+                .scaleY(.5f)
+                .alpha(0)
+                .withEndAction(()-> toolbar.setVisibility(GONE))
                 .start();
     }
 
@@ -562,6 +709,10 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
+        if (searchLL.getVisibility() == VISIBLE){
+            hideSearchView();
+        }
+
 
         TransitionManager.beginDelayedTransition(viewGroup, autoTransition);
         mainLL.setVisibility(GONE);
@@ -570,20 +721,20 @@ public class MainActivity extends AppCompatActivity {
         if (backBtn.getVisibility() == GONE)
             backBtn.setVisibility(VISIBLE);
 
-        urlSearch.requestFocus();
+        urlSearchTxt.requestFocus();
         InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-        imm.showSoftInput(urlSearch, InputMethodManager.SHOW_IMPLICIT);
+        imm.showSoftInput(urlSearchTxt, InputMethodManager.SHOW_IMPLICIT);
     }
 
     public void hideUrlSearchView() {
         urlLL.setVisibility(GONE);
         TransitionManager.beginDelayedTransition(viewGroup, autoTransition);
         mainLL.setVisibility(VISIBLE);
-        urlSearch.setText("");
+        urlSearchTxt.setText("");
 
         InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
         if (imm.isActive())
-            imm.hideSoftInputFromWindow(urlSearch.getWindowToken(), 0);
+            imm.hideSoftInputFromWindow(urlSearchTxt.getWindowToken(), 0);
 
         if (data.isEmptyPath()) {
             backBtn.setVisibility(GONE);
@@ -591,6 +742,39 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    private void showSearchView() {
+        TransitionManager.beginDelayedTransition(viewGroup, autoTransition);
+        mainLL.setVisibility(GONE);
+        searchLL.setVisibility(VISIBLE);
+
+        if (backBtn.getVisibility() == GONE)
+            backBtn.setVisibility(VISIBLE);
+
+        searchTxt.requestFocus();
+        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm.showSoftInput(searchTxt, InputMethodManager.SHOW_IMPLICIT);
+
+        searchAdapter = new SearchListAdapter(this,new ArrayList<>());
+
+        searchList.setAdapter(searchAdapter);
+
+    }
+
+    public void hideSearchView() {
+        searchLL.setVisibility(GONE);
+        TransitionManager.beginDelayedTransition(viewGroup, autoTransition);
+        mainLL.setVisibility(VISIBLE);
+        searchTxt.setText("");
+
+        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+        if (imm.isActive())
+            imm.hideSoftInputFromWindow(searchTxt.getWindowToken(), 0);
+
+        if (data.isEmptyPath()) {
+            backBtn.setVisibility(GONE);
+        }
+
+    }
 
     public void open(String Title, String path, int previousPosition) {
         TransitionManager.endTransitions(viewGroup);
@@ -635,6 +819,16 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    public void highlightItem(int id){
+        handler.postDelayed(() -> {
+            list.smoothScrollToPosition(id+2);
+            adapter.setHighlightItem(id);
+        }, 500);
+        handler.postDelayed(() -> {
+            adapter.notifyItemChanged(id);
+        }, 600);
+    }
+
     public void goBack(int n){
         if (pathListView.getVisibility() == VISIBLE)
             showHidePathList();
@@ -655,13 +849,13 @@ public class MainActivity extends AppCompatActivity {
             backBtn.setVisibility(GONE);
     }
 
-    private void filter(){
+    private void filter() {
         ListDialog dialog = new ListDialog();
-        dialog.Builder(this,true)
+        dialog.Builder(this, true)
                 .setTitle(getString(R.string.filter))
                 .dialogWithTwoButtons()
                 .setSelectableList()
-                .setItems(filterList,val -> val)
+                .setItems(filterList, val -> val)
                 .onButtonClick(() -> {
                     setFilter(dialog.getSelectedItems());
                     dialog.dismiss();
@@ -713,43 +907,96 @@ public class MainActivity extends AppCompatActivity {
         pathListView.setVisibility(VISIBLE);
     }
 
-    public void FullRaw(View view) {
+    public void ShowList() {
         TransitionManager.endTransitions(viewGroup);
         TransitionManager.beginDelayedTransition(viewGroup, autoTransition);
 
-        fullRawBtn.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP);
-        if (listRL.getVisibility() == VISIBLE){
-            listRL.setVisibility(GONE);
-        }else
-            listRL.setVisibility(VISIBLE);
+        resizeSplitViewBtn.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP);
+        listRL.setVisibility(VISIBLE);
+        guideLine.setGuidelinePercent(.5f);
     }
 
-    private void updateFullRawBtn(){
+    private void updateOrientation(){
 
         int initWidth = functions.dpToPixels(this,100);
         int initHeight = functions.dpToPixels(this,7);
 
-        RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) fullRawBtn.getLayoutParams();
+        ConstraintLayout.LayoutParams params = (ConstraintLayout.LayoutParams) resizeSplitViewBtn.getLayoutParams();
+        FrameLayout.LayoutParams paramsLine = (FrameLayout.LayoutParams) findViewById(R.id.resizeSplitViewBtnLine).getLayoutParams();
+
+        mainLL.removeView(guideLine);
+        guideLine = new Guideline(this);
+        guideLine.setId(R.id.guideline);
+
+        ConstraintLayout.LayoutParams paramsGuideLine =
+                new ConstraintLayout.LayoutParams(
+                        ConstraintLayout.LayoutParams.WRAP_CONTENT,
+                        ConstraintLayout.LayoutParams.WRAP_CONTENT);
+
+        if (rawJsonView.showJson)
+            paramsGuideLine.guidePercent = 0.5f;
+        else paramsGuideLine.guidePercent = 1;
+
+        ConstraintLayout constraintLayout = findViewById(R.id.mainLL);
+        ConstraintSet constraintSet = new ConstraintSet();
+        constraintSet.clone(constraintLayout);
+
+        constraintSet.clear(R.id.resizeSplitViewBtn);
+        constraintSet.clear(R.id.listRL);
+        constraintSet.clear(R.id.rawJsonRL);
 
         if (!isVertical){
+            paramsGuideLine.orientation = ConstraintLayout.LayoutParams.VERTICAL;
+            mainLL.addView(guideLine,1,paramsGuideLine);
 
-            params.width = initHeight;
-            params.height = initWidth;
+            paramsLine.width = initHeight;
+            paramsLine.height = initWidth;
 
-            params.addRule(RelativeLayout.CENTER_VERTICAL);
-            params.removeRule(RelativeLayout.CENTER_HORIZONTAL);
+            params.leftMargin = functions.dpToPixels(this,-15);
+            params.topMargin = 0;
+            params.topToTop = ConstraintLayout.LayoutParams.PARENT_ID;
+            params.bottomToBottom = ConstraintLayout.LayoutParams.PARENT_ID;
+            params.startToStart = rawJsonRL.getId();
+            params.endToEnd = ConstraintLayout.LayoutParams.UNSET;
 
-            fullRawBtn.setLayoutParams(params);
+            constraintSet.connect(R.id.listRL,ConstraintSet.START,ConstraintSet.PARENT_ID,ConstraintSet.START);
+            constraintSet.connect(R.id.listRL,ConstraintSet.END,R.id.guideline,ConstraintSet.START);
+            constraintSet.connect(R.id.listRL,ConstraintSet.TOP,ConstraintSet.PARENT_ID,ConstraintSet.TOP);
+            constraintSet.connect(R.id.listRL,ConstraintSet.BOTTOM,ConstraintSet.PARENT_ID,ConstraintSet.BOTTOM);
+
+            constraintSet.connect(R.id.rawJsonRL,ConstraintSet.START,R.id.guideline,ConstraintSet.START);
+            constraintSet.connect(R.id.rawJsonRL,ConstraintSet.END,ConstraintSet.PARENT_ID,ConstraintSet.END);
+            constraintSet.connect(R.id.rawJsonRL,ConstraintSet.TOP,ConstraintSet.PARENT_ID,ConstraintSet.TOP);
+            constraintSet.connect(R.id.rawJsonRL,ConstraintSet.BOTTOM,ConstraintSet.PARENT_ID,ConstraintSet.BOTTOM);
+
+            constraintSet.applyTo(constraintLayout);
             return;
         }
 
-        params.width = initWidth;
-        params.height = initHeight;
+        paramsGuideLine.orientation = ConstraintLayout.LayoutParams.HORIZONTAL;
+        mainLL.addView(guideLine,paramsGuideLine);
 
-        params.addRule(RelativeLayout.CENTER_HORIZONTAL);
-        params.removeRule(RelativeLayout.CENTER_VERTICAL);
+        paramsLine.width = initWidth;
+        paramsLine.height = initHeight;
 
-        fullRawBtn.setLayoutParams(params);
+        params.leftMargin = 0;
+        params.topMargin = functions.dpToPixels(this,-15);
+        params.topToTop = rawJsonRL.getId();
+        params.bottomToBottom = ConstraintLayout.LayoutParams.UNSET;
+        params.startToStart = ConstraintLayout.LayoutParams.PARENT_ID;
+        params.endToEnd = ConstraintLayout.LayoutParams.PARENT_ID;
+
+        constraintSet.connect(R.id.listRL,ConstraintSet.START,ConstraintSet.PARENT_ID,ConstraintSet.START);
+        constraintSet.connect(R.id.listRL,ConstraintSet.END,ConstraintSet.PARENT_ID,ConstraintSet.END);
+        constraintSet.connect(R.id.listRL,ConstraintSet.TOP,ConstraintSet.PARENT_ID,ConstraintSet.TOP);
+        constraintSet.connect(R.id.listRL,ConstraintSet.BOTTOM,R.id.guideline,ConstraintSet.BOTTOM);
+
+        constraintSet.connect(R.id.rawJsonRL,ConstraintSet.START,ConstraintSet.PARENT_ID,ConstraintSet.START);
+        constraintSet.connect(R.id.rawJsonRL,ConstraintSet.END,ConstraintSet.PARENT_ID,ConstraintSet.END);
+        constraintSet.connect(R.id.rawJsonRL,ConstraintSet.TOP,R.id.guideline,ConstraintSet.TOP);
+        constraintSet.connect(R.id.rawJsonRL,ConstraintSet.BOTTOM,ConstraintSet.PARENT_ID,ConstraintSet.BOTTOM);
+
+        constraintSet.applyTo(constraintLayout);
     }
 
     void ReadFile(Uri uri){
@@ -806,9 +1053,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void SearchUrl() {
-        webController.getFromUrl(urlSearch.getText().toString(),webCallback);
+        webManager.getFromUrl(urlSearchTxt.getText().toString(),webCallback);
         InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-        imm.hideSoftInputFromWindow(urlSearch.getWindowToken(), 0);
+        imm.hideSoftInputFromWindow(urlSearchTxt.getWindowToken(), 0);
     }
 
     public void loadingStarted(){
@@ -886,7 +1133,7 @@ public class MainActivity extends AppCompatActivity {
         public void onFileWriteSuccess() {
             unsavedChanges = false;
             loadingFinished(true);
-            saveFAB.setVisibility(GONE);
+            saveBtn.setVisibility(GONE);
         }
 
         @Override
@@ -926,6 +1173,9 @@ public class MainActivity extends AppCompatActivity {
                 if (urlLL.getVisibility() == VISIBLE)
                     hideUrlSearchView();
 
+                if (searchLL.getVisibility() == VISIBLE)
+                    hideSearchView();
+
                 data.setCurrentList(data.getRootList());
                 updateFilterList(data.getRootList());
                 adapter = new ListAdapter(data.getRootList(), MainActivity.this, "");
@@ -940,10 +1190,13 @@ public class MainActivity extends AppCompatActivity {
                 functions.setAnimation(MainActivity.this,list,R.anim.scale_in2,new DecelerateInterpolator());
                 list.setVisibility(VISIBLE);
                 backBtn.setVisibility(GONE);
-                saveFAB.setVisibility(GONE);
+                saveBtn.setVisibility(GONE);
                 unsavedChanges = false;
                 titleTxt.setText("");
                 data.clearPath();
+
+                if (!isTopMenuVisible)
+                    showToolbar();
             });
         }
 
@@ -957,6 +1210,18 @@ public class MainActivity extends AppCompatActivity {
     };
 
     private final WebManager.WebCallback webCallback = new WebManager.WebCallback() {
+        @Override
+        public void onStarted() {
+            hideUrlSearchView();
+            loadingStarted();
+            isUrlSearching = true;
+        }
+
+        @Override
+        public void onInvalidURL() {
+            Toast.makeText(MainActivity.this, getString(R.string.invalid_url), Toast.LENGTH_SHORT).show();
+        }
+
         @Override
         public void onResponse(String data) {
             handler.post(()-> loadingFinished(false));
@@ -1038,7 +1303,7 @@ public class MainActivity extends AppCompatActivity {
         if (item.isRootItem()) {
             MessageDialog dialog = new MessageDialog();
             dialog.Builder(this,true)
-                    .setTitle("Editing a root item is not available!")
+                    .setTitle(getString(R.string.editing_root_item_not_available))
                     .show();
             return;
         }
@@ -1057,12 +1322,13 @@ public class MainActivity extends AppCompatActivity {
         CustomViewDialog dialog = new CustomViewDialog();
         dialog.Builder(this, true)
                 .dialogWithTwoButtons()
-                .setTitle("Edit Item")
+                .setTitle(getString(R.string.edit_item))
                 .addCustomView(view)
                 .onButtonClick(() -> {
 
                     if (item.getName() != null){
                         String name = nameTxt.getText().toString();
+                        String oldName = item.getName();
 
                         for(ListItem i : item.getParentList()){
                             if (i.getName().equals(name) && i != item){
@@ -1074,8 +1340,10 @@ public class MainActivity extends AppCompatActivity {
                                 return;
                             }
                         }
-                        if (!item.getName().equals(name))
+                        if (!oldName.equals(name)){
                             isEdited = true;
+                            if (adapter.itemCountInJSONList > 1) editAllItemsWithSameKey(oldName,name,item);
+                        }
 
                         item.setName(name);
                     }
@@ -1090,6 +1358,24 @@ public class MainActivity extends AppCompatActivity {
                     dialog.dismiss();
                     adapter.notifyItemChanged(pos);
                     updateFilterList(data.getCurrentList());
+                })
+                .show();
+        Objects.requireNonNull(dialog.dialog.getWindow()).setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
+    }
+
+    private void editAllItemsWithSameKey(String oldName, String name, ListItem item){
+        BasicDialog renameAllDialog = new BasicDialog();
+        renameAllDialog.Builder(this,true)
+                .setTitle(getString(R.string.rename_all))
+                .setMessage(String.format(getString(R.string.rename_all_s_key_with_s),oldName,name))
+                .onButtonClick(() -> {
+                    for (ListItem listItem : adapter.getList()){
+                        if (listItem.getName() != null && listItem.getName().equals(oldName) && listItem != item){
+                            listItem.setName(name);
+                            adapter.notifyItemRangeChanged(0,adapter.getItemCount());
+                        }
+                    }
+                    renameAllDialog.dismiss();
                 })
                 .show();
     }

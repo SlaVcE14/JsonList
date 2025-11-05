@@ -42,6 +42,18 @@
             android:gravity="center_vertical" />
 
         <ImageButton
+            android:id="@+id/saveBtn"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="5dp"
+            android:layout_marginTop="15dp"
+            android:layout_marginBottom="15dp"
+            android:background="@drawable/ripple3"
+            android:visibility="gone"
+            app:tint="?colorOnPrimary"
+
+            android:src="@drawable/ic_save" />
+        <ImageButton
             android:id="@+id/splitViewBtn"
             android:layout_width="40dp"
             android:layout_height="40dp"
@@ -51,6 +63,7 @@
             android:background="@drawable/ripple"
 
             android:src="@drawable/ic_splitscreen" />
+
 
         <ImageButton
             android:id="@+id/menuBtn"
@@ -101,6 +114,7 @@
             android:paddingVertical="10dp"
             android:paddingHorizontal="15dp"
             android:imeOptions="actionSearch"
+
             android:inputType="textUri"
             android:hint="@string/enter_url"
             android:layout_weight="1"
@@ -118,80 +132,95 @@
 
 
     </LinearLayout>
-
     <LinearLayout
+        android:id="@+id/searchLL"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:layout_below="@+id/titlePanel"
+        android:visibility="gone"
+        >
+        <EditText
+            android:id="@+id/searchTxt"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:background="@drawable/outline_background"
+            android:paddingVertical="10dp"
+            android:paddingHorizontal="15dp"
+            android:layout_marginHorizontal="5dp"
+            android:imeOptions="actionSearch"
+            android:inputType="textUri"
+            android:hint="@string/search"
+            />
+
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/searchChipGroup"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="10dp"
+
+            >
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/searchChipKey"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                style="@style/Widget.Material3.Chip.Filter"
+                android:text="key"
+                />
+            <com.google.android.material.chip.Chip
+                android:id="@+id/searchChipValue"
+                android:layout_width="wrap_content"
+                style="@style/Widget.Material3.Chip.Filter"
+                android:layout_height="wrap_content"
+                android:text="value"
+
+                />
+
+        </com.google.android.material.chip.ChipGroup>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/searchResultList"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:foreground="@drawable/foreground"
+            />
+
+    </LinearLayout>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/mainLL"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_below="@+id/titlePanel"
-        android:weightSum="2"
         android:orientation="vertical"
         >
 
         <RelativeLayout
             android:id="@+id/listRL"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
+            android:layout_height="0dp"
+            android:minWidth="50dp"
+            android:minHeight="50dp"
+            app:layout_constraintBottom_toTopOf="@id/guideline"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+
             >
-            <LinearLayout
-                android:id="@+id/topMenu"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginVertical="5dp"
-                android:layout_marginHorizontal="10dp"
-                android:visibility="gone"
-                android:gravity="center"
-                android:background="@drawable/ripple_list"
-                android:layout_alignParentEnd="true"
 
-                >
-                <RelativeLayout
-                    android:id="@+id/editBtn"
-                    android:layout_width="60dp"
-                    android:layout_height="40dp"
-                    android:background="@drawable/ripple_list"
-                    >
-                    <ImageView
-                        android:layout_width="25dp"
-                        android:layout_height="25dp"
-                        android:layout_centerHorizontal="true"
-                        android:layout_marginTop="4dp"
-                        android:src="@drawable/ic_edit" >
-                    </ImageView>
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/beta"
-                        android:paddingHorizontal="10dp"
-                        android:background="@drawable/ripple_red"
-                        android:textColor="?colorOnError"
-                        android:textSize="8dp"
-                        android:layout_alignParentBottom="true"
-                        android:layout_marginBottom="3dp"
-                        android:layout_centerHorizontal="true"
-                        />
 
-                </RelativeLayout>
-                <ImageButton
-                    android:id="@+id/filterBtn"
-                    android:layout_width="60dp"
-                    android:layout_height="40dp"
-                    android:background="@drawable/ripple_list"
-
-                    android:src="@drawable/ic_filter" />
-
-            </LinearLayout>
             <LinearLayout
                 android:id="@+id/messageLL"
                 android:layout_width="match_parent"
                 android:visibility="gone"
-                android:layout_below="@+id/topMenu"
                 android:background="@drawable/background5"
                 android:padding="10dp"
                 android:layout_margin="10dp"
                 android:layout_height="wrap_content">
                 <TextView
+                    android:id="@+id/messageTxt"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Tap the item to edit"
@@ -210,6 +239,8 @@
                     android:onClick="DoneEdit"
                     android:text="done"/>
             </LinearLayout>
+
+
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/list"
                 android:layout_width="match_parent"
@@ -220,6 +251,74 @@
                 android:layout_below="@+id/messageLL"
                 android:visibility="gone"
                 />
+
+            <com.google.android.material.floatingtoolbar.FloatingToolbarLayout
+                android:id="@+id/floating_toolbar"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerHorizontal="true"
+                android:layout_alignParentBottom="true"
+                android:visibility="gone"
+                style="?attr/floatingToolbarVibrantStyle"
+                android:elevation="4dp"
+                android:layout_marginBottom="16dp">
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginVertical="5dp"
+                    android:gravity="center"
+                    android:layout_alignParentEnd="true"
+
+                    >
+                    <ImageButton
+                        android:id="@+id/searchBtn"
+                        android:layout_width="60dp"
+                        android:layout_height="40dp"
+                        android:background="@drawable/ripple2"
+                        app:tint="?colorOnPrimaryContainer"
+
+                        android:src="@drawable/ic_search" />
+                    <RelativeLayout
+                        android:id="@+id/editBtn"
+                        android:layout_width="60dp"
+                        android:layout_height="40dp"
+                        android:background="@drawable/ripple2"
+                        >
+                        <ImageView
+                            android:layout_width="25dp"
+                            android:layout_height="25dp"
+                            android:layout_centerHorizontal="true"
+                            android:layout_marginTop="4dp"
+                            app:tint="?colorOnPrimaryContainer"
+                            android:src="@drawable/ic_edit" >
+                        </ImageView>
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/beta"
+                            android:paddingHorizontal="10dp"
+                            android:background="@drawable/ripple_red"
+                            android:textColor="?colorOnError"
+                            android:textSize="8dp"
+                            android:layout_alignParentBottom="true"
+                            android:layout_marginBottom="3dp"
+                            android:layout_centerHorizontal="true"
+                            />
+
+                    </RelativeLayout>
+                    <ImageButton
+                        android:id="@+id/filterBtn"
+                        android:layout_width="60dp"
+                        android:layout_height="40dp"
+                        android:background="@drawable/ripple2"
+                        app:tint="?colorOnPrimaryContainer"
+                        android:src="@drawable/ic_filter" />
+
+                </LinearLayout>
+
+            </com.google.android.material.floatingtoolbar.FloatingToolbarLayout>
+
             <TextView
                 android:id="@+id/emptyListTxt"
                 android:layout_width="wrap_content"
@@ -260,61 +359,71 @@
                 android:textColor="?colorOnBackground"
                 android:text="@string/open_from_url" />
 
-            <com.google.android.material.floatingactionbutton.FloatingActionButton
-                android:id="@+id/saveFAB"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentBottom="true"
-                android:layout_alignParentEnd="true"
-                android:layout_marginBottom="20dp"
-                android:layout_marginEnd="20dp"
-                android:contentDescription="@string/save_changes"
-                app:fabCustomSize="70dp"
-                android:src="@drawable/ic_save"
-                android:visibility="gone"
-                >
-            </com.google.android.material.floatingactionbutton.FloatingActionButton>
-
         </RelativeLayout>
+
+
+
+        <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/guideline"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@color/Custom0"
+            android:orientation="horizontal"
+            app:layout_constraintGuide_percent="1" />
+
+
         <RelativeLayout
             android:id="@+id/rawJsonRL"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
+            android:layout_height="0dp"
             android:visibility="gone"
-
-            >
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@id/guideline">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:background="@drawable/split_view_bg"
                 android:layout_margin="10dp"
+                android:background="@drawable/split_view_bg"
                 android:orientation="vertical"
-                android:visibility="visible"
-                >
+                android:visibility="visible">
 
                 <WebView
                     android:id="@+id/rawJsonWV"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:layout_margin="10dp"
-                    />
+                    android:layout_margin="10dp" />
 
             </LinearLayout>
+
+
+        </RelativeLayout>
+
+        <FrameLayout
+            android:id="@+id/resizeSplitViewBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="15dp"
+            android:layout_marginTop="-15dp"
+            android:scaleX=".5"
+            android:scaleY=".5"
+            app:layout_constraintTop_toTopOf="@+id/rawJsonRL"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:visibility="gone"
+            android:clickable="false">
             <View
-                android:id="@+id/fullRawBtn"
+                android:id="@+id/resizeSplitViewBtnLine"
                 android:layout_width="100dp"
                 android:layout_height="7dp"
                 android:background="@drawable/ripple_button"
-                android:onClick="FullRaw"
-                android:layout_centerHorizontal="true"
-
                 />
-        </RelativeLayout>
+        </FrameLayout>
 
 
-    </LinearLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
 
     <RelativeLayout
@@ -331,7 +440,7 @@
             android:layout_height="wrap_content"
             android:minWidth="150dp"
             android:animateLayoutChanges="true"
-            android:background="@drawable/background_transparent"
+            android:background="@drawable/background6"
 
             android:padding="10dp"
             android:layout_marginBottom="20dp"
@@ -349,7 +458,7 @@
                 android:layout_height="wrap_content"
                 android:text="@string/loading_data_from_file"
                 android:textAlignment="center"
-                android:textColor="#ffffff"
+                android:textColor="?colorOnTertiaryContainer"
 
                 />
             <com.google.android.material.progressindicator.LinearProgressIndicator
@@ -359,7 +468,11 @@
                 android:indeterminate="true"
                 android:layout_marginTop="5dp"
                 android:max="100"
-                app:indicatorColor="#ffffff"
+                app:waveAmplitude="2dp"
+                app:wavelength="30dp"
+                app:waveSpeed="20dp"
+                app:trackColor="?colorOnTertiary"
+                app:indicatorColor="?colorTertiary"
                 />
         </LinearLayout>
     </RelativeLayout>

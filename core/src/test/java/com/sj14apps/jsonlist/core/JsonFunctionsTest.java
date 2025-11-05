@@ -62,4 +62,26 @@ public class JsonFunctionsTest {
         assertEquals(2, result.size());
     }
 
+    @Test
+    public void testGetStringFromJson() {
+        JsonObject jsonObject = new JsonObject();
+        jsonObject.addProperty("test1", "value1\nvalue2");
+        jsonObject.addProperty("test2", "value1\tvalue2");
+        jsonObject.addProperty("test3", "value1\rvalue2");
+        jsonObject.addProperty("test4", "value1\bvalue2");
+        jsonObject.addProperty("test5", "value1\fvalue2");
+        jsonObject.addProperty("test6", "value1\"value2");
+        jsonObject.addProperty("test7", "value1\\value2");
+
+        ArrayList<ListItem> result = JsonFunctions.getJsonObject(jsonObject);
+        assertNotNull(result);
+        assertEquals("value1\nvalue2", result.get(0).getValue());
+        assertEquals("value1\tvalue2", result.get(1).getValue());
+        assertEquals("value1\rvalue2", result.get(2).getValue());
+        assertEquals("value1\bvalue2", result.get(3).getValue());
+        assertEquals("value1\fvalue2", result.get(4).getValue());
+        assertEquals("value1\"value2", result.get(5).getValue());
+        assertEquals("value1\\value2", result.get(6).getValue());
+    }
+
 }

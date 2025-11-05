@@ -71,7 +71,7 @@
     <string name="loading_file_in_progress">Loading file in progress, try again later</string>
     <string name="file_is_to_large_to_be_shown_in_a_split_screen">File is to large to be shown in a split screen!</string>
 
-    <string name="item_name">Item name</string>
+    <string name="item_name">Item key</string>
     <string name="item_value">Item value</string>
 
     <!--  Save Changes  -->
@@ -83,10 +83,25 @@
     <string name="fail_to_save">Fail to save a file</string>
     <string name="saving_file">Saving file...</string>
 
-    <!--  Themes  -->
-    <string name="theme">Theme</string>
+    <!--  Release Notes  -->
+    <string name="release_notes">Release Notes</string>
+    <string name="fail_to_get_data">Fail to get data</string>
+  
+    <!--  Search  -->
+    <string name="search">search</string>
+  
+    <!-- Editing -->
     <string name="editing_in_progress">Editing in progress</string>
     <string name="item_with_name_already_exists">Item with this name already exists!</string>
+    <string name="edit_item">Edit Item</string>
+    <string name="editing_root_item_not_available">Editing a root item is not available!</string>
+    <string name="rename_all">Rename all</string>
+    <string name="rename_all_s_key_with_s">Rename all \'%s\' key with \'%s\'?</string>
+    
+
+    <!--  Themes  -->
+    <string name="theme">Theme</string>
+
 
     <string-array name="Themes">
         <item>System theme</item>
