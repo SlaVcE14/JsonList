@@ -440,11 +440,11 @@
             android:layout_height="wrap_content"
             android:minWidth="150dp"
             android:animateLayoutChanges="true"
-            android:background="@drawable/background_transparent"
+            android:background="@drawable/background6"
 
             android:padding="10dp"
             android:layout_marginBottom="20dp"
-            android:visibility="invisible"
+            android:visibility="visible"
             android:gravity="center"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -458,7 +458,7 @@
                 android:layout_height="wrap_content"
                 android:text="@string/loading_data_from_file"
                 android:textAlignment="center"
-                android:textColor="#ffffff"
+                android:textColor="?colorOnTertiaryContainer"
 
                 />
             <com.google.android.material.progressindicator.LinearProgressIndicator
@@ -468,7 +468,11 @@
                 android:indeterminate="true"
                 android:layout_marginTop="5dp"
                 android:max="100"
-                app:indicatorColor="#ffffff"
+                app:waveAmplitude="2dp"
+                app:wavelength="30dp"
+                app:waveSpeed="20dp"
+                app:trackColor="?colorOnTertiary"
+                app:indicatorColor="?colorTertiary"
                 />
         </LinearLayout>
     </RelativeLayout>
