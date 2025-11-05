@@ -58,7 +58,6 @@ import android.widget.Toast;
 
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.floatingtoolbar.FloatingToolbarLayout;
 import com.google.android.material.progressindicator.LinearProgressIndicator;
 import com.google.android.material.snackbar.BaseTransientBottomBar;
@@ -143,7 +142,7 @@ public class MainActivity extends AppCompatActivity {
     boolean isEdited;
     public boolean isEditMode;
     boolean unsavedChanges;
-    FloatingActionButton saveFAB;
+    ImageButton saveBtn;
     public Guideline guideLine;
 
     ArrayList<String> filterList = new ArrayList<>();
@@ -227,7 +226,7 @@ public class MainActivity extends AppCompatActivity {
         menuBtn.bringToFront();
         resizeSplitViewBtn = findViewById(R.id.resizeSplitViewBtn);
         toolbar = findViewById(R.id.floating_toolbar);
-        saveFAB = findViewById(R.id.saveFAB);
+        saveBtn = findViewById(R.id.saveBtn);
         guideLine = findViewById(R.id.guideline);
 
         LinearLayoutManager pathLM = new LinearLayoutManager(this);
@@ -409,7 +408,7 @@ public class MainActivity extends AppCompatActivity {
         filterBtn.setOnClickListener(view -> filter());
         searchBtn.setOnClickListener(view -> showSearchView());
         editBtn.setOnClickListener(view -> toggleEdit());
-        saveFAB.setOnClickListener(view -> saveChanges());
+        saveBtn.setOnClickListener(view -> saveChanges());
 
         resizeSplitViewBtn.setOnTouchListener(new View.OnTouchListener() {
 
@@ -494,7 +493,7 @@ public class MainActivity extends AppCompatActivity {
                 isEdited = false;
                 rawJsonView.isRawJsonLoaded = false;
                 unsavedChanges = true;
-                saveFAB.setVisibility(VISIBLE);
+                saveBtn.setVisibility(VISIBLE);
                 if (rawJsonView.showJson){
                     rawJsonView.ShowJSON();
                 }
@@ -531,7 +530,7 @@ public class MainActivity extends AppCompatActivity {
                 return;
             }
 
-            if (messageLL.getVisibility() == VISIBLE){
+            if (isEditMode){
                 toggleEdit();
                 return;
             }
@@ -1134,7 +1133,7 @@ public class MainActivity extends AppCompatActivity {
         public void onFileWriteSuccess() {
             unsavedChanges = false;
             loadingFinished(true);
-            saveFAB.setVisibility(GONE);
+            saveBtn.setVisibility(GONE);
         }
 
         @Override
@@ -1191,7 +1190,7 @@ public class MainActivity extends AppCompatActivity {
                 functions.setAnimation(MainActivity.this,list,R.anim.scale_in2,new DecelerateInterpolator());
                 list.setVisibility(VISIBLE);
                 backBtn.setVisibility(GONE);
-                saveFAB.setVisibility(GONE);
+                saveBtn.setVisibility(GONE);
                 unsavedChanges = false;
                 titleTxt.setText("");
                 data.clearPath();
