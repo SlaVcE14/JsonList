@@ -682,51 +682,6 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    //TODO replace it with open(Title, node, previousPosition)??
-   /* public void open(String Title, String path, int previousPosition) {
-        TransitionManager.endTransitions(binding.content);
-        TransitionManager.beginDelayedTransition(binding.content, autoTransition);
-
-        if (isMenuOpen)
-            open_closeMenu();
-
-        if (binding.emptyListTxt.getVisibility() == VISIBLE)
-            binding.emptyListTxt.setVisibility(GONE);
-
-
-
-        pathAdapter = new PathListAdapter(this,path);
-        binding.pathList.setAdapter(pathAdapter);
-        data.setPath(path);
-        binding.titleTxt.setText(Title);
-        ArrayList<ListItem> arrayList = getListFromNode(data.getRootNode());
-        data.setCurrentNode(data.getRootNode());
-        updateFilterList(arrayList);
-        adapter = new ListAdapter(arrayList, this, path);
-        binding.list.setAdapter(adapter);
-
-        if (previousPosition == -1) {
-            handler.postDelayed(() -> {
-                if (state.isScrollAnimation()) binding.list.smoothScrollToPosition(data.getPreviousPos()+2);
-                else binding.list.scrollToPosition(data.getPreviousPos()+2);
-                adapter.setHighlightItem(data.getPreviousPos());
-            }, 500);
-            handler.postDelayed(() -> {
-                adapter.notifyItemChanged(data.getPreviousPos());
-            }, 600);
-        }
-        else data.addPreviousPos(previousPosition);
-
-        if (arrayList.isEmpty()) {
-            binding.emptyListTxt.setVisibility(VISIBLE);
-        }
-        System.out.println("path = " + path);
-        if (!path.isEmpty()) {
-            binding.backBtn.setVisibility(VISIBLE);
-        } else binding.backBtn.setVisibility(GONE);
-
-    }
-*/
     public void open(String Title, JsonNode node, Path path, int previousPosition){
         TransitionManager.endTransitions(binding.content);
         TransitionManager.beginDelayedTransition(binding.content, autoTransition);
@@ -745,7 +700,7 @@ public class MainActivity extends AppCompatActivity {
         pathAdapter = new PathListAdapter(this,path);
         binding.pathList.setAdapter(pathAdapter);
         data.setPath(path);
-        binding.titleTxt.setText(Title); //TODO
+        binding.titleTxt.setText(Title);
 
         ArrayList<ListItem> arrayList = getListFromNode(node);
         data.setCurrentNode(node);

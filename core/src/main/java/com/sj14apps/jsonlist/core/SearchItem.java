@@ -2,9 +2,8 @@ package com.sj14apps.jsonlist.core;
 
 public class SearchItem {
     public String value;
-    public String path; //TODO Path class instead of String???
+    public String path;
     public int id;
-    public int arrayId;
     public JsonNode node;
 
     public SearchItem(){}
@@ -13,14 +12,9 @@ public class SearchItem {
     }
 
     public SearchItem(JsonNode node,String value, String path,int id){
-        this(node,value,path,id,-1);
-    }
-
-    public SearchItem(JsonNode node,String value, String path,int id, int arrayId){
         this.value = value;
         this.path = path;
         this.id = id;
-        this.arrayId = arrayId;
         this.node = node;
     }
 
@@ -30,7 +24,6 @@ public class SearchItem {
                 "value='" + value + '\'' +
                 ", path='" + path + '\'' +
                 ", id=" + id +
-                ", arrayId=" + arrayId +
                 '}';
     }
 }

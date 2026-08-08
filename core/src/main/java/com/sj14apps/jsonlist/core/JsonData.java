@@ -76,7 +76,7 @@ public class JsonData {
     }
 
     public boolean isEmptyPath() {
-        return rootNode == null || currentNode.equals(rootNode); // TODO
+        return path.isEmpty();
     }
 
     public void clearPath() {
@@ -116,12 +116,14 @@ public class JsonData {
     }
 
     public static String getPathFormat(String path) {
+        if (path == null || path.isEmpty()) return "";
         String[] pathStrings = splitPath(path);
         StringBuilder builder = new StringBuilder();
+        
+        int startIndex = pathStrings.length > maxPathNameLength ? pathStrings.length - maxPathNameLength : 1;
         builder.append(pathStrings.length > maxPathNameLength ? "..." : pathStrings[0]);
 
-        for (int i = pathStrings.length > maxPathNameLength ? pathStrings.length - maxPathNameLength
-                : 1; i < pathStrings.length; i++) {
+        for (int i = startIndex; i < pathStrings.length; i++) {
             builder.append("/").append(getName(pathStrings[i]));
         }
 

@@ -78,7 +78,7 @@ public class Path {
     }
 
     public Path fromString(String path) {
-        if (path == null)
+        if (path == null || path.isEmpty())
             return this;
         String[] segments = path.split("///");
         for (String s : segments) {

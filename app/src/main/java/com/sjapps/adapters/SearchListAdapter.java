@@ -72,7 +72,7 @@ public class SearchListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
         TextView valTxt = currentHolder.getValTxt();
         TextView pathTxt = currentHolder.getPathTxt();
         valTxt.setText(item.value);
-        String pathStr = "/" + item.path.replace("///","/") + (item.arrayId != -1? "/" + item.arrayId:""); //TODO Change this idk
+        String pathStr = "/" + item.path.replace("///","/");
         pathTxt.setText(pathStr);
         currentHolder.getBtn().setOnClickListener(v -> {
             activity.searchController.hideSearchView();

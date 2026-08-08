@@ -122,14 +122,17 @@ public class ListItem {
 
     @Override
     public boolean equals(Object o) {
-        //TODO regenerate this
-        return false;
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ListItem listItem = (ListItem) o;
+        if (isSpace != listItem.isSpace) return false;
+        if (position != listItem.position) return false;
+        return java.util.Objects.equals(jsonNode, listItem.jsonNode);
     }
 
     @Override
     public int hashCode() {
-        //TODO regenerate this
-        return 0;
+        return java.util.Objects.hash(jsonNode, isSpace, position);
     }
 
     public ListItem error() {

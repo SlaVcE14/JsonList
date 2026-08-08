@@ -24,29 +24,24 @@ public class JsonFunctions {
     public static ArrayList<JsonNode> getJsonArray(JsonNode parentNode, JsonArray array) {
         ArrayList<JsonNode> ArrList = new ArrayList<>();
         for (int i = 0; i < array.size(); i++) {
-            if (array.get(i) instanceof JsonObject) {
-                JsonNode jsonNodeObj = getJsonObject(parentNode, (JsonObject) array.get(i));
-                jsonNodeObj.setId(i);
-                jsonNodeObj.setParent(parentNode);
-                ArrList.add(jsonNodeObj);
-                continue;
-            }
-            if (array.get(i) instanceof JsonArray) {
-                JsonNode jsonNodeArr = new JsonNode().root().array();
+            JsonNode childNode;
+            JsonElement element = array.get(i);
 
-                ArrayList<JsonNode> ListOfItems = getJsonArray(jsonNodeArr, (JsonArray) array.get(i));
-                jsonNodeArr.setChildren(ListOfItems);
-                setArrayName((JsonArray) array.get(i), jsonNodeArr);
-                jsonNodeArr.setId(i);
-                jsonNodeArr.setParent(parentNode);
-                ArrList.add(jsonNodeArr);
-                continue;
+            if (element instanceof JsonObject) {
+                childNode = getJsonObject(parentNode, (JsonObject) element);
+            } else if (element instanceof JsonArray) {
+                childNode = new JsonNode().root().array();
+                ArrayList<JsonNode> ListOfItems = getJsonArray(childNode, (JsonArray) element);
+                childNode.setChildren(ListOfItems);
+                setArrayName((JsonArray) element, childNode);
+            } else {
+                childNode = new JsonNode();
+                childNode.setValue(getStringFromJson(element.toString()));
             }
-            JsonNode item = new JsonNode();
-            item.setValue(getStringFromJson(array.get(i).toString()));
-            item.setId(i);
-            item.setParent(parentNode);
-            ArrList.add(item);
+            
+            childNode.setId(i);
+            childNode.setParent(parentNode);
+            ArrList.add(childNode);
         }
         return ArrList;
     }
@@ -77,8 +72,6 @@ public class JsonFunctions {
         for (Object o : keysArray) {
             JsonNode item = setItem(obj, o);
             item.setKey(o.toString());
-            // set the array node as parent instead of object TODO not this??? IDK
-            // item.setParent(parentNode!= null? parentNode: mainNode);
             item.setParent(mainNode);
             mainNode.children.add(item);
         }
@@ -148,40 +141,6 @@ public class JsonFunctions {
         }
 
         return items;
-    }
-
-    // TODO No need for new. Rewrite it if needed
-    public static ArrayList<ListItem> getListFromPath(String path, JsonNode rootNode) {
-
-        String[] pathStrings = path.split("///");
-
-        ArrayList<JsonNode> list = rootNode.children;
-
-        for (String pathString : pathStrings) {
-
-            int id = -1;
-
-            if (pathString.startsWith("{") && pathString.contains("}") && pathString.substring(1, pathString.indexOf("}")).matches("^[0-9]+")) {
-                id = Integer.parseInt(pathString.substring(1, pathString.indexOf("}")));
-            }
-
-            for (int i = 0; i < list.size(); i++) {
-                JsonNode item = list.get(i);
-
-                if (item.key == null || !item.key.equals(id != -1 ? pathString.substring(pathString.indexOf("}") + 1) : pathString))
-                    continue;
-
-                if (id != -1 && item.id != id)
-                    continue;
-
-                if (item.isArray) {
-                    return getArrayList(item.children);
-                }
-                return getObject(item);
-            }
-        }
-        return new ArrayList<>();
-
     }
 
     public static ArrayList<ListItem> getListFromNode(JsonNode node) {
@@ -287,19 +246,19 @@ public class JsonFunctions {
     public static ArrayList<SearchItem> searchItem(JsonData data, String val) {
         ArrayList<SearchItem> searchItems = new ArrayList<>();
         JsonNode root = data.getRootNode();
-        searchItem(root.children, searchItems, "", val.toLowerCase(), data.searchMode, 0, -1);
+        searchItem(root.children, searchItems, "", val.toLowerCase(), data.searchMode);
         return searchItems;
     }
 
-    public static void searchItem(ArrayList<JsonNode> nodes,ArrayList<SearchItem> searchItems, String path, String val,int searchMode,int currentID,int arrayId){
-        //TODO  currentID,arrayId? remove?
+    public static void searchItem(ArrayList<JsonNode> nodes, ArrayList<SearchItem> searchItems, String path, String val, int searchMode){
+        int index = 0;
         for (JsonNode node : nodes) {
             if (Thread.currentThread().isInterrupted()) {
                 return;
             }
 
             if (searchMode != 2 && node.key != null && node.key.toLowerCase().contains(val))
-                searchItems.add(new SearchItem(node, node.key, path, currentID, arrayId));
+                searchItems.add(new SearchItem(node, node.key, path, index));
 
             if (node.isArray || node.isObject) {
                 if (node.isObject) {
@@ -308,11 +267,9 @@ public class JsonFunctions {
                             searchItems,
                             path + (path.equals("") ? "" : "///") + (node.key != null ? node.key : node.id),
                             val,
-                            searchMode,
-                            0,
-                            -1
+                            searchMode
                     );
-                    currentID++;
+                    index++;
                     continue;
                 }
 
@@ -321,11 +278,9 @@ public class JsonFunctions {
                         searchItems,
                         path + (path.equals("") ? "" : "///") + (node.id != null ? node.id + "///" : "") + node.key,
                         val,
-                        searchMode,
-                        currentID,
-                        arrayId
+                        searchMode
                 );
-                currentID++;
+                index++;
                 continue;
             }
 
@@ -334,10 +289,9 @@ public class JsonFunctions {
                         node,
                         (node.key != null ? node.key + ": " : "") + node.value,
                         path,
-                        currentID,
-                        arrayId
+                        index
                 ));
-            currentID++;
+            index++;
         }
 
     }
