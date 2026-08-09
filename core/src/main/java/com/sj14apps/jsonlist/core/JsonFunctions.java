@@ -28,7 +28,7 @@ public class JsonFunctions {
             JsonElement element = array.get(i);
 
             if (element instanceof JsonObject) {
-                childNode = getJsonObject(parentNode, (JsonObject) element);
+                childNode = getJsonObject((JsonObject) element);
             } else if (element instanceof JsonArray) {
                 childNode = new JsonNode().root().array();
                 ArrayList<JsonNode> ListOfItems = getJsonArray(childNode, (JsonArray) element);
@@ -64,7 +64,7 @@ public class JsonFunctions {
         return true;
     }
 
-    public static JsonNode getJsonObject(JsonNode parentNode, JsonObject obj) {
+    public static JsonNode getJsonObject(JsonObject obj) {
         JsonNode mainNode = new JsonNode().object();
         Set<String> keys = obj.keySet();
         Object[] keysArray = keys.toArray();
@@ -104,7 +104,7 @@ public class JsonFunctions {
 
     private static JsonNode setItem(JsonObject obj, Object o) {
         if (obj.get(o.toString()) instanceof JsonObject) {
-            return getJsonObject(null, (JsonObject) obj.get(o.toString()));
+            return getJsonObject((JsonObject) obj.get(o.toString()));
         }
         if (obj.get(o.toString()) instanceof JsonArray) {
             JsonArray array = (JsonArray) obj.get(o.toString());
@@ -246,11 +246,11 @@ public class JsonFunctions {
     public static ArrayList<SearchItem> searchItem(JsonData data, String val) {
         ArrayList<SearchItem> searchItems = new ArrayList<>();
         JsonNode root = data.getRootNode();
-        searchItem(root.children, searchItems, "", val.toLowerCase(), data.searchMode);
+        searchItem(root.children, searchItems, new Path(), val.toLowerCase(), data.searchMode);
         return searchItems;
     }
 
-    public static void searchItem(ArrayList<JsonNode> nodes, ArrayList<SearchItem> searchItems, String path, String val, int searchMode){
+    public static void searchItem(ArrayList<JsonNode> nodes, ArrayList<SearchItem> searchItems, Path path, String val, int searchMode){
         int index = 0;
         for (JsonNode node : nodes) {
             if (Thread.currentThread().isInterrupted()) {
@@ -258,14 +258,16 @@ public class JsonFunctions {
             }
 
             if (searchMode != 2 && node.key != null && node.key.toLowerCase().contains(val))
-                searchItems.add(new SearchItem(node, node.key, path, index));
+                searchItems.add(new SearchItem(node, node.key, path.copy(), index));
 
             if (node.isArray || node.isObject) {
                 if (node.isObject) {
+                    Path newPath = path.copy();
+                    newPath.add(node.key != null ? node.key : String.valueOf(node.id),node.key == null);
                     searchItem(
                             node.children,
                             searchItems,
-                            path + (path.equals("") ? "" : "///") + (node.key != null ? node.key : node.id),
+                            newPath,
                             val,
                             searchMode
                     );
@@ -273,10 +275,15 @@ public class JsonFunctions {
                     continue;
                 }
 
+                Path newPath = path.copy();
+                if (node.id != null) {
+                    newPath.add(String.valueOf(node.id), true);
+                }
+                newPath.add(node.key);
                 searchItem(
                         node.children,
                         searchItems,
-                        path + (path.equals("") ? "" : "///") + (node.id != null ? node.id + "///" : "") + node.key,
+                        newPath,
                         val,
                         searchMode
                 );
@@ -288,7 +295,7 @@ public class JsonFunctions {
                 searchItems.add(new SearchItem(
                         node,
                         (node.key != null ? node.key + ": " : "") + node.value,
-                        path,
+                        path.copy(),
                         index
                 ));
             index++;

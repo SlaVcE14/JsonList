@@ -5,7 +5,8 @@ import java.util.ArrayList;
 import java.util.Deque;
 
 public class Path {
-    Deque<PathSegment> pathSegments = new ArrayDeque<>();
+    public Deque<PathSegment> pathSegments = new ArrayDeque<>();
+    static int maxPathNameLength = 3;
 
     public Path() {
     }
@@ -32,6 +33,8 @@ public class Path {
             pathSegments.removeLast();
         return segment;
     }
+
+    public static final String DELIMITER = "///";
 
     public ArrayList<String> splitToArrayString() {
         ArrayList<String> list = new ArrayList<>();
@@ -63,7 +66,7 @@ public class Path {
         for (PathSegment segment : pathSegments) {
             builder.append(segment.val);
             if (i < pathSegments.size() - 1)
-                builder.append("///");
+                builder.append(DELIMITER);
             i++;
         }
         return builder.toString();
@@ -80,7 +83,7 @@ public class Path {
     public Path fromString(String path) {
         if (path == null || path.isEmpty())
             return this;
-        String[] segments = path.split("///");
+        String[] segments = path.split(DELIMITER);
         for (String s : segments) {
             if (s.matches("\\d+"))
                 add(s, true);
@@ -90,5 +93,39 @@ public class Path {
         if (!pathSegments.isEmpty() && pathSegments.peekLast().isId)
             pathSegments.removeLast();
         return this;
+    }
+
+    public String getDisplayPath() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("/");
+        for (PathSegment segment : pathSegments) {
+            builder.append(segment.val).append("/");
+        }
+        if (builder.length() > 1) {
+            builder.setLength(builder.length() - 1);
+        }
+        return builder.toString();
+    }
+
+    public String getFormattedTitle() {
+        if (pathSegments.isEmpty()) return "";
+        
+        ArrayList<String> displayNames = splitToArrayString();
+        StringBuilder builder = new StringBuilder();
+
+        int startIndex = displayNames.size() > maxPathNameLength ? displayNames.size() - maxPathNameLength : 1;
+        builder.append(displayNames.size() > maxPathNameLength ? "..." : displayNames.get(0));
+
+        for (int i = startIndex; i < displayNames.size(); i++) {
+            builder.append("/").append(getName(displayNames.get(i)));
+        }
+
+        return builder.toString();
+    }
+
+    private String getName(String str) {
+        if (str.startsWith("(") && str.contains(")") && str.substring(1, str.indexOf(")")).matches("^[0-9]+"))
+            return str.substring(str.indexOf(")") + 1).trim();
+        return str;
     }
 }

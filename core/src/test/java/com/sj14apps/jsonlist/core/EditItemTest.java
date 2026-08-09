@@ -27,7 +27,7 @@ public class EditItemTest {
         String input = "{\"name\":\"John Doe\",\"age\": 30}";
         String expected = "{\"name\":\"John Smith\",\"age\": 30}";
 
-        JsonNode rootList = JsonFunctions.getJsonObject(null,JsonParser.parseString(input).getAsJsonObject());
+        JsonNode rootList = JsonFunctions.getJsonObject(JsonParser.parseString(input).getAsJsonObject());
         rootList.children.get(0).setValue("John Smith");
         assertJsonEqual(JsonFunctions.convertToRawString(rootList,false),expected);
     }
@@ -38,7 +38,7 @@ public class EditItemTest {
         String input = "{\"name\":\"John Doe\",\"age\": 30}";
         String expected = "{\"Full Name\":\"John Doe\",\"age\": 30}";
 
-        JsonNode rootList = JsonFunctions.getJsonObject(null,JsonParser.parseString(input).getAsJsonObject());
+        JsonNode rootList = JsonFunctions.getJsonObject(JsonParser.parseString(input).getAsJsonObject());
         rootList.children.get(0).setKey("Full Name");
         assertJsonEqual(JsonFunctions.convertToRawString(rootList,false),expected);
     }

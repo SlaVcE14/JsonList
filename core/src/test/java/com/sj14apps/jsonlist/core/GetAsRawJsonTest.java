@@ -15,7 +15,7 @@ public class GetAsRawJsonTest {
         if (input.isJsonArray()) {
             rootList = JsonFunctions.getJsonArrayRoot(input.getAsJsonArray());
         } else if (input.isJsonObject()) {
-            rootList = JsonFunctions.getJsonObject(null,input.getAsJsonObject());
+            rootList = JsonFunctions.getJsonObject(input.getAsJsonObject());
         } else {
             throw new IllegalArgumentException("Unsupported JSON root type.");
         }

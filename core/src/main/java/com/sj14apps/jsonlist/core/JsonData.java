@@ -13,7 +13,6 @@ public class JsonData {
 
     int previousPos = -1;
     public int searchMode = 0;
-    static int maxPathNameLength = 3;
 
     public String getPathAsString() {
         return path.toString();
@@ -39,7 +38,7 @@ public class JsonData {
         if (currentNode.isArray)
             return JsonFunctions.getArrayList(currentNode.children);
         ArrayList<ListItem> items = new ArrayList<>();
-        items.add(new ListItem().error());
+        items.add(ListItem.error());
         return items;
     }
 
@@ -83,9 +82,6 @@ public class JsonData {
         path = new Path();
     }
 
-    public static String[] splitPath(String path) {
-        return path.split("///");
-    }
 
     public boolean isRootNodeNull() {
         return rootNode == null;
@@ -115,24 +111,5 @@ public class JsonData {
         previousPosStack.clear();
     }
 
-    public static String getPathFormat(String path) {
-        if (path == null || path.isEmpty()) return "";
-        String[] pathStrings = splitPath(path);
-        StringBuilder builder = new StringBuilder();
-        
-        int startIndex = pathStrings.length > maxPathNameLength ? pathStrings.length - maxPathNameLength : 1;
-        builder.append(pathStrings.length > maxPathNameLength ? "..." : pathStrings[0]);
 
-        for (int i = startIndex; i < pathStrings.length; i++) {
-            builder.append("/").append(getName(pathStrings[i]));
-        }
-
-        return builder.toString();
-    }
-
-    public static String getName(String str) {
-        if (str.startsWith("{") && str.contains("}") && str.substring(1, str.indexOf("}")).matches("^[0-9]+"))
-            return str.substring(str.indexOf("}") + 1);
-        return str;
-    }
 }

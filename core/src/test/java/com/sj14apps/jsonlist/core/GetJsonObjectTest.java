@@ -18,7 +18,7 @@ public class GetJsonObjectTest {
         nestedObject.addProperty("nestedKey", "nestedValue");
         jsonObject.add("key1", nestedObject);
 
-        JsonNode result = JsonFunctions.getJsonObject(null,jsonObject);
+        JsonNode result = JsonFunctions.getJsonObject(jsonObject);
 
         assertNotNull(result);
         assertEquals(1, result.children.size());
@@ -37,7 +37,7 @@ public class GetJsonObjectTest {
         jsonArray.add("value2");
         jsonObject.add("key1", jsonArray);
 
-        JsonNode result = JsonFunctions.getJsonObject(null,jsonObject);
+        JsonNode result = JsonFunctions.getJsonObject(jsonObject);
 
         assertNotNull(result);
         assertEquals(1, result.children.size());
@@ -55,7 +55,7 @@ public class GetJsonObjectTest {
 
         JsonObject jsonObject = new Gson().fromJson(jsonString, JsonObject.class);
 
-        JsonNode result = JsonFunctions.getJsonObject(null,jsonObject);
+        JsonNode result = JsonFunctions.getJsonObject(jsonObject);
 
         assertNotNull(result);
         assertEquals(2, result.children.size());
@@ -72,7 +72,7 @@ public class GetJsonObjectTest {
 
         JsonObject object =  new Gson().fromJson(data, JsonObject.class);
 
-        JsonNode items = JsonFunctions.getJsonObject(null,object);
+        JsonNode items = JsonFunctions.getJsonObject(object);
 
         JsonNode expected = new JsonNode().object();
 
@@ -126,7 +126,7 @@ public class GetJsonObjectTest {
 
         JsonObject object =  new Gson().fromJson(data, JsonObject.class);
 
-        JsonNode items = JsonFunctions.getJsonObject(null,object);
+        JsonNode items = JsonFunctions.getJsonObject(object);
 
         JsonNode expected = new JsonNode().object();
 
@@ -172,7 +172,7 @@ public class GetJsonObjectTest {
 
         JsonObject object =  new Gson().fromJson(data, JsonObject.class);
 
-        JsonNode items = JsonFunctions.getJsonObject(null,object);
+        JsonNode items = JsonFunctions.getJsonObject(object);
 
         JsonNode expected = new JsonNode().object();
 

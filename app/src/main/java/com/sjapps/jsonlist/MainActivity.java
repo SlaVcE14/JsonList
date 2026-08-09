@@ -436,7 +436,7 @@ public class MainActivity extends AppCompatActivity {
             TransitionManager.endTransitions(binding.content);
             TransitionManager.beginDelayedTransition(binding.content, autoTransition);
             data.goBack();
-            open(JsonData.getPathFormat(data.getPath().toString()), data.getCurrentNode().parent,data.getPath(),-1);
+            open(data.getPath().getFormattedTitle(), data.getCurrentNode().parent,data.getPath(),-1);
         }
     };
 
@@ -692,8 +692,14 @@ public class MainActivity extends AppCompatActivity {
         if (binding.emptyListTxt.getVisibility() == VISIBLE)
             binding.emptyListTxt.setVisibility(GONE);
 
+        if (node == null) return;
+        
         if (node.isObject && node.parent != null && node.parent.isArray){
-            open(Title,node.parent,path,previousPosition);
+            Path newPath = path.copy();
+            if (!newPath.isEmpty() && newPath.pathSegments.peekLast().isId) {
+                newPath.goBack();
+            }
+            open(newPath.getFormattedTitle(), node.parent, newPath, previousPosition);
             return;
         }
 
@@ -744,7 +750,7 @@ public class MainActivity extends AppCompatActivity {
         for (int i = 0; i<n; i++)
             data.goBack();
         data.setCurrentNode(JsonFunctions.getNodeFromPath(data.getRootNode(),data.getPath()));
-        open(JsonData.getPathFormat(data.getPath().toString()),data.getCurrentNode(),data.getPath(),-1);
+        open(data.getPath().getFormattedTitle(),data.getCurrentNode(),data.getPath(),-1);
 
     }
 

@@ -72,11 +72,13 @@ public class SearchListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
         TextView valTxt = currentHolder.getValTxt();
         TextView pathTxt = currentHolder.getPathTxt();
         valTxt.setText(item.value);
-        String pathStr = "/" + item.path.replace("///","/");
+        String pathStr = item.getDisplayPath();
         pathTxt.setText(pathStr);
         currentHolder.getBtn().setOnClickListener(v -> {
             activity.searchController.hideSearchView();
-            activity.open(JsonData.getPathFormat(item.path),item.node.parent,new Path().fromString(item.path),-1);
+            Path newPath = item.path.copy();
+            if (!newPath.isEmpty()) newPath.goBack();
+            activity.open(newPath.getFormattedTitle(),item.node.parent,newPath,-1);
             activity.highlightItem(item.id);
         });
 

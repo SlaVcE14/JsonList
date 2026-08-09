@@ -57,7 +57,7 @@ public class JsonFunctionsTest {
         jsonObject.addProperty("key1", "value1");
         jsonObject.addProperty("key2", "value2");
 
-        JsonNode result = JsonFunctions.getJsonObject(null,jsonObject);
+        JsonNode result = JsonFunctions.getJsonObject(jsonObject);
         assertNotNull(result);
         assertEquals(2, result.children.size());
     }
@@ -73,7 +73,7 @@ public class JsonFunctionsTest {
         jsonObject.addProperty("test6", "value1\"value2");
         jsonObject.addProperty("test7", "value1\\value2");
 
-        JsonNode result = JsonFunctions.getJsonObject(null,jsonObject);
+        JsonNode result = JsonFunctions.getJsonObject(jsonObject);
         assertNotNull(result);
         assertEquals("value1\nvalue2", result.children.get(0).value);
         assertEquals("value1\tvalue2", result.children.get(1).value);

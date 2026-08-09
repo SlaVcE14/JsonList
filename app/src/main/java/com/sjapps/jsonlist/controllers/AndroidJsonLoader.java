@@ -57,7 +57,7 @@ public class AndroidJsonLoader implements JsonLoader {
                 data.setRootNode(null);
                 if (element instanceof JsonObject) {
                     JsonObject object = element.getAsJsonObject();
-                    data.setRootNode(getJsonObject(null,object));
+                    data.setRootNode(getJsonObject(object));
                 }
                 if (element instanceof JsonArray) {
                     JsonArray array = element.getAsJsonArray();

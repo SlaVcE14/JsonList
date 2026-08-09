@@ -108,7 +108,7 @@ public class ListItem {
     @Override
     public String toString() {
         return "{" +
-                ",\"Position\":" + position +
+                "\"Position\":" + position +
                 ", \"isSpace\":" + isSpace +
                 ", \"node\":" + jsonNode +
 
@@ -135,7 +135,7 @@ public class ListItem {
         return java.util.Objects.hash(jsonNode, isSpace, position);
     }
 
-    public ListItem error() {
+    public static ListItem error() {
         JsonNode node = new JsonNode();
         node.setKey("ERROR");
         node.setValue("This was not supposed to happen!!");
