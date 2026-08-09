@@ -10,13 +10,11 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
+import com.sj14apps.jsonlist.core.JsonNode;
 import com.sjapps.jsonlist.MainActivity;
 import com.sjapps.jsonlist.R;
 import com.sj14apps.jsonlist.core.JsonData;
 import com.sj14apps.jsonlist.core.controllers.JsonLoader;
-import com.sj14apps.jsonlist.core.ListItem;
-
-import java.util.ArrayList;
 
 public class AndroidJsonLoader implements JsonLoader {
 
@@ -33,7 +31,7 @@ public class AndroidJsonLoader implements JsonLoader {
         JsonData data = activity.data;
 
         activity.readFileThread = new Thread(() -> {
-            ArrayList<ListItem> temp = data.getRootList();
+            JsonNode temp = data.getRootNode();
             String tempRaw = data.getRawData();
             String tmpFileName = data.getFileName();
             JsonElement element;
@@ -56,14 +54,14 @@ public class AndroidJsonLoader implements JsonLoader {
             activity.readFileThread.setName("readFileThread");
             callBack.started();
             try {
-                data.setRootList(null);
+                data.setRootNode(null);
                 if (element instanceof JsonObject) {
                     JsonObject object = element.getAsJsonObject();
-                    data.setRootList(getJsonObject(object));
+                    data.setRootNode(getJsonObject(object));
                 }
                 if (element instanceof JsonArray) {
                     JsonArray array = element.getAsJsonArray();
-                    data.setRootList(getJsonArrayRoot(array));
+                    data.setRootNode(getJsonArrayRoot(array));
                 }
                 if (Data.length()<10000000)
                     data.setRawData(Data);
@@ -73,21 +71,20 @@ public class AndroidJsonLoader implements JsonLoader {
             } catch (Exception e){
                 e.printStackTrace();
                 creatingListException();
-                data.setRootList(null);
+                data.setRootNode(null);
             }
 
-            if (!data.isRootListNull()) {
+            if (!data.isRootNodeNull()) {
                 callBack.success();
 
             } else {
-                data.setRootList(temp);
+                data.setRootNode(temp);
                 data.setRawData(tempRaw);
                 data.setFileName(tmpFileName);
                 callBack.failed();
                 fileNotLoadedException();
                 return;
             }
-
             callBack.after();
 
         });

@@ -2,7 +2,6 @@ package com.sj14apps.jsonlist.core;
 
 import com.google.gson.*;
 import static junit.framework.TestCase.assertEquals;
-import java.util.ArrayList;
 
 
 import org.junit.Test;
@@ -12,7 +11,7 @@ public class GetAsRawJsonTest {
     private void assertJsonEqual(String inputJson) {
         JsonElement input = JsonParser.parseString(inputJson);
 
-        ArrayList<ListItem> rootList;
+        JsonNode rootList;
         if (input.isJsonArray()) {
             rootList = JsonFunctions.getJsonArrayRoot(input.getAsJsonArray());
         } else if (input.isJsonObject()) {
@@ -21,7 +20,10 @@ public class GetAsRawJsonTest {
             throw new IllegalArgumentException("Unsupported JSON root type.");
         }
 
-        String resultJson = JsonFunctions.convertToRawString(rootList);
+        String resultJson = JsonFunctions.convertToRawString(rootList,false);
+
+        System.out.println("Expected: " + inputJson);
+        System.out.println("Result: " + resultJson);
 
         JsonElement result = JsonParser.parseString(resultJson);
         assertEquals("Re-converted JSON did not match original structure",input, result);
@@ -58,6 +60,16 @@ public class GetAsRawJsonTest {
     }
 
     @Test
+    public void testArrayOfArrays2() {
+        assertJsonEqual("[[[[\"aa\",12,true]]]]");
+    }
+
+    @Test
+    public void testArrayOfArrays3() {
+        assertJsonEqual("[[[\"aa\",12,true,{\"test\":\"test123\",\"val\":123},213]]]");
+    }
+
+    @Test
     public void testMixedArray() {
         assertJsonEqual("{\"mixed\":[1,\"two\",true,null,{\"x\":1},[2,3]]}");
     }
@@ -89,3 +101,4 @@ public class GetAsRawJsonTest {
                 " \"Bachelor of Science in Computer Science\",\"graduation_year\": 2015}]}}");
     }
 }
+

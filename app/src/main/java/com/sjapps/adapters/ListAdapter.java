@@ -13,6 +13,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.sj14apps.jsonlist.core.Path;
 import com.sjapps.jsonlist.databinding.ListLayout2Binding;
 import com.sjapps.jsonlist.databinding.ListLayoutBinding;
 import com.sjapps.jsonlist.databinding.SpaceLayoutBinding;
@@ -29,7 +30,7 @@ public class ListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     ArrayList<ListItem> list;
     Context context;
     MainActivity activity;
-    String path;
+    Path path;
     public int selectedItem = -1;
     public int highlightedItem = -1;
     boolean isEditMode = false;
@@ -98,7 +99,7 @@ public class ListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     }
 
 
-    public ListAdapter(ArrayList<ListItem> list, Context context,String path){
+    public ListAdapter(ArrayList<ListItem> list, Context context,Path path){
         this.list = list;
         this.context = context;
         this.activity = (MainActivity) context;
@@ -167,9 +168,12 @@ public class ListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                 highlightedItem = -1;
             }
 
-            String newPath = path + (path.equals("") ? "": "///" + (item.getId()!=-1?"{" + item.getId() + "}":"")) + item.getName();
+            Path newPath = path.copy();
+            if (!item.isSpace() && item.getJsonNode().parent.id != null)
+                newPath.add(item.getJsonNode().parent.id+"",true);
+            newPath.add(item.getName());
 
-            currentHolder.binding.btn.setOnClickListener(view1 -> activity.open(JsonData.getPathFormat(newPath),newPath,item.getPosition()!=-1?item.getPosition():position));
+            currentHolder.binding.btn.setOnClickListener(view1 -> activity.open(newPath.getFormattedTitle(),item.getJsonNode(),newPath,item.getPosition()!=-1?item.getPosition():position));
             currentHolder.binding.copyBtn.setOnClickListener(v -> {
                 ClipboardManager clipboard = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
                 ClipData clipData = ClipData.newPlainText("Text",item.getName());

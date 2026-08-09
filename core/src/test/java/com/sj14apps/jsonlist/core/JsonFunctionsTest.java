@@ -19,12 +19,12 @@ public class JsonFunctionsTest {
         JsonArray jsonArray = new JsonArray();
         jsonArray.add(new JsonObject());
 
-        ArrayList<ListItem> result = JsonFunctions.getJsonArrayRoot(jsonArray);
+        JsonNode result = JsonFunctions.getJsonArrayRoot(jsonArray);
         assertNotNull(result);
-        assertEquals(1, result.size());
-        assertEquals(ListItem.ARRAY_OBJECTS_NAME, result.get(0).getName());
-        assertTrue(result.get(0).isArray());
-        assertEquals(1, result.get(0).getListObjects().size());
+        assertTrue(result.isArray);
+        assertTrue(result.isRoot);
+        assertEquals(JsonNode.ARRAY_OBJECTS_NAME, result.key);
+        assertEquals(1, result.children.size());
     }
 
     @Test
@@ -34,7 +34,7 @@ public class JsonFunctionsTest {
         jsonArray.add(new JsonObject());
         jsonArray.add(new JsonObject());
 
-        ArrayList<ArrayList<ListItem>> result = JsonFunctions.getJsonArray(jsonArray);
+        ArrayList<JsonNode> result = JsonFunctions.getJsonArray(null,jsonArray);
         assertNotNull(result);
         assertEquals(2, result.size());
     }
@@ -57,9 +57,9 @@ public class JsonFunctionsTest {
         jsonObject.addProperty("key1", "value1");
         jsonObject.addProperty("key2", "value2");
 
-        ArrayList<ListItem> result = JsonFunctions.getJsonObject(jsonObject);
+        JsonNode result = JsonFunctions.getJsonObject(jsonObject);
         assertNotNull(result);
-        assertEquals(2, result.size());
+        assertEquals(2, result.children.size());
     }
 
     @Test
@@ -73,15 +73,15 @@ public class JsonFunctionsTest {
         jsonObject.addProperty("test6", "value1\"value2");
         jsonObject.addProperty("test7", "value1\\value2");
 
-        ArrayList<ListItem> result = JsonFunctions.getJsonObject(jsonObject);
+        JsonNode result = JsonFunctions.getJsonObject(jsonObject);
         assertNotNull(result);
-        assertEquals("value1\nvalue2", result.get(0).getValue());
-        assertEquals("value1\tvalue2", result.get(1).getValue());
-        assertEquals("value1\rvalue2", result.get(2).getValue());
-        assertEquals("value1\bvalue2", result.get(3).getValue());
-        assertEquals("value1\fvalue2", result.get(4).getValue());
-        assertEquals("value1\"value2", result.get(5).getValue());
-        assertEquals("value1\\value2", result.get(6).getValue());
+        assertEquals("value1\nvalue2", result.children.get(0).value);
+        assertEquals("value1\tvalue2", result.children.get(1).value);
+        assertEquals("value1\rvalue2", result.children.get(2).value);
+        assertEquals("value1\bvalue2", result.children.get(3).value);
+        assertEquals("value1\fvalue2", result.children.get(4).value);
+        assertEquals("value1\"value2", result.children.get(5).value);
+        assertEquals("value1\\value2", result.children.get(6).value);
     }
 
 }

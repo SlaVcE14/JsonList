@@ -9,8 +9,8 @@ android {
         applicationId "com.sjapps.jsonlist"
         minSdk 23
         targetSdk 36
-        versionCode 902
-        versionName "1.9.2"
+        versionCode 1001
+        versionName "2.0 beta 1"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.generatedDensities = []
@@ -36,7 +36,7 @@ android {
             signingConfig signingConfigs.debug
         }
         debug {
-            applicationIdSuffix '.debug'
+            applicationIdSuffix '.v2.debug'
             versionNameSuffix ' dev'
         }
     }

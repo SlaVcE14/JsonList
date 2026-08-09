@@ -21,28 +21,27 @@ public class GetJsonArrayRootTest {
 
         JsonArray array = element.getAsJsonArray();
 
-        ArrayList<ListItem> itemsArr = JsonFunctions.getJsonArrayRoot(array);
-        ArrayList<ListItem> expectedArr = new ArrayList<>();
+        JsonNode itemsArr = JsonFunctions.getJsonArrayRoot(array);
+        JsonNode expectedArr = new JsonNode().root().array();
+        expectedArr.setKey(JsonNode.ARRAY_OBJECTS_NAME);
 
-        ListItem root = new ListItem();
-        root.setName(ListItem.ARRAY_OBJECTS_NAME);
-        root.setIsArray(true);
+        JsonNode listItems = new JsonNode().object();
+        listItems.setId(0);
 
-        ArrayList<ListItem> listItems = new ArrayList<>();
+        JsonNode OLItem = new JsonNode();
 
-        ListItem OLItem = new ListItem();
-
-        OLItem.setName("data2");
+        OLItem.setKey("data2");
         OLItem.setValue("123");
-        listItems.add(OLItem);
+        OLItem.setParent(expectedArr);
+        listItems.children.add(OLItem);
+        listItems.setParent(expectedArr);
 
-        ArrayList<ArrayList<ListItem>> arrayListArrayList = new ArrayList<>();
-        arrayListArrayList.add(listItems);
-        root.setListObjects(arrayListArrayList);
-        expectedArr.add(root);
+        expectedArr.children.add(listItems);
+
         assertEquals(expectedArr,itemsArr);
 
     }
+
     @Test
     public void getJsonArrayRootTest2(){
         String data = "[{\"data2\":123},1242,true,null]";
@@ -50,59 +49,60 @@ public class GetJsonArrayRootTest {
 
         JsonArray array = element.getAsJsonArray();
 
-        ArrayList<ListItem> itemsArr = JsonFunctions.getJsonArrayRoot(array);
+        JsonNode itemsArr = JsonFunctions.getJsonArrayRoot(array);
 
 
-        ArrayList<ListItem> expectedArr = new ArrayList<>();
+        JsonNode expectedRootArr = new JsonNode().root().array();
 
-        ListItem root = new ListItem();
-        root.setName(ListItem.ARRAY_ITEMS_NAME);
-        root.setIsArray(true);
+        expectedRootArr.setKey(JsonNode.ARRAY_ITEMS_NAME);
 
-        ArrayList<ArrayList<ListItem>> arrayListArrayList = new ArrayList<>();
+        ArrayList<JsonNode> rootChildren = new ArrayList<>();
 
-        ArrayList<ListItem> items1 = new ArrayList<>();
-        ListItem item1 = new ListItem();
-        item1.setName("data2");
+        JsonNode items1 = new JsonNode().object();
+        JsonNode item1 = new JsonNode();
+        item1.setKey("data2");
         item1.setValue("123");
-        items1.add(item1);
-        arrayListArrayList.add(items1);
+        items1.setParent(items1);
+        items1.children.add(item1);
+        items1.setId(0);
+        items1.setParent(expectedRootArr);
+        rootChildren.add(items1);
 
-        ArrayList<ListItem> items2 = new ArrayList<>();
-        ListItem item2 = new ListItem();
+        JsonNode item2 = new JsonNode();
         item2.setValue("1242");
-        items2.add(item2);
-        arrayListArrayList.add(items2);
+        item2.setId(1);
+        item2.setParent(expectedRootArr);
+        rootChildren.add(item2);
 
-        ArrayList<ListItem> items3 = new ArrayList<>();
-        ListItem item3 = new ListItem();
+        JsonNode item3 = new JsonNode();
         item3.setValue("true");
-        items3.add(item3);
-        arrayListArrayList.add(items3);
+        item3.setId(2);
+        item3.setParent(expectedRootArr);
+        rootChildren.add(item3);
 
-        ArrayList<ListItem> items4 = new ArrayList<>();
-        ListItem item4 = new ListItem();
+        JsonNode item4 = new JsonNode();
         item4.setValue("null");
-        items4.add(item4);
-        arrayListArrayList.add(items4);
+        item4.setId(3);
+        item4.setParent(expectedRootArr);
+        rootChildren.add(item4);
 
 
-        root.setListObjects(arrayListArrayList);
+        expectedRootArr.setChildren(rootChildren);
 
-        expectedArr.add(root);
-        assertEquals(expectedArr,itemsArr);
+        assertEquals(expectedRootArr,itemsArr);
 
     }
 
     @Test
     public void testGetJsonArrayRootWithEmptyArray() {
         JsonArray jsonArray = new JsonArray();
-        ArrayList<ListItem> result = JsonFunctions.getJsonArrayRoot(jsonArray);
+        JsonNode result = JsonFunctions.getJsonArrayRoot(jsonArray);
         assertNotNull(result);
-        assertEquals(1, result.size());
-        assertEquals(ListItem.ARRAY_OBJECTS_NAME, result.get(0).getName());
-        assertTrue(result.get(0).isArray());
-        assertEquals(0, result.get(0).getListObjects().size());
+        ArrayList<ListItem> list = JsonFunctions.getListFromNode(result);
+        assertEquals(0, list.size());
+        assertEquals(JsonNode.ARRAY_OBJECTS_NAME, result.key);
+        assertTrue(result.isArray);
+        assertEquals(0, result.children.size());
     }
 
 }

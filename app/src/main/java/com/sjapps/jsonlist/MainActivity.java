@@ -53,6 +53,8 @@ import com.google.android.material.snackbar.BaseTransientBottomBar;
 import com.google.android.material.snackbar.Snackbar;
 
 import com.sj14apps.jsonlist.core.JsonFunctions;
+import com.sj14apps.jsonlist.core.JsonNode;
+import com.sj14apps.jsonlist.core.Path;
 import com.sj14apps.jsonlist.core.controllers.SearchController;
 import com.sjapps.about.AboutActivity;
 import com.sjapps.adapters.ListAdapter;
@@ -249,9 +251,7 @@ public class MainActivity extends AppCompatActivity {
             if(canCallBackDispatcher()) getOnBackPressedDispatcher().onBackPressed();
         });
         binding.openFileBtn.setOnClickListener(view -> fileManager.importFromFile());
-        binding.openUrlBtn.setOnClickListener(view -> {
-            showUrlSearchView();
-        });
+        binding.openUrlBtn.setOnClickListener(view -> showUrlSearchView());
 
         binding.titleTxt.setOnClickListener(v -> {
             if (!data.isEmptyPath())
@@ -298,6 +298,10 @@ public class MainActivity extends AppCompatActivity {
         });
         binding.dimLayout.setOnClickListener(view -> open_closeMenu());
         binding.splitViewBtn.setOnClickListener(view -> rawJsonView.toggleSplitView());
+        binding.splitViewBtn.setOnLongClickListener(view -> {
+            ((AndroidRawJsonView) rawJsonView).ShowDebugJson();
+            return true;
+        });
         binding.filterBtn.setOnClickListener(view -> filter());
         binding.searchBtn.setOnClickListener(view -> searchController.showSearchView());
         binding.editBtn.setOnClickListener(view -> editController.toggleEdit());
@@ -432,7 +436,7 @@ public class MainActivity extends AppCompatActivity {
             TransitionManager.endTransitions(binding.content);
             TransitionManager.beginDelayedTransition(binding.content, autoTransition);
             data.goBack();
-            open(JsonData.getPathFormat(data.getPath()), data.getPath(),-1);
+            open(data.getPath().getFormattedTitle(), data.getCurrentNode().parent,data.getPath(),-1);
         }
     };
 
@@ -678,7 +682,7 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    public void open(String Title, String path, int previousPosition) {
+    public void open(String Title, JsonNode node, Path path, int previousPosition){
         TransitionManager.endTransitions(binding.content);
         TransitionManager.beginDelayedTransition(binding.content, autoTransition);
 
@@ -688,14 +692,24 @@ public class MainActivity extends AppCompatActivity {
         if (binding.emptyListTxt.getVisibility() == VISIBLE)
             binding.emptyListTxt.setVisibility(GONE);
 
-
+        if (node == null) return;
+        
+        if (node.isObject && node.parent != null && node.parent.isArray){
+            Path newPath = path.copy();
+            if (!newPath.isEmpty() && newPath.pathSegments.peekLast().isId) {
+                newPath.goBack();
+            }
+            open(newPath.getFormattedTitle(), node.parent, newPath, previousPosition);
+            return;
+        }
 
         pathAdapter = new PathListAdapter(this,path);
         binding.pathList.setAdapter(pathAdapter);
         data.setPath(path);
         binding.titleTxt.setText(Title);
-        ArrayList<ListItem> arrayList = getListFromPath(path,data.getRootList());
-        data.setCurrentList(arrayList);
+
+        ArrayList<ListItem> arrayList = getListFromNode(node);
+        data.setCurrentNode(node);
         updateFilterList(arrayList);
         adapter = new ListAdapter(arrayList, this, path);
         binding.list.setAdapter(adapter);
@@ -706,9 +720,7 @@ public class MainActivity extends AppCompatActivity {
                 else binding.list.scrollToPosition(data.getPreviousPos()+2);
                 adapter.setHighlightItem(data.getPreviousPos());
             }, 500);
-            handler.postDelayed(() -> {
-                adapter.notifyItemChanged(data.getPreviousPos());
-            }, 600);
+            handler.postDelayed(() -> adapter.notifyItemChanged(data.getPreviousPos()), 600);
         }
         else data.addPreviousPos(previousPosition);
 
@@ -716,10 +728,9 @@ public class MainActivity extends AppCompatActivity {
             binding.emptyListTxt.setVisibility(VISIBLE);
         }
         System.out.println("path = " + path);
-        if (!path.isEmpty()) {
+        if (!data.isEmptyPath()) {
             binding.backBtn.setVisibility(VISIBLE);
         } else binding.backBtn.setVisibility(GONE);
-
     }
 
     public void highlightItem(int id){
@@ -738,7 +749,8 @@ public class MainActivity extends AppCompatActivity {
             showHidePathList();
         for (int i = 0; i<n; i++)
             data.goBack();
-        open(JsonData.getPathFormat(data.getPath()), data.getPath(),-1);
+        data.setCurrentNode(JsonFunctions.getNodeFromPath(data.getRootNode(),data.getPath()));
+        open(data.getPath().getFormattedTitle(),data.getCurrentNode(),data.getPath(),-1);
 
     }
 
@@ -959,7 +971,7 @@ public class MainActivity extends AppCompatActivity {
             readFileThread = new Thread(() -> {
                 String dataStr = data.getRawData();
                 if (dataStr.equals("-1"))
-                    dataStr = JsonFunctions.convertToRawString(data.getRootList());
+                    dataStr = JsonFunctions.convertToRawString(data.getRootNode());
 
                 fileManager.writeFile(outputStream, dataStr, fileWriteCallback);
             });
@@ -1100,9 +1112,9 @@ public class MainActivity extends AppCompatActivity {
                 if (binding.searchLL.getVisibility() == VISIBLE)
                     searchController.hideSearchView();
 
-                data.setCurrentList(data.getRootList());
+                data.setCurrentNode(data.getRootNode());
                 updateFilterList(data.getRootList());
-                adapter = new ListAdapter(data.getRootList(), MainActivity.this, "");
+                adapter = new ListAdapter(data.getCurrentList(), MainActivity.this, new Path());
                 pathAdapter = new PathListAdapter(MainActivity.this,data.getPath());
                 binding.list.setAdapter(adapter);
                 binding.pathList.setAdapter(pathAdapter);

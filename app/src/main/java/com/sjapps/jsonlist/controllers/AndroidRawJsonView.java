@@ -112,6 +112,17 @@ public class AndroidRawJsonView extends RawJsonView {
         thread.start();
     }
 
+    public void ShowDebugJson() {
+        mainActivity.loadingStarted(mainActivity.getString(R.string.displaying_json));
+
+        Thread thread = new Thread(() -> {
+            String dataStr = JsonFunctions.getAsPrettyPrint(mainActivity.data.getRootNode().toString());
+            updateRawJson(dataStr);
+        });
+        thread.setName("loadingJson");
+        thread.start();
+    }
+
     public void updateRawJson(String json) {
         String htmlData = generateHtml(json,mainActivity.state);
         mainActivity.handler.post(() -> {

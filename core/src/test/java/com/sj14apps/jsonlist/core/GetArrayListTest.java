@@ -7,30 +7,36 @@ import static junit.framework.TestCase.assertNotNull;
 import org.junit.Test;
 
 import java.util.ArrayList;
+import java.util.Optional;
 
 public class GetArrayListTest {
 
     @Test
     public void testGetArrayList() {
-        ArrayList<ArrayList<ListItem>> inputList = new ArrayList<>();
+        ArrayList<JsonNode> inputList = new ArrayList<>();
 
-        ArrayList<ListItem> list1 = new ArrayList<>();
-        ListItem item1 = new ListItem();
-        item1.setName("Item 1");
+        JsonNode list1 = new JsonNode().object();
+        JsonNode item1 = new JsonNode();
+        item1.setKey("Item 1");
         item1.setValue("Value 1");
-        list1.add(item1);
+        item1.setParent(list1);
+        list1.children.add(item1);
+        list1.setId(0);
 
-        ArrayList<ListItem> list2 = new ArrayList<>();
-        ListItem item2 = new ListItem();
-        item2.setName("Item 2");
+        JsonNode list2 = new JsonNode().object();
+        JsonNode item2 = new JsonNode();
+        item2.setKey("Item 2");
         item2.setValue("Value 2");
-        list2.add(item2);
+        item2.setParent(list2);
+        list2.children.add(item2);
+        list2.setId(1);
 
         inputList.add(list1);
         inputList.add(list2);
 
         ArrayList<ListItem> result = JsonFunctions.getArrayList(inputList);
 
+        System.out.println(result);
         assertEquals(4, result.size());
         assertEquals("Item 1", result.get(0).getName());
         assertEquals("Value 1", result.get(0).getValue());
@@ -38,14 +44,14 @@ public class GetArrayListTest {
         assertEquals("Item 2", result.get(2).getName());
         assertEquals("Value 2", result.get(2).getValue());
         assertFalse(result.get(2).isSpace());
-        assertEquals(0, result.get(0).getId());
-        assertEquals(1, result.get(2).getId());
+        assertEquals(Optional.of(0), Optional.ofNullable(result.get(0).jsonNode.parent.id));
+        assertEquals(Optional.of(1), Optional.ofNullable(result.get(2).jsonNode.parent.id));
     }
 
     @Test
     public void testGetArrayListEmpty() {
 
-        ArrayList<ArrayList<ListItem>> lists = new ArrayList<>();
+        ArrayList<JsonNode> lists = new ArrayList<>();
         ArrayList<ListItem> result = JsonFunctions.getArrayList(lists);
 
         assertNotNull(result);

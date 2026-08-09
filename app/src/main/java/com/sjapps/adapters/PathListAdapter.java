@@ -9,15 +9,18 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.sj14apps.jsonlist.core.Path;
 import com.sjapps.jsonlist.MainActivity;
 import com.sjapps.jsonlist.databinding.ListPathLayoutBinding;
 
+import java.util.ArrayList;
+
 public class PathListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
-    String[] list;
+    ArrayList<String> list;
     Context context;
     MainActivity activity;
-    String path;
+    Path path;
 
 
     static class ViewHolder extends RecyclerView.ViewHolder{
@@ -41,11 +44,11 @@ public class PathListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
     }
 
-    public PathListAdapter(Context context, String path){
+    public PathListAdapter(Context context, Path path){
         this.context = context;
         this.activity = (MainActivity) context;
         this.path = path;
-        this.list = path.split("///");
+        this.list = path.splitToArrayString();
     }
 
     @NonNull
@@ -58,7 +61,7 @@ public class PathListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int pos) {
 
-        String item = list[pos];
+        String item = list.get(pos);
 
         int position = pos;
 
@@ -75,11 +78,11 @@ public class PathListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
     @Override
     public int getItemCount() {
-        return list.length;
+        return list.size();
     }
 
     private int getLast(){
-        return list.length -1;
+        return list.size() -1;
     }
 
     @Override

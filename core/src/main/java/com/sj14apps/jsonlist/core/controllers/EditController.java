@@ -1,5 +1,6 @@
 package com.sj14apps.jsonlist.core.controllers;
 
+import com.sj14apps.jsonlist.core.JsonNode;
 import com.sj14apps.jsonlist.core.ListItem;
 
 public abstract class EditController {
@@ -32,26 +33,27 @@ public abstract class EditController {
                 String name = callBack.newName();
                 String oldName = item.getName();
 
-                for (ListItem i : item.getParentList()) {
-                    if (i.getName().equals(name) && i != item) {
+                for (JsonNode i : item.getJsonNode().parent.children) {
+                    if (i.key.equals(name) && i != item.getJsonNode()) {
                         callBack.dismissEditView();
                         callBack.sameNameExist();
                         return;
                     }
                 }
+
                 if (!oldName.equals(name)) {
                     isEdited = true;
                     if (callBack.hasMultipleItemsInList()) editAllItemsWithSameKey(oldName, name, item);
                 }
 
-                item.setName(name);
+                item.getJsonNode().setKey(name);
             }
 
             if (!item.isArray() && !item.isObject()) {
                 String value = callBack.newValue();
                 if (!item.getValue().equals(value))
                     isEdited = true;
-                item.setValue(value);
+                item.getJsonNode().setValue(value);
             }
 
             callBack.dismissEditView();

@@ -154,7 +154,7 @@ public class AndroidSearchController extends SearchController {
         activity.binding.mainLL.setVisibility(VISIBLE);
         activity.binding.menuBtn.setVisibility(VISIBLE);
         activity.binding.splitViewBtn.setVisibility(VISIBLE);
-        activity.binding.titleTxt.setText(JsonData.getPathFormat(activity.data.getPath()));
+        activity.binding.titleTxt.setText(activity.data.getPath().getFormattedTitle());
 
         activity.binding.searchTxt.setText("");
 
