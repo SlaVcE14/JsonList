@@ -31,4 +31,4 @@ Enjoy the flexibility of dynamic color support, adapting to your Material Design
 ![JsonList dynamic colors](images/jsonlist_material_colots.gif)
 
 ## Stargazers over time
-[![Stargazers over time](https://starchart.cc/SlaVcE14/JsonList.svg?background=%23000101&axis=%23cccccc&line=%230060f4)](https://starchart.cc/SlaVcE14/JsonList)
+[![Star History Chart](https://api.star-history.com/chart?repos=sj14apps/jsonlist&type=date&legend=top-left)](https://www.star-history.com/?repos=sj14apps%2Fjsonlist&type=date&legend=top-left)
